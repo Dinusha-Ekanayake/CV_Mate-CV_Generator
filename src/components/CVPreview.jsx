@@ -4,19 +4,31 @@ import './CVPreview.css';
 const CVPreview = ({ cvData, settings }) => {
   const { personal, summary, education, experience, projects, skills } = cvData;
 
+  const parseMarkdown = (text) => {
+    if (!text) return null;
+    // Simple markdown parser: **bold**, *italic*, [text](link)
+    let html = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: html }} />;
+  };
+
   const renderBullets = (text) => {
     if (!text) return null;
     return (
       <ul className="bullet-list">
         {text.split('\n').filter(line => line.trim().length > 0).map((line, i) => {
           const cleanLine = line.replace(/^-/, '').trim();
-          return <li key={i}>{cleanLine}</li>;
+          return <li key={i}>{parseMarkdown(cleanLine)}</li>;
         })}
       </ul>
     );
   };
 
   const isTwoColumn = settings?.layout === 'two-column';
+  const order = settings?.sectionOrder || ['summary', 'education', 'experience', 'projects', 'skills'];
 
   const previewStyle = {
     '--theme-color': settings?.themeColor || '#0f172a',
@@ -25,12 +37,112 @@ const CVPreview = ({ cvData, settings }) => {
 
   const layoutClass = isTwoColumn ? 'layout-two-column' : 'layout-single';
 
+  const renderSkillBlock = (label, skillString, isSidebar = false) => {
+    if (!skillString) return null;
+    if (settings?.skillStyle === 'tags') {
+      return (
+        <div className={`cv-skill-group tags-mode ${isSidebar ? 'sidebar-style' : ''}`}>
+          <strong style={{display: 'block', marginBottom: '4px'}}>{label}</strong>
+          <div className="skill-tags-container">
+            {skillString.split(',').map(s => s.trim()).filter(s => s).map((s, i) => (
+              <span key={i} className="skill-tag">{s}</span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className={isSidebar ? "cv-skill-group" : "cv-skill-row"}>
+        <strong>{label}{!isSidebar && ':'}</strong> {isSidebar ? <div>{skillString}</div> : skillString}
+      </div>
+    );
+  };
+
+  // Component Map for dynamic ordering
+  const sectionsMap = {
+    summary: summary ? (
+      <div className="cv-section" key="summary">
+        <h3 className="cv-section-title">Profile</h3>
+        <p className="cv-summary-text">{parseMarkdown(summary)}</p>
+      </div>
+    ) : null,
+    
+    education: education.filter(e => !e.hidden).length > 0 ? (
+      <div className="cv-section" key="education">
+        <h3 className="cv-section-title">Education</h3>
+        {education.filter(e => !e.hidden).map((edu, idx) => (
+          <div key={idx} className="cv-item">
+            <div className="cv-item-header">
+              <span className="cv-item-title">{edu.institution}</span>
+              <span className="cv-item-date">{edu.dates}</span>
+            </div>
+            <div className="cv-item-subheader">
+              <span>{edu.degree}</span>
+              {edu.gpa && <span>{edu.gpa}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : null,
+
+    experience: experience.filter(e => !e.hidden).length > 0 ? (
+      <div className="cv-section" key="experience">
+        <h3 className="cv-section-title">Experience</h3>
+        {experience.filter(e => !e.hidden).map((exp, idx) => (
+          <div key={idx} className="cv-item">
+            <div className="cv-item-header">
+              <span className="cv-item-title">{exp.company}</span>
+              <span className="cv-item-date">{exp.dates}</span>
+            </div>
+            <div className="cv-item-subheader">
+              <span>{exp.role}</span>
+            </div>
+            <div className="cv-item-description">
+              {renderBullets(exp.description)}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : null,
+
+    projects: projects.filter(p => !p.hidden).length > 0 ? (
+      <div className="cv-section" key="projects">
+        <h3 className="cv-section-title">Projects</h3>
+        {projects.filter(p => !p.hidden).map((proj, idx) => (
+          <div key={idx} className="cv-item">
+            <div className="cv-item-header">
+              <span className="cv-item-title">{proj.name}</span>
+            </div>
+            {proj.tech && (
+              <div className="cv-item-subheader">
+                <span className="cv-tech-stack">Stack: {proj.tech}</span>
+              </div>
+            )}
+            <div className="cv-item-description">
+              {renderBullets(proj.description)}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : null,
+
+    skills: (skills.languages || skills.frameworks || skills.tools) ? (
+      <div className="cv-section" key="skills">
+        <h3 className="cv-section-title">Skills</h3>
+        <div className="cv-skills">
+          {renderSkillBlock('Languages', skills.languages)}
+          {renderSkillBlock('Frameworks', skills.frameworks)}
+          {renderSkillBlock('Tools', skills.tools)}
+        </div>
+      </div>
+    ) : null
+  };
+
   return (
     <div className={`cv-preview-container print-only ${layoutClass}`} style={previewStyle}>
       
       {isTwoColumn ? (
         <>
-          {/* TWO COLUMN LAYOUT */}
           <aside className="cv-sidebar">
             {personal.photo && (
               <div className="cv-photo">
@@ -53,24 +165,9 @@ const CVPreview = ({ cvData, settings }) => {
               <div className="cv-section sidebar-section">
                 <h3 className="cv-section-title">Skills</h3>
                 <div className="cv-skills-stacked">
-                  {skills.languages && (
-                    <div className="cv-skill-group">
-                      <strong>Languages</strong>
-                      <div>{skills.languages}</div>
-                    </div>
-                  )}
-                  {skills.frameworks && (
-                    <div className="cv-skill-group">
-                      <strong>Frameworks</strong>
-                      <div>{skills.frameworks}</div>
-                    </div>
-                  )}
-                  {skills.tools && (
-                    <div className="cv-skill-group">
-                      <strong>Tools</strong>
-                      <div>{skills.tools}</div>
-                    </div>
-                  )}
+                  {renderSkillBlock('Languages', skills.languages, true)}
+                  {renderSkillBlock('Frameworks', skills.frameworks, true)}
+                  {renderSkillBlock('Tools', skills.tools, true)}
                 </div>
               </div>
             )}
@@ -83,77 +180,13 @@ const CVPreview = ({ cvData, settings }) => {
                 <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
               </div>
             </div>
-
-            {summary && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Profile</h3>
-                <p className="cv-summary-text">{summary}</p>
-              </div>
-            )}
-
-            {education.length > 0 && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Education</h3>
-                {education.map((edu, idx) => (
-                  <div key={idx} className="cv-item">
-                    <div className="cv-item-header">
-                      <span className="cv-item-title">{edu.institution}</span>
-                      <span className="cv-item-date">{edu.dates}</span>
-                    </div>
-                    <div className="cv-item-subheader">
-                      <span>{edu.degree}</span>
-                      {edu.gpa && <span>{edu.gpa}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {experience.length > 0 && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Experience</h3>
-                {experience.map((exp, idx) => (
-                  <div key={idx} className="cv-item">
-                    <div className="cv-item-header">
-                      <span className="cv-item-title">{exp.company}</span>
-                      <span className="cv-item-date">{exp.dates}</span>
-                    </div>
-                    <div className="cv-item-subheader">
-                      <span>{exp.role}</span>
-                    </div>
-                    <div className="cv-item-description">
-                      {renderBullets(exp.description)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {projects.length > 0 && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Projects</h3>
-                {projects.map((proj, idx) => (
-                  <div key={idx} className="cv-item">
-                    <div className="cv-item-header">
-                      <span className="cv-item-title">{proj.name}</span>
-                    </div>
-                    {proj.tech && (
-                      <div className="cv-item-subheader">
-                        <span className="cv-tech-stack">Stack: {proj.tech}</span>
-                      </div>
-                    )}
-                    <div className="cv-item-description">
-                      {renderBullets(proj.description)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            
+            {/* Render sections according to order, excluding skills which is in sidebar */}
+            {order.filter(sec => sec !== 'skills').map(sec => sectionsMap[sec])}
           </main>
         </>
       ) : (
         <>
-          {/* SINGLE COLUMN LAYOUT (Classic) */}
           <div className="cv-header single-col-header">
             <div className="cv-header-content">
               <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
@@ -175,94 +208,7 @@ const CVPreview = ({ cvData, settings }) => {
           </div>
 
           <div className="cv-body">
-            {summary && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Professional Summary</h3>
-                <p className="cv-summary-text">{summary}</p>
-              </div>
-            )}
-
-            {education.length > 0 && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Education</h3>
-                {education.map((edu, idx) => (
-                  <div key={idx} className="cv-item">
-                    <div className="cv-item-header">
-                      <span className="cv-item-title">{edu.institution}</span>
-                      <span className="cv-item-date">{edu.dates}</span>
-                    </div>
-                    <div className="cv-item-subheader">
-                      <span>{edu.degree}</span>
-                      {edu.gpa && <span>{edu.gpa}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {experience.length > 0 && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Experience</h3>
-                {experience.map((exp, idx) => (
-                  <div key={idx} className="cv-item">
-                    <div className="cv-item-header">
-                      <span className="cv-item-title">{exp.company}</span>
-                      <span className="cv-item-date">{exp.dates}</span>
-                    </div>
-                    <div className="cv-item-subheader">
-                      <span>{exp.role}</span>
-                    </div>
-                    <div className="cv-item-description">
-                      {renderBullets(exp.description)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {projects.length > 0 && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Projects</h3>
-                {projects.map((proj, idx) => (
-                  <div key={idx} className="cv-item">
-                    <div className="cv-item-header">
-                      <span className="cv-item-title">{proj.name}</span>
-                    </div>
-                    {proj.tech && (
-                      <div className="cv-item-subheader">
-                        <span className="cv-tech-stack">Stack: {proj.tech}</span>
-                      </div>
-                    )}
-                    <div className="cv-item-description">
-                      {renderBullets(proj.description)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {(skills.languages || skills.frameworks || skills.tools) && (
-              <div className="cv-section">
-                <h3 className="cv-section-title">Skills</h3>
-                <div className="cv-skills">
-                  {skills.languages && (
-                    <div className="cv-skill-row">
-                      <strong>Languages:</strong> {skills.languages}
-                    </div>
-                  )}
-                  {skills.frameworks && (
-                    <div className="cv-skill-row">
-                      <strong>Frameworks:</strong> {skills.frameworks}
-                    </div>
-                  )}
-                  {skills.tools && (
-                    <div className="cv-skill-row">
-                      <strong>Tools:</strong> {skills.tools}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {order.map(sec => sectionsMap[sec])}
           </div>
         </>
       )}

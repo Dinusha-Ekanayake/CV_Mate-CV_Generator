@@ -1,73 +1,69 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import CVForm from './components/CVForm';
 import CVPreview from './components/CVPreview';
+import ATSAnalyzer from './components/ATSAnalyzer';
 
 const initialData = {
   personal: {
-    name: '',
-    title: '',
-    email: '',
-    phone: '',
-    linkedin: '',
-    github: '',
-    portfolio: '',
-    photo: null,
+    name: '', title: '', email: '', phone: '', linkedin: '', github: '', portfolio: '', photo: null,
   },
   summary: '',
   education: [],
   experience: [],
   projects: [],
-  skills: {
-    languages: '',
-    frameworks: '',
-    tools: '',
-  }
+  skills: { languages: '', frameworks: '', tools: '' }
 };
 
 const sampleData = {
   personal: {
-    name: 'Alan Turing',
-    title: 'AI Software Engineer',
-    email: 'alan@example.com',
-    phone: '+1 234 567 8900',
-    linkedin: 'linkedin.com/in/alanturing',
-    github: 'github.com/alanturing',
-    portfolio: 'alanturing.dev',
-    photo: null,
+    name: 'Alan Turing', title: 'AI Software Engineer', email: 'alan@example.com', phone: '+1 234 567 8900',
+    linkedin: 'linkedin.com/in/alanturing', github: 'github.com/alanturing', portfolio: 'alanturing.dev', photo: null,
   },
-  summary: 'Passionate Artificial Intelligence undergraduate with a strong foundation in machine learning, deep neural networks, and scalable software engineering. Proven ability to build intelligent systems and optimize complex algorithms. Seeking an internship to apply research-driven solutions to real-world products.',
+  summary: 'Passionate Artificial Intelligence undergraduate with a strong foundation in machine learning, deep neural networks, and scalable software engineering. Proven ability to build intelligent systems and optimize complex algorithms.',
   education: [
-    { institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: 'GPA: 3.8 / 4.0' }
+    { institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: '3.8 / 4.0' }
   ],
   experience: [
-    { company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using PyTorch that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.\n- Collaborated with senior engineers to optimize data preprocessing scripts, reducing latency by 30%.' }
+    { company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
   ],
   projects: [
-    { name: 'Neural Network Visualizer', tech: 'React, D3.js, TensorFlow.js', description: '- Developed an interactive web application that allows users to build and visualize neural networks directly in the browser.\n- Implemented real-time training animations and gradient flow charts.' },
-    { name: 'NLP Sentiment Analyzer', tech: 'Python, Hugging Face Transformers', description: '- Fine-tuned a BERT model on a custom dataset of 50,000 product reviews to achieve 92% sentiment classification accuracy.\n- Containerized the application using Docker for consistent deployment.' }
+    { name: 'Neural Network Visualizer', tech: 'React, D3.js, TensorFlow.js', description: '- Developed an interactive web application that allows users to build and visualize neural networks directly in the browser.\n- See it live at [nn-viz.dev](https://example.com)' }
   ],
   skills: {
     languages: 'Python, JavaScript (ES6+), C++, SQL',
-    frameworks: 'PyTorch, TensorFlow, React, Node.js, FastAPI',
-    tools: 'Git, Docker, AWS (EC2, S3), Linux, Jupyter',
+    frameworks: 'PyTorch, TensorFlow, React, Node.js',
+    tools: 'Git, Docker, AWS (EC2, S3), Linux',
   }
 };
 
+const defaultSectionOrder = ['summary', 'education', 'experience', 'projects', 'skills'];
+
 function App() {
   const [cvData, setCvData] = useState(() => {
-    const saved = localStorage.getItem('cvData');
-    return saved ? JSON.parse(saved) : initialData;
+    try {
+      const saved = localStorage.getItem('cvData');
+      return saved ? JSON.parse(saved) : initialData;
+    } catch { return initialData; }
   });
 
   const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('cvSettings');
-    return saved ? JSON.parse(saved) : {
-      layout: 'single', // 'single' or 'two-column'
-      themeColor: '#0f172a', // Default dark
-      fontFamily: "'Inter', sans-serif"
-    };
+    try {
+      const saved = localStorage.getItem('cvSettings');
+      const parsed = saved ? JSON.parse(saved) : {};
+      return {
+        layout: parsed.layout || 'single',
+        themeColor: parsed.themeColor || '#0f172a',
+        fontFamily: parsed.fontFamily || "'Inter', sans-serif",
+        sectionOrder: parsed.sectionOrder || defaultSectionOrder,
+        skillStyle: parsed.skillStyle || 'classic'
+      };
+    } catch {
+      return { layout: 'single', themeColor: '#0f172a', fontFamily: "'Inter', sans-serif", sectionOrder: defaultSectionOrder, skillStyle: 'classic' };
+    }
   });
+
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('cvData', JSON.stringify(cvData));
@@ -77,15 +73,65 @@ function App() {
     localStorage.setItem('cvSettings', JSON.stringify(settings));
   }, [settings]);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   const loadSample = () => setCvData(sampleData);
   const clearForm = () => {
-    if (window.confirm("Are you sure you want to clear all data?")) {
-      setCvData(initialData);
-    }
+    if (window.confirm("Are you sure you want to clear all data?")) setCvData(initialData);
+  };
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(cvData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const link = document.createElement('a');
+    link.href = dataUri;
+    link.download = 'my_cv_data.json';
+    link.click();
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target.result);
+        setCvData(parsed);
+      } catch (err) {
+        alert("Invalid JSON file.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = null; // reset input
+  };
+
+  const moveSection = (index, direction) => {
+    setSettings(prev => {
+      const newOrder = [...prev.sectionOrder];
+      if (direction === 'up' && index > 0) {
+        [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+      } else if (direction === 'down' && index < newOrder.length - 1) {
+        [newOrder[index + 1], newOrder[index]] = [newOrder[index], newOrder[index + 1]];
+      }
+      return { ...prev, sectionOrder: newOrder };
+    });
+  };
+
+  const handleAutoFit = () => {
+    const container = document.querySelector('.cv-preview-container');
+    if (!container) return;
+    
+    container.style.zoom = '1';
+    
+    setTimeout(() => {
+      const MAX_HEIGHT = 1120; // Approx 297mm at 96dpi
+      let zoomLevel = 1.0;
+      
+      while (container.scrollHeight > MAX_HEIGHT && zoomLevel > 0.5) {
+        zoomLevel -= 0.02;
+        container.style.zoom = zoomLevel.toString();
+      }
+    }, 50);
   };
 
   return (
@@ -95,14 +141,13 @@ function App() {
           <span className="accent">AI</span>/SE CV Generator
         </div>
         <div className="header-actions">
+          <input type="file" accept=".json" style={{display: 'none'}} ref={fileInputRef} onChange={handleImport} />
+          <button className="btn btn-secondary" onClick={() => fileInputRef.current.click()} style={{marginRight: '10px'}}>Import JSON</button>
+          <button className="btn btn-secondary" onClick={handleExport} style={{marginRight: '10px'}}>Export JSON</button>
           <button className="btn btn-secondary" onClick={clearForm} style={{marginRight: '10px'}}>Clear</button>
           <button className="btn btn-secondary" onClick={loadSample} style={{marginRight: '10px'}}>Load Sample</button>
+          <button className="btn btn-secondary" onClick={handleAutoFit} style={{marginRight: '10px'}}>✨ Auto-Fit</button>
           <button className="btn btn-primary" onClick={handlePrint}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '8px'}}>
-              <polyline points="6 9 6 2 18 2 18 9"></polyline>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-              <rect x="6" y="14" width="12" height="8"></rect>
-            </svg>
             Export PDF
           </button>
         </div>
@@ -110,8 +155,9 @@ function App() {
 
       <main className="main-content">
         <section className="form-section no-print">
+          <ATSAnalyzer cvData={cvData} />
           <div className="settings-panel glass-panel" style={{marginBottom: '2rem'}}>
-            <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>CV Settings</h2>
+            <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>CV Settings & Layout</h2>
             <div className="form-row">
               <div className="form-group">
                 <label>Layout Style</label>
@@ -123,7 +169,7 @@ function App() {
               <div className="form-group">
                 <label>Accent Color</label>
                 <select value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})}>
-                  <option value="#0f172a">Classic Slate (Default)</option>
+                  <option value="#0f172a">Classic Slate</option>
                   <option value="#0ea5e9">Ocean Blue</option>
                   <option value="#10b981">Emerald Green</option>
                   <option value="#8b5cf6">Royal Purple</option>
@@ -137,6 +183,27 @@ function App() {
                   <option value="'Georgia', serif">Classic Serif (Georgia)</option>
                   <option value="'Courier New', monospace">Code (Monospace)</option>
                 </select>
+              </div>
+              <div className="form-group">
+                <label>Skill Style</label>
+                <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
+                  <option value="classic">Classic (Comma Separated)</option>
+                  <option value="tags">Modern Tags</option>
+                </select>
+              </div>
+            </div>
+            <div className="form-group" style={{marginTop: '1rem'}}>
+              <label>Section Order (Global)</label>
+              <div className="section-reorder-list">
+                {settings.sectionOrder.map((sec, i) => (
+                  <div key={sec} className="section-reorder-item">
+                    <span style={{textTransform: 'capitalize'}}>{sec}</span>
+                    <div>
+                      {i > 0 && <button onClick={() => moveSection(i, 'up')}>↑</button>}
+                      {i < settings.sectionOrder.length - 1 && <button onClick={() => moveSection(i, 'down')}>↓</button>}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
