@@ -3,6 +3,9 @@ import './App.css';
 import CVForm from './components/CVForm';
 import CVPreview from './components/CVPreview';
 import ATSAnalyzer from './components/ATSAnalyzer';
+import { auth, provider, db } from './firebase';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const initialData = {
   personal: {
@@ -72,6 +75,9 @@ const checkWCAGContrast = (hexColor) => {
 };
 
 function App() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const [cvData, setCvData] = useState(() => {
     try {
       const saved = localStorage.getItem('cvData');
@@ -97,14 +103,51 @@ function App() {
 
   const fileInputRef = useRef(null);
 
+  // Auth Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        // Load data from Firestore on login
+        setIsSyncing(true);
+        try {
+          const docRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.cvData) setCvData(data.cvData);
+            if (data.settings) setSettings(data.settings);
+          }
+        } catch (error) {
+          console.error("Failed to load from cloud:", error);
+        }
+        setIsSyncing(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Save to LocalStorage & Firestore
   useEffect(() => {
     try {
       localStorage.setItem('cvData', JSON.stringify(cvData));
     } catch (error) {
       console.error("Local storage error:", error);
-      alert("Failed to save CV data to local storage. You may have exceeded the storage quota (e.g., image too large).");
     }
-  }, [cvData]);
+    
+    if (currentUser) {
+      const timeout = setTimeout(() => {
+        setIsSyncing(true);
+        setDoc(doc(db, 'users', currentUser.uid), { cvData, settings }, { merge: true })
+          .then(() => setIsSyncing(false))
+          .catch(e => {
+            console.error('Cloud sync failed:', e);
+            setIsSyncing(false);
+          });
+      }, 1000); // Debounce cloud writes by 1 second
+      return () => clearTimeout(timeout);
+    }
+  }, [cvData, settings, currentUser]);
 
   useEffect(() => {
     try {
@@ -182,18 +225,31 @@ function App() {
       <header className="app-header no-print">
         <div className="logo" style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
           <img src="/logo.png" alt="CV Mate Logo" style={{width: '32px', height: '32px', borderRadius: '6px'}} />
-          <span>CV <span className="accent">Mate</span> - CV Generator</span>
+          <div>
+            <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>CV <span className="accent">Mate</span></span>
+            <span className="app-subtitle" style={{ display: 'block', fontSize: '0.8rem', color: '#10b981', marginTop: '-4px' }}>Elite Edition</span>
+          </div>
         </div>
-        <div className="header-actions">
-          <input type="file" accept=".json" style={{display: 'none'}} ref={fileInputRef} onChange={handleImport} />
-          <button className="btn btn-secondary" onClick={() => fileInputRef.current.click()} style={{marginRight: '10px'}}>Import JSON</button>
-          <button className="btn btn-secondary" onClick={handleExport} style={{marginRight: '10px'}}>Export JSON</button>
-          <button className="btn btn-secondary" onClick={clearForm} style={{marginRight: '10px'}}>Clear</button>
-          <button className="btn btn-secondary" onClick={loadSample} style={{marginRight: '10px'}}>Load Sample</button>
-          <button className="btn btn-secondary" onClick={handleAutoFit} style={{marginRight: '10px'}}>✨ Auto-Fit</button>
-          <button className="btn btn-primary" onClick={handlePrint}>
-            Export PDF
-          </button>
+        <div className="app-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {currentUser ? (
+            <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+              <span style={{fontSize: '0.9rem', color: '#94a3b8'}}>
+                {isSyncing ? '☁️ Syncing...' : '☁️ Cloud Synced'} | {currentUser.email}
+              </span>
+              <button onClick={() => signOut(auth)} className="btn btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>Sign Out</button>
+            </div>
+          ) : (
+            <button onClick={() => signInWithPopup(auth, provider)} className="btn btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>
+              Sign in with Google
+            </button>
+          )}
+          <button onClick={loadSample} className="btn btn-secondary">Load Sample</button>
+          <button onClick={clearForm} className="btn btn-secondary danger">Clear</button>
+          <button onClick={() => fileInputRef.current.click()} className="btn btn-secondary">Import JSON</button>
+          <input type="file" accept=".json" ref={fileInputRef} style={{display: 'none'}} onChange={handleImport} />
+          <button onClick={handleExport} className="btn btn-secondary">Export JSON</button>
+          <button onClick={handleAutoFit} className="btn btn-secondary">✨ Auto-Fit</button>
+          <button onClick={handlePrint} className="btn btn-primary">Print / PDF</button>
         </div>
       </header>
 
