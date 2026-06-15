@@ -36,8 +36,8 @@ const CoverLetterPreview = ({ cvData, settings }) => {
   
   // Reuse the exact same CSS variables for perfectly matched branding
   const previewStyle = {
-    '--theme-color': settings.themeColor,
-    '--font-family': `"${settings.font}", sans-serif`,
+    '--theme-color': settings?.themeColor || '#0f172a',
+    fontFamily: settings?.fontFamily || "'Inter', sans-serif",
     padding: '40px'
   };
 
