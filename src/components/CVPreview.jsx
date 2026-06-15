@@ -149,8 +149,44 @@ const CVPreview = ({ cvData, settings }) => {
     ) : null
   };
 
+  const handleNativeExport = async () => {
+    try {
+      const electron = window.require('electron');
+      const { ipcRenderer } = electron;
+      await ipcRenderer.invoke('export-pdf');
+    } catch (e) {
+      console.error("Not running in Electron:", e);
+      window.print(); // Fallback to browser print
+    }
+  };
+
+  const isElectron = typeof window !== 'undefined' && window.require;
+
   return (
-    <div className={`cv-preview-container print-only ${layoutClass}`} style={previewStyle}>
+    <>
+      {isElectron && (
+        <button 
+          className="no-print"
+          onClick={handleNativeExport}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            background: '#10b981',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            zIndex: 100
+          }}
+        >
+          📥 Native PDF Export
+        </button>
+      )}
+      <div className={`cv-preview-container print-only ${layoutClass}`} style={previewStyle}>
       
       {isTwoColumn ? (
         <>
@@ -224,6 +260,7 @@ const CVPreview = ({ cvData, settings }) => {
         </>
       )}
     </div>
+    </>
   );
 };
 
