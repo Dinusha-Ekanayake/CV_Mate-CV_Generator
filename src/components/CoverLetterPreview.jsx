@@ -3,8 +3,8 @@ import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import './CVPreview.css';
 
-const CoverLetterPreview = ({ cvData, settings }) => {
-  const { personal, coverLetter } = cvData;
+const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
+  const { personal = {}, coverLetter = {} } = cvData;
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef(null);
 
@@ -55,7 +55,7 @@ const CoverLetterPreview = ({ cvData, settings }) => {
 
   return (
     <div 
-      className="cv-preview-wrapper no-print" 
+      className="cv-preview-wrapper" 
       ref={containerRef}
       style={{
         width: '100%',
@@ -125,6 +125,7 @@ const CoverLetterPreview = ({ cvData, settings }) => {
       )}
 
       <div 
+        className="scalable-paper"
         style={{
           transform: `scale(${zoom})`,
           transformOrigin: 'top center',

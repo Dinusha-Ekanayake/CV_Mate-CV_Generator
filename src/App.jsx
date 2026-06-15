@@ -89,6 +89,17 @@ const checkWCAGContrast = (hexColor) => {
   return ratio >= 4.5; // WCAG AA standard
 };
 
+const hydrateData = (parsed) => {
+  if (!parsed) return initialData;
+  return {
+    ...initialData,
+    ...parsed,
+    personal: { ...initialData.personal, ...(parsed.personal || {}) },
+    skills: { ...initialData.skills, ...(parsed.skills || {}) },
+    coverLetter: { ...initialData.coverLetter, ...(parsed.coverLetter || {}) }
+  };
+};
+
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -97,7 +108,8 @@ function App() {
   const [cvData, setCvData] = useState(() => {
     try {
       const saved = localStorage.getItem('cvData');
-      return saved ? JSON.parse(saved) : initialData;
+      if (saved) return hydrateData(JSON.parse(saved));
+      return initialData;
     } catch { return initialData; }
   });
 
@@ -131,7 +143,7 @@ function App() {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.cvData) setCvData(data.cvData);
+            if (data.cvData) setCvData(hydrateData(data.cvData));
             if (data.settings) setSettings(data.settings);
           }
         } catch (error) {
@@ -196,8 +208,7 @@ function App() {
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target.result);
-        if (!parsed.coverLetter) parsed.coverLetter = initialData.coverLetter; // Handle old saves
-        setCvData(parsed);
+        setCvData(hydrateData(parsed));
       } catch (err) {
         alert("Invalid JSON file.");
       }

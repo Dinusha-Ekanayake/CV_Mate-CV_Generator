@@ -3,8 +3,8 @@ import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import './CVPreview.css';
 
-const CVPreview = ({ cvData, settings }) => {
-  const { personal, summary, education, experience, projects, skills } = cvData;
+const CVPreview = ({ cvData = {}, settings = {} }) => {
+  const { personal = {}, summary = '', education = [], experience = [], projects = [], skills = {} } = cvData;
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef(null);
 
@@ -99,10 +99,10 @@ const CVPreview = ({ cvData, settings }) => {
       </div>
     ) : null,
     
-    education: education.filter(e => !e.hidden).length > 0 ? (
+    education: (education || []).filter(e => !e.hidden).length > 0 ? (
       <div className="cv-section" key="education">
         <h3 className="cv-section-title">Education</h3>
-        {education.filter(e => !e.hidden).map((edu, idx) => (
+        {(education || []).filter(e => !e.hidden).map((edu, idx) => (
           <div key={idx} className="cv-item">
             <div className="cv-item-header">
               <span className="cv-item-title">{edu.institution}</span>
@@ -117,10 +117,10 @@ const CVPreview = ({ cvData, settings }) => {
       </div>
     ) : null,
 
-    experience: experience.filter(e => !e.hidden).length > 0 ? (
+    experience: (experience || []).filter(e => !e.hidden).length > 0 ? (
       <div className="cv-section" key="experience">
         <h3 className="cv-section-title">Experience</h3>
-        {experience.filter(e => !e.hidden).map((exp, idx) => (
+        {(experience || []).filter(e => !e.hidden).map((exp, idx) => (
           <div key={idx} className="cv-item">
             <div className="cv-item-header">
               <span className="cv-item-title">{exp.company}</span>
@@ -137,10 +137,10 @@ const CVPreview = ({ cvData, settings }) => {
       </div>
     ) : null,
 
-    projects: projects.filter(p => !p.hidden).length > 0 ? (
+    projects: (projects || []).filter(p => !p.hidden).length > 0 ? (
       <div className="cv-section" key="projects">
         <h3 className="cv-section-title">Projects</h3>
-        {projects.filter(p => !p.hidden).map((proj, idx) => (
+        {(projects || []).filter(p => !p.hidden).map((proj, idx) => (
           <div key={idx} className="cv-item">
             <div className="cv-item-header">
               <span className="cv-item-title">{proj.name}</span>
@@ -185,7 +185,7 @@ const CVPreview = ({ cvData, settings }) => {
 
   return (
     <div 
-      className="cv-preview-wrapper no-print" 
+      className="cv-preview-wrapper" 
       ref={containerRef}
       style={{
         width: '100%',
@@ -257,6 +257,7 @@ const CVPreview = ({ cvData, settings }) => {
 
       {/* The actual scalable paper container */}
       <div 
+        className="scalable-paper"
         style={{
           transform: `scale(${zoom})`,
           transformOrigin: 'top center',

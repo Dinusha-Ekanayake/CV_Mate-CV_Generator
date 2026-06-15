@@ -146,6 +146,18 @@ label {
     min-height: auto !important;
   }
   
+  .cv-preview-wrapper {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  .scalable-paper {
+    transform: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  
   .no-print {
     display: none !important;
   }
