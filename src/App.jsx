@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, CloudOff } from 'lucide-react';
 import './App.css';
 import CVForm from './components/CVForm';
 import CVPreview from './components/CVPreview';
+import CoverLetterForm from './components/CoverLetterForm';
+import CoverLetterPreview from './components/CoverLetterPreview';
 import ATSAnalyzer from './components/ATSAnalyzer';
 import { auth, provider, db } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
@@ -15,7 +18,13 @@ const initialData = {
   education: [],
   experience: [],
   projects: [],
-  skills: { languages: '', frameworks: '', tools: '' }
+  skills: { languages: '', frameworks: '', tools: '' },
+  coverLetter: {
+    recipientName: 'Hiring Manager',
+    companyName: 'Tech Innovators Inc.',
+    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    body: 'I am writing to express my strong interest in the open position at your company. With my background in software engineering and passion for building scalable applications, I believe I would be a great fit for your team.<br><br>In my previous roles, I have successfully delivered high-impact projects while maintaining a focus on clean, maintainable code. I am particularly drawn to your company\'s mission and the innovative work your team is doing.<br><br>Thank you for considering my application. I look forward to the possibility of discussing this exciting opportunity with you.'
+  }
 };
 
 const sampleData = {
@@ -31,12 +40,18 @@ const sampleData = {
     { id: 'exp-1', company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
   ],
   projects: [
-    { id: 'proj-1', name: 'Neural Network Visualizer', tech: 'React, D3.js, TensorFlow.js', description: '- Developed an interactive web application that allows users to build and visualize neural networks directly in the browser.\n- See it live at [nn-viz.dev](https://example.com)' }
+    { id: 'proj-2', name: 'Resume Builder', tech: 'React, Firebase, Electron', description: '<ul><li>Built a cross-platform desktop & web resume builder.</li><li>Implemented drag-and-drop components and real-time PDF generation.</li></ul>' }
   ],
   skills: {
-    languages: 'Python, JavaScript (ES6+), C++, SQL',
-    frameworks: 'PyTorch, TensorFlow, React, Node.js',
-    tools: 'Git, Docker, AWS (EC2, S3), Linux',
+    languages: 'Python, JavaScript, TypeScript, Java, C++',
+    frameworks: 'React, Node.js, PyTorch, TensorFlow, Next.js',
+    tools: 'Git, Docker, AWS, Firebase, MongoDB'
+  },
+  coverLetter: {
+    recipientName: 'Sarah Jenkins, Head of Engineering',
+    companyName: 'OpenAI',
+    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    body: 'Dear Sarah,<br><br>I am writing to express my profound interest in the AI Software Engineer position at OpenAI. As a passionate developer with a deep background in machine learning and scalable web infrastructure, I have followed OpenAI’s breakthroughs closely and am inspired by your mission to ensure artificial general intelligence benefits all of humanity.<br><br>During my time at University of Moratuwa and my subsequent internships, I architected neural network visualizers and deployed deep learning models that processed real-time data. My recent project, a React-based application that integrates generative AI, gave me hands-on experience dealing with latency optimizations and complex state management—challenges I know your team tackles daily.<br><br>What excites me most about this role is the opportunity to work at the bleeding edge of AI while ensuring robust, user-centric software design. I bring a blend of rigorous academic research and practical, shipping-focused software engineering.<br><br>I would welcome the opportunity to discuss how my background in both frontend engineering and AI model integration aligns with your engineering goals. Thank you for your time and consideration.<br><br>Best regards,<br>Alan Turing'
   }
 };
 
@@ -74,14 +89,27 @@ const checkWCAGContrast = (hexColor) => {
   return ratio >= 4.5; // WCAG AA standard
 };
 
+const hydrateData = (parsed) => {
+  if (!parsed) return initialData;
+  return {
+    ...initialData,
+    ...parsed,
+    personal: { ...initialData.personal, ...(parsed.personal || {}) },
+    skills: { ...initialData.skills, ...(parsed.skills || {}) },
+    coverLetter: { ...initialData.coverLetter, ...(parsed.coverLetter || {}) }
+  };
+};
+
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [activeTab, setActiveTab] = useState('resume');
 
   const [cvData, setCvData] = useState(() => {
     try {
       const saved = localStorage.getItem('cvData');
-      return saved ? JSON.parse(saved) : initialData;
+      if (saved) return hydrateData(JSON.parse(saved));
+      return initialData;
     } catch { return initialData; }
   });
 
@@ -115,7 +143,7 @@ function App() {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.cvData) setCvData(data.cvData);
+            if (data.cvData) setCvData(hydrateData(data.cvData));
             if (data.settings) setSettings(data.settings);
           }
         } catch (error) {
@@ -180,7 +208,7 @@ function App() {
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target.result);
-        setCvData(parsed);
+        setCvData(hydrateData(parsed));
       } catch (err) {
         alert("Invalid JSON file.");
       }
@@ -230,44 +258,97 @@ function App() {
             <span className="app-subtitle" style={{ display: 'block', fontSize: '0.8rem', color: '#10b981', marginTop: '-4px' }}>Elite Edition</span>
           </div>
         </div>
-        <div className="app-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {currentUser ? (
-            <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-              <span style={{fontSize: '0.9rem', color: '#94a3b8'}}>
-                {isSyncing ? '☁️ Syncing...' : '☁️ Cloud Synced'} | {currentUser.email}
-              </span>
-              <button onClick={() => signOut(auth)} className="btn btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>Sign Out</button>
-            </div>
-          ) : (
-            <button onClick={() => signInWithPopup(auth, provider)} className="btn btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>
-              Sign in with Google
+        <div className="app-controls" style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          {/* Auth Group */}
+          <div className="auth-group" style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(15, 23, 42, 0.4)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
+            {currentUser ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {isSyncing ? <Cloud size={14} className="sync-pulse" color="#06b6d4" /> : <Cloud size={14} color="#10b981" />}
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500 }}>
+                    {currentUser.email.split('@')[0]}
+                  </span>
+                </div>
+                <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.1)' }}></div>
+                <button onClick={() => signOut(auth)} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.75rem', background: 'transparent', border: 'none', color: '#ef4444' }}>Sign Out</button>
+              </>
+            ) : (
+              <button onClick={() => signInWithPopup(auth, provider)} className="btn btn-secondary" style={{ padding: '4px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none' }}>
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style={{ width: '14px' }} />
+                Sign in
+              </button>
+            )}
+          </div>
+
+          {/* MacOS Style Segmented Action Bar */}
+          <div className="actions-group" style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', backdropFilter: 'blur(10px)' }}>
+            <button onClick={loadSample} className="action-btn" title="Load Sample Data" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', transition: 'background 0.2s' }}>
+              <Wand2 size={14} color="#a855f7" /> Sample
             </button>
-          )}
-          <button onClick={loadSample} className="btn btn-secondary">Load Sample</button>
-          <button onClick={clearForm} className="btn btn-secondary danger">Clear</button>
-          <button onClick={() => fileInputRef.current.click()} className="btn btn-secondary">Import JSON</button>
-          <input type="file" accept=".json" ref={fileInputRef} style={{display: 'none'}} onChange={handleImport} />
-          <button onClick={handleExport} className="btn btn-secondary">Export JSON</button>
-          <button onClick={handleAutoFit} className="btn btn-secondary">✨ Auto-Fit</button>
-          <button onClick={handlePrint} className="btn btn-primary">Print / PDF</button>
+            
+            <button onClick={() => fileInputRef.current.click()} className="action-btn" title="Import JSON" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', transition: 'background 0.2s' }}>
+              <Upload size={14} color="#3b82f6" /> Import
+            </button>
+            <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
+            
+            <button onClick={handleExport} className="action-btn" title="Export JSON" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', transition: 'background 0.2s' }}>
+              <Download size={14} color="#3b82f6" /> Export
+            </button>
+            
+            <button onClick={clearForm} className="action-btn" title="Clear All Data" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', transition: 'background 0.2s' }}>
+              <Trash2 size={14} /> Clear
+            </button>
+          </div>
+
+          {/* Primary Group */}
+          <div className="primary-group" style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={handleAutoFit} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', fontSize: '0.85rem' }}>
+              <Maximize size={14} /> Auto-Fit
+            </button>
+            <button onClick={handlePrint} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px', fontSize: '0.85rem' }}>
+              <Printer size={16} /> Print / PDF
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="main-content">
         <section className="form-section no-print">
-          <ATSAnalyzer cvData={cvData} />
+          
+          {/* Document Type Toggle */}
+          <div className="doc-toggle" style={{ display: 'flex', gap: '10px', marginBottom: '20px', background: 'rgba(15,23,42,0.4)', padding: '6px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <button 
+              className="action-btn"
+              onClick={() => setActiveTab('resume')}
+              style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: activeTab === 'resume' ? 'rgba(59,130,246,0.2)' : 'transparent', color: activeTab === 'resume' ? '#60a5fa' : '#94a3b8', fontWeight: activeTab === 'resume' ? 600 : 400, cursor: 'pointer', transition: 'all 0.2s' }}
+            >
+              📄 Resume / CV
+            </button>
+            <button 
+              className="action-btn"
+              onClick={() => setActiveTab('cover-letter')}
+              style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: activeTab === 'cover-letter' ? 'rgba(59,130,246,0.2)' : 'transparent', color: activeTab === 'cover-letter' ? '#60a5fa' : '#94a3b8', fontWeight: activeTab === 'cover-letter' ? 600 : 400, cursor: 'pointer', transition: 'all 0.2s' }}
+            >
+              💌 Cover Letter
+            </button>
+          </div>
+
+          {activeTab === 'resume' && <ATSAnalyzer cvData={cvData} />}
+
           <div className="settings-panel glass-panel" style={{marginBottom: '2rem'}}>
-            <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>CV Settings & Layout</h2>
+            <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>Document Settings & Layout</h2>
             <div className="form-row">
-              <div className="form-group">
-                <label>Layout Style</label>
-                <select value={settings.layout} onChange={e => setSettings({...settings, layout: e.target.value})}>
-                  <option value="single">Single Column</option>
-                  <option value="two-column">Two Column</option>
-                  <option value="executive">Executive (Classic)</option>
-                  <option value="creative">Creative (Timeline)</option>
-                </select>
-              </div>
+              {activeTab === 'resume' && (
+                <div className="form-group">
+                  <label>Layout Style</label>
+                  <select value={settings.layout} onChange={e => setSettings({...settings, layout: e.target.value})}>
+                    <option value="single">Single Column</option>
+                    <option value="two-column">Two Column</option>
+                    <option value="executive">Executive (Classic)</option>
+                    <option value="creative">Creative (Timeline)</option>
+                  </select>
+                </div>
+              )}
               <div className="form-group">
                 <label>Theme Color</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -287,33 +368,46 @@ function App() {
                   <option value="'Courier New', monospace">Code (Monospace)</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label>Skill Style</label>
-                <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
-                  <option value="classic">Classic (Comma Separated)</option>
-                  <option value="tags">Modern Tags</option>
-                </select>
-              </div>
+              {activeTab === 'resume' && (
+                <div className="form-group">
+                  <label>Skill Style</label>
+                  <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
+                    <option value="classic">Classic (Comma Separated)</option>
+                    <option value="tags">Modern Tags</option>
+                  </select>
+                </div>
+              )}
             </div>
-            <div className="form-group" style={{marginTop: '1rem'}}>
-              <label>Section Order (Global)</label>
-              <div className="section-reorder-list">
-                {settings.sectionOrder.map((sec, i) => (
-                  <div key={sec} className="section-reorder-item">
-                    <span style={{textTransform: 'capitalize'}}>{sec}</span>
-                    <div>
-                      {i > 0 && <button onClick={() => moveSection(i, 'up')}>↑</button>}
-                      {i < settings.sectionOrder.length - 1 && <button onClick={() => moveSection(i, 'down')}>↓</button>}
+            
+            {activeTab === 'resume' && (
+              <div className="form-group" style={{marginTop: '1rem'}}>
+                <label>Section Order (Global)</label>
+                <div className="section-reorder-list">
+                  {settings.sectionOrder.map((sec, i) => (
+                    <div key={sec} className="section-reorder-item">
+                      <span style={{textTransform: 'capitalize'}}>{sec}</span>
+                      <div>
+                        {i > 0 && <button onClick={() => moveSection(i, 'up')}>↑</button>}
+                        {i < settings.sectionOrder.length - 1 && <button onClick={() => moveSection(i, 'down')}>↓</button>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
-          <CVForm cvData={cvData} setCvData={setCvData} />
+          {activeTab === 'resume' ? (
+            <CVForm cvData={cvData} setCvData={setCvData} />
+          ) : (
+            <CoverLetterForm cvData={cvData} setCvData={setCvData} />
+          )}
         </section>
         <section className="preview-section">
-          <CVPreview cvData={cvData} settings={settings} />
+          {activeTab === 'resume' ? (
+            <CVPreview cvData={cvData} settings={settings} />
+          ) : (
+            <CoverLetterPreview cvData={cvData} settings={settings} />
+          )}
         </section>
       </main>
     </div>

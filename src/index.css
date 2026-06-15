@@ -122,6 +122,10 @@ label {
   background: rgba(255, 255, 255, 0.15);
 }
 
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
 .btn-danger {
   background: rgba(239, 68, 68, 0.1);
   color: var(--error);
@@ -140,6 +144,18 @@ label {
     overflow: visible !important;
     height: auto !important;
     min-height: auto !important;
+  }
+  
+  .cv-preview-wrapper {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  .scalable-paper {
+    transform: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
   }
   
   .no-print {
