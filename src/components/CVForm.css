@@ -1,0 +1,64 @@
+.cv-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  color: var(--accent-primary);
+  margin-bottom: -0.5rem;
+  margin-top: 1rem;
+}
+
+.form-section-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.dynamic-item {
+  position: relative;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.btn-remove {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--error);
+  color: white;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  transition: all 0.2s;
+}
+
+.btn-remove:hover {
+  transform: scale(1.1);
+}
+
+.w-100 {
+  width: 100%;
+}

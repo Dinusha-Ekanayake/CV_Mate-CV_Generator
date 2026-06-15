@@ -1,0 +1,172 @@
+.cv-preview-container {
+  width: 210mm;
+  min-height: 297mm;
+  background: white;
+  color: #111827;
+  padding: 20mm;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+  margin: 0 auto;
+}
+
+.cv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid var(--accent-primary);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.cv-header-content {
+  flex: 1;
+}
+
+.cv-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 5px;
+  letter-spacing: -0.5px;
+}
+
+.cv-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--accent-primary);
+  margin-bottom: 10px;
+}
+
+.cv-contact-info {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.cv-contact-info span {
+  white-space: nowrap;
+}
+
+.cv-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e2e8f0;
+  margin-left: 20px;
+}
+
+.cv-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cv-section {
+  margin-bottom: 20px;
+}
+
+.cv-section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cv-summary-text {
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.cv-item {
+  margin-bottom: 15px;
+}
+
+.cv-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.cv-item-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.cv-item-date {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.cv-item-subheader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.cv-tech-stack {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--accent-secondary);
+}
+
+.cv-item-description {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.bullet-list {
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.bullet-list li {
+  margin-bottom: 3px;
+}
+
+.cv-skills {
+  font-size: 0.95rem;
+}
+
+.cv-skill-row {
+  margin-bottom: 5px;
+  color: #334155;
+}
+
+.cv-skill-row strong {
+  color: #0f172a;
+  width: 120px;
+  display: inline-block;
+}
+
+/* Print Specific Rules */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .cv-preview-container {
+    width: 210mm;
+    height: 297mm;
+    box-shadow: none;
+    margin: 0;
+    padding: 20mm;
+  }
+}
