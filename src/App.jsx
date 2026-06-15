@@ -66,11 +66,20 @@ function App() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem('cvData', JSON.stringify(cvData));
+    try {
+      localStorage.setItem('cvData', JSON.stringify(cvData));
+    } catch (error) {
+      console.error("Local storage error:", error);
+      alert("Failed to save CV data to local storage. You may have exceeded the storage quota (e.g., image too large).");
+    }
   }, [cvData]);
 
   useEffect(() => {
-    localStorage.setItem('cvSettings', JSON.stringify(settings));
+    try {
+      localStorage.setItem('cvSettings', JSON.stringify(settings));
+    } catch (error) {
+      console.error("Local storage error:", error);
+    }
   }, [settings]);
 
   const handlePrint = () => window.print();

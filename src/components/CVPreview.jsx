@@ -6,8 +6,12 @@ const CVPreview = ({ cvData, settings }) => {
 
   const parseMarkdown = (text) => {
     if (!text) return null;
+    
+    // Security: Escape raw HTML tags to prevent XSS injection
+    let safeText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
     // Simple markdown parser: **bold**, *italic*, [text](link)
-    let html = text
+    let html = safeText
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');

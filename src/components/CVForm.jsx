@@ -37,6 +37,11 @@ const CVForm = ({ cvData, setCvData }) => {
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2.5 * 1024 * 1024) {
+        alert("Image is too large! Please select an image under 2.5MB to prevent storage quota issues.");
+        e.target.value = ''; // clear input
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => handleChange('personal', 'photo', reader.result);
       reader.readAsDataURL(file);

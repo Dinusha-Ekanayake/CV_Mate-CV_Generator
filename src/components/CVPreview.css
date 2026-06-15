@@ -49,6 +49,10 @@
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
+  
+  /* Layout stability */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Layouts */
