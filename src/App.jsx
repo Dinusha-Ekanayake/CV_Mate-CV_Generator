@@ -223,33 +223,33 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header no-print">
-        <div className="app-logo">
-          <div className="logo-icon">📄</div>
+        <div className="logo" style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+          <img src="/logo.png" alt="CV Mate Logo" style={{width: '32px', height: '32px', borderRadius: '6px'}} />
           <div>
-            <h1>CV Mate</h1>
-            <span className="app-subtitle">Elite Edition</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>CV <span className="accent">Mate</span></span>
+            <span className="app-subtitle" style={{ display: 'block', fontSize: '0.8rem', color: '#10b981', marginTop: '-4px' }}>Elite Edition</span>
           </div>
         </div>
-        <div className="app-controls">
+        <div className="app-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {currentUser ? (
             <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
               <span style={{fontSize: '0.9rem', color: '#94a3b8'}}>
                 {isSyncing ? '☁️ Syncing...' : '☁️ Cloud Synced'} | {currentUser.email}
               </span>
-              <button onClick={() => signOut(auth)} className="btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>Sign Out</button>
+              <button onClick={() => signOut(auth)} className="btn btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>Sign Out</button>
             </div>
           ) : (
-            <button onClick={() => signInWithPopup(auth, provider)} className="btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>
+            <button onClick={() => signInWithPopup(auth, provider)} className="btn btn-secondary" style={{padding: '6px 12px', fontSize: '0.9rem'}}>
               Sign in with Google
             </button>
           )}
-          <button onClick={loadSample} className="btn-secondary">Load Sample</button>
-          <button onClick={clearForm} className="btn-secondary danger">Clear</button>
-          <button onClick={() => fileInputRef.current.click()} className="btn-secondary">Import JSON</button>
+          <button onClick={loadSample} className="btn btn-secondary">Load Sample</button>
+          <button onClick={clearForm} className="btn btn-secondary danger">Clear</button>
+          <button onClick={() => fileInputRef.current.click()} className="btn btn-secondary">Import JSON</button>
           <input type="file" accept=".json" ref={fileInputRef} style={{display: 'none'}} onChange={handleImport} />
-          <button onClick={handleExport} className="btn-secondary">Export JSON</button>
-          <button onClick={handleAutoFit} className="btn-secondary">✨ Auto-Fit</button>
-          <button onClick={handlePrint} className="btn-primary">Print / PDF</button>
+          <button onClick={handleExport} className="btn btn-secondary">Export JSON</button>
+          <button onClick={handleAutoFit} className="btn btn-secondary">✨ Auto-Fit</button>
+          <button onClick={handlePrint} className="btn btn-primary">Print / PDF</button>
         </div>
       </header>
 
