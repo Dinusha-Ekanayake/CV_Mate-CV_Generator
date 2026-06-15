@@ -26,3 +26,8 @@ dist-ssr
 # Environment Variables
 .env
 .env.*
+
+# Electron Build Output
+dist-electron
+release
+out

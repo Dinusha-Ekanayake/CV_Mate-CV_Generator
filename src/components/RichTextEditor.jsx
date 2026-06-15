@@ -31,24 +31,24 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
 
   return (
     <div className="wysiwyg-container" style={{ border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', background: '#1e293b' }}>
-      <div className="markdown-toolbar" style={{ borderBottom: '1px solid #334155', borderRadius: 0 }}>
-        <div className="toolbar-group">
-          <button type="button" onMouseDown={(e) => handleAction(e, 'bold')} title="Bold (Ctrl+B)">B</button>
-          <button type="button" onMouseDown={(e) => handleAction(e, 'italic')} title="Italic (Ctrl+I)" style={{fontStyle: 'italic'}}>I</button>
-          <button type="button" onMouseDown={(e) => handleAction(e, 'underline')} title="Underline (Ctrl+U)" style={{textDecoration: 'underline'}}>U</button>
-        </div>
-        <div className="toolbar-group">
-          <button type="button" onMouseDown={(e) => handleAction(e, 'insertUnorderedList')} title="Bullet List">• List</button>
-          <button type="button" onMouseDown={(e) => handleAction(e, 'insertOrderedList')} title="Numbered List">1. List</button>
-        </div>
-        <div className="toolbar-group">
-          <button type="button" onMouseDown={(e) => {
-            e.preventDefault();
-            const url = prompt("Enter link URL:");
-            if (url) execCommand('createLink', url);
-          }} title="Insert Link">🔗</button>
-          <button type="button" onMouseDown={(e) => handleAction(e, 'unlink')} title="Remove Link">🚫</button>
-        </div>
+      <div className="md-toolbar" style={{ borderBottom: '1px solid #334155', borderRadius: 0, flexWrap: 'wrap' }}>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'bold')} title="Bold (Ctrl+B)">B</button>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'italic')} title="Italic (Ctrl+I)" style={{fontStyle: 'italic'}}>I</button>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'underline')} title="Underline (Ctrl+U)" style={{textDecoration: 'underline'}}>U</button>
+        
+        <div className="md-divider"></div>
+        
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'insertUnorderedList')} title="Bullet List">• List</button>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'insertOrderedList')} title="Numbered List">1. List</button>
+        
+        <div className="md-divider"></div>
+        
+        <button type="button" className="md-btn" onMouseDown={(e) => {
+          e.preventDefault();
+          const url = prompt("Enter link URL:");
+          if (url) execCommand('createLink', url);
+        }} title="Insert Link">🔗</button>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'unlink')} title="Remove Link">🚫</button>
       </div>
       
       <div 
