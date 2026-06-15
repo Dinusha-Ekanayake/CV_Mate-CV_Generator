@@ -3,49 +3,78 @@
   min-height: 297mm;
   background: white;
   color: #111827;
-  padding: 20mm;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-  font-family: 'Inter', sans-serif;
   line-height: 1.5;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
-.cv-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  border-bottom: 2px solid var(--accent-primary);
-  padding-bottom: 15px;
-  margin-bottom: 20px;
+/* Layouts */
+.layout-single {
+  padding: 20mm;
 }
 
-.cv-header-content {
-  flex: 1;
+.layout-two-column {
+  display: grid;
+  grid-template-columns: 65mm 1fr;
+  min-height: 297mm;
 }
 
+.cv-sidebar {
+  background-color: #f8fafc;
+  padding: 20mm 10mm;
+  border-right: 1px solid #e2e8f0;
+}
+
+.cv-main-content {
+  padding: 20mm;
+}
+
+/* Typography & Theming */
 .cv-name {
-  font-family: 'Outfit', sans-serif;
   font-size: 2.5rem;
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 5px;
   letter-spacing: -0.5px;
+  line-height: 1.1;
 }
 
 .cv-title {
   font-size: 1.25rem;
   font-weight: 500;
-  color: var(--accent-primary);
+  color: var(--theme-color);
   margin-bottom: 10px;
+}
+
+/* Header (Single Column) */
+.single-col-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid var(--theme-color);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+/* Header (Two Column) */
+.cv-main-content .cv-header {
+  border-bottom: 2px solid var(--theme-color);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .cv-contact-info {
   font-size: 0.85rem;
   color: #4b5563;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 5px;
+  word-break: break-word;
 }
 
 .cv-contact-info span {
-  white-space: nowrap;
+  display: inline-block;
 }
 
 .cv-photo {
@@ -55,6 +84,14 @@
   overflow: hidden;
   border: 3px solid #e2e8f0;
   margin-left: 20px;
+  flex-shrink: 0;
+}
+
+.layout-two-column .cv-photo {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 20px auto;
+  display: block;
 }
 
 .cv-photo img {
@@ -68,7 +105,6 @@
 }
 
 .cv-section-title {
-  font-family: 'Outfit', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   color: #1e293b;
@@ -77,6 +113,11 @@
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
+}
+
+.sidebar-section .cv-section-title {
+  font-size: 1.1rem;
+  border-bottom: 1px solid #cbd5e1;
 }
 
 .cv-summary-text {
@@ -102,8 +143,8 @@
 
 .cv-item-date {
   font-size: 0.85rem;
-  color: #64748b;
-  font-weight: 500;
+  color: var(--theme-color);
+  font-weight: 600;
 }
 
 .cv-item-subheader {
@@ -118,7 +159,7 @@
 .cv-tech-stack {
   font-style: italic;
   font-size: 0.9rem;
-  color: var(--accent-secondary);
+  color: #64748b;
 }
 
 .cv-item-description {
@@ -150,6 +191,33 @@
   display: inline-block;
 }
 
+.cv-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #4b5563;
+  word-break: break-word;
+}
+
+.cv-skills-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.cv-skill-group strong {
+  display: block;
+  font-size: 0.9rem;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.cv-skill-group div {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
 /* Print Specific Rules */
 @media print {
   @page {
@@ -167,6 +235,9 @@
     height: 297mm;
     box-shadow: none;
     margin: 0;
+  }
+  
+  .layout-single {
     padding: 20mm;
   }
 }
