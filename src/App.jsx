@@ -22,13 +22,13 @@ const sampleData = {
   },
   summary: 'Passionate Artificial Intelligence undergraduate with a strong foundation in machine learning, deep neural networks, and scalable software engineering. Proven ability to build intelligent systems and optimize complex algorithms.',
   education: [
-    { institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: '3.8 / 4.0' }
+    { id: 'edu-1', institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: '3.8 / 4.0' }
   ],
   experience: [
-    { company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
+    { id: 'exp-1', company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
   ],
   projects: [
-    { name: 'Neural Network Visualizer', tech: 'React, D3.js, TensorFlow.js', description: '- Developed an interactive web application that allows users to build and visualize neural networks directly in the browser.\n- See it live at [nn-viz.dev](https://example.com)' }
+    { id: 'proj-1', name: 'Neural Network Visualizer', tech: 'React, D3.js, TensorFlow.js', description: '- Developed an interactive web application that allows users to build and visualize neural networks directly in the browser.\n- See it live at [nn-viz.dev](https://example.com)' }
   ],
   skills: {
     languages: 'Python, JavaScript (ES6+), C++, SQL',
@@ -165,6 +165,8 @@ function App() {
                 <select value={settings.layout} onChange={e => setSettings({...settings, layout: e.target.value})}>
                   <option value="single">Single Column</option>
                   <option value="two-column">Two Column</option>
+                  <option value="executive">Executive (Classic)</option>
+                  <option value="creative">Creative (Timeline)</option>
                 </select>
               </div>
               <div className="form-group">

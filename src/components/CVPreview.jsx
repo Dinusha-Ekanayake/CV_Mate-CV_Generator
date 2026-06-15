@@ -27,15 +27,15 @@ const CVPreview = ({ cvData, settings }) => {
     );
   };
 
-  const isTwoColumn = settings?.layout === 'two-column';
+  const isTwoColumn = settings?.layout === 'two-column' || settings?.layout === 'creative';
+  const layoutStyleName = settings?.layout || 'single';
+  const layoutClass = `layout-${layoutStyleName}`;
   const order = settings?.sectionOrder || ['summary', 'education', 'experience', 'projects', 'skills'];
 
   const previewStyle = {
     '--theme-color': settings?.themeColor || '#0f172a',
     fontFamily: settings?.fontFamily || "'Inter', sans-serif"
   };
-
-  const layoutClass = isTwoColumn ? 'layout-two-column' : 'layout-single';
 
   const renderSkillBlock = (label, skillString, isSidebar = false) => {
     if (!skillString) return null;

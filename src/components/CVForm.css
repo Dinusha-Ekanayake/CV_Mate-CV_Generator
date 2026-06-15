@@ -75,6 +75,25 @@
   filter: brightness(1.2);
 }
 
+.sortable-item {
+  touch-action: none; /* Required for dnd-kit on mobile */
+}
+
+.drag-handle {
+  position: absolute;
+  top: 10px;
+  left: 5px;
+  cursor: grab;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 1.2rem;
+  padding: 5px;
+  line-height: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 .w-100 {
   width: 100%;
 }

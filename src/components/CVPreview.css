@@ -263,3 +263,55 @@
     padding: 20mm;
   }
 }
+
+/* Layout: Executive */
+.layout-executive {
+  padding: 15mm 20mm;
+}
+.layout-executive .cv-name {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 2px solid var(--theme-color);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+.layout-executive .cv-section-title {
+  text-transform: uppercase;
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
+}
+.layout-executive .cv-item-header {
+  border-left: 3px solid var(--theme-color);
+  padding-left: 10px;
+}
+
+/* Layout: Creative */
+.layout-creative .cv-sidebar {
+  background: var(--theme-color);
+  color: white;
+}
+.layout-creative .cv-sidebar .cv-section-title,
+.layout-creative .cv-sidebar .skill-tag,
+.layout-creative .cv-sidebar .cv-skill-group {
+  color: white;
+}
+.layout-creative .cv-sidebar .skill-tag {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.3);
+}
+.layout-creative .cv-item {
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid var(--theme-color);
+}
+.layout-creative .cv-item::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--theme-color);
+}
