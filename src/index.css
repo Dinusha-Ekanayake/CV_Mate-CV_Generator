@@ -134,9 +134,12 @@ label {
 
 /* Print Styles for CV */
 @media print {
-  body {
+  html, body {
     background: white;
     color: black;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
   }
   
   .no-print {
