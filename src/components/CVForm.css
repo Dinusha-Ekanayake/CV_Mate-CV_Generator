@@ -28,21 +28,25 @@
 
 .dynamic-item {
   position: relative;
-  padding: 1rem;
+  padding: 1.25rem;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   margin-bottom: 1rem;
 }
 
-.btn-remove {
+.array-controls {
   position: absolute;
-  top: -10px;
+  top: -12px;
   right: -10px;
-  width: 24px;
-  height: 24px;
+  display: flex;
+  gap: 5px;
+}
+
+.btn-move, .btn-remove {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--error);
   color: white;
   border: none;
   font-size: 1rem;
@@ -55,8 +59,17 @@
   transition: all 0.2s;
 }
 
-.btn-remove:hover {
+.btn-move {
+  background: #475569;
+}
+
+.btn-remove {
+  background: var(--error);
+}
+
+.btn-move:hover, .btn-remove:hover {
   transform: scale(1.1);
+  filter: brightness(1.2);
 }
 
 .w-100 {

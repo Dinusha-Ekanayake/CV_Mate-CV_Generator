@@ -54,6 +54,26 @@ const CVForm = ({ cvData, setCvData }) => {
     });
   };
 
+  const moveArrayItem = (section, index, direction) => {
+    setCvData(prev => {
+      const newArray = [...prev[section]];
+      if (direction === 'up' && index > 0) {
+        [newArray[index - 1], newArray[index]] = [newArray[index], newArray[index - 1]];
+      } else if (direction === 'down' && index < newArray.length - 1) {
+        [newArray[index + 1], newArray[index]] = [newArray[index], newArray[index + 1]];
+      }
+      return { ...prev, [section]: newArray };
+    });
+  };
+
+  const renderArrayControls = (section, index, arrayLength) => (
+    <div className="array-controls">
+      {index > 0 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'up')}>↑</button>}
+      {index < arrayLength - 1 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'down')}>↓</button>}
+      <button className="btn-remove" onClick={() => removeArrayItem(section, index)}>×</button>
+    </div>
+  );
+
   return (
     <div className="cv-form-container">
       <h2 className="section-title">Personal Details</h2>
@@ -109,7 +129,7 @@ const CVForm = ({ cvData, setCvData }) => {
       <div className="glass-panel form-section-panel">
         {cvData.education.map((edu, index) => (
           <div key={index} className="dynamic-item">
-            <button className="btn-remove" onClick={() => removeArrayItem('education', index)}>×</button>
+            {renderArrayControls('education', index, cvData.education.length)}
             <div className="form-row">
               <div className="form-group">
                 <label>Institution</label>
@@ -139,7 +159,7 @@ const CVForm = ({ cvData, setCvData }) => {
       <div className="glass-panel form-section-panel">
         {cvData.experience.map((exp, index) => (
           <div key={index} className="dynamic-item">
-            <button className="btn-remove" onClick={() => removeArrayItem('experience', index)}>×</button>
+            {renderArrayControls('experience', index, cvData.experience.length)}
             <div className="form-row">
               <div className="form-group">
                 <label>Company</label>
@@ -167,7 +187,7 @@ const CVForm = ({ cvData, setCvData }) => {
       <div className="glass-panel form-section-panel">
         {cvData.projects.map((proj, index) => (
           <div key={index} className="dynamic-item">
-            <button className="btn-remove" onClick={() => removeArrayItem('projects', index)}>×</button>
+            {renderArrayControls('projects', index, cvData.projects.length)}
             <div className="form-row">
               <div className="form-group">
                 <label>Project Name</label>
