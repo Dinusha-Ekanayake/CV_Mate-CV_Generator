@@ -42,10 +42,14 @@
 .cv-contact-info {
   font-size: 0.85rem;
   color: #4b5563;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 5px;
+  word-break: break-word;
 }
 
 .cv-contact-info span {
-  white-space: nowrap;
+  display: inline-block;
 }
 
 .cv-photo {
@@ -55,6 +59,7 @@
   overflow: hidden;
   border: 3px solid #e2e8f0;
   margin-left: 20px;
+  flex-shrink: 0;
 }
 
 .cv-photo img {

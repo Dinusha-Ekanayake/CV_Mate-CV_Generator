@@ -57,7 +57,7 @@ const CVPreview = ({ cvData }) => {
                 </div>
                 <div className="cv-item-subheader">
                   <span>{edu.degree}</span>
-                  {edu.gpa && <span>GPA: {edu.gpa}</span>}
+                  {edu.gpa && <span>{edu.gpa}</span>}
                 </div>
               </div>
             ))}

@@ -126,8 +126,8 @@ const CVForm = ({ cvData, setCvData }) => {
                 <input type="text" value={edu.dates} onChange={e => handleArrayChange('education', index, 'dates', e.target.value)} placeholder="Sep 2020 - May 2024" />
               </div>
               <div className="form-group">
-                <label>GPA / Honours</label>
-                <input type="text" value={edu.gpa} onChange={e => handleArrayChange('education', index, 'gpa', e.target.value)} placeholder="3.8 / 4.0" />
+                <label>Results / GPA</label>
+                <input type="text" value={edu.gpa} onChange={e => handleArrayChange('education', index, 'gpa', e.target.value)} placeholder="AAB or 3.8 / 4.0" />
               </div>
             </div>
           </div>
