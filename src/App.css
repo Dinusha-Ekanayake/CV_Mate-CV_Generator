@@ -74,19 +74,27 @@
 }
 
 @media print {
+  html, body, #root {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+  }
   .app-container {
-    height: auto;
-    display: block;
+    height: auto !important;
+    display: block !important;
+    overflow: visible !important;
   }
   .main-content {
-    display: block;
-    overflow: visible;
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
   }
   .preview-section {
-    padding: 0;
-    background: transparent;
-    display: block;
-    overflow: visible;
+    padding: 0 !important;
+    background: transparent !important;
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 }
 

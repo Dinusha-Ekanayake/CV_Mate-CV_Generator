@@ -1,41 +1,52 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import './CVPreview.css';
 
 const CVPreview = ({ cvData, settings }) => {
   const { personal, summary, education, experience, projects, skills } = cvData;
 
-  const parseMarkdown = (text) => {
+  const renderRichText = (text) => {
     if (!text) return null;
-    // Simple markdown parser: **bold**, *italic*, [text](link)
-    let html = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     
-    return <span dangerouslySetInnerHTML={{ __html: html }} />;
-  };
+    // Check if it's legacy text (no HTML tags)
+    const isLegacy = !text.includes('<');
+    
+    let html = text;
+    if (isLegacy) {
+      // Convert legacy markdown bullets to HTML
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
+      if (lines.length > 0 && lines[0].trim().startsWith('-')) {
+        const lis = lines.map(line => `<li>${line.replace(/^-/, '').trim()}</li>`).join('');
+        html = `<ul>${lis}</ul>`;
+      }
+      
+      // Simple legacy markdown parser: **bold**, *italic*, [text](link)
+      html = html
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    }
 
-  const renderBullets = (text) => {
-    if (!text) return null;
+    // Secure the HTML
+    const cleanHtml = DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
+    
     return (
-      <ul className="bullet-list">
-        {text.split('\n').filter(line => line.trim().length > 0).map((line, i) => {
-          const cleanLine = line.replace(/^-/, '').trim();
-          return <li key={i}>{parseMarkdown(cleanLine)}</li>;
-        })}
-      </ul>
+      <div 
+        className="rich-text-content" 
+        dangerouslySetInnerHTML={{ __html: cleanHtml }} 
+      />
     );
   };
 
-  const isTwoColumn = settings?.layout === 'two-column';
+  const isTwoColumn = settings?.layout === 'two-column' || settings?.layout === 'creative';
+  const layoutStyleName = settings?.layout || 'single';
+  const layoutClass = `layout-${layoutStyleName}`;
   const order = settings?.sectionOrder || ['summary', 'education', 'experience', 'projects', 'skills'];
 
   const previewStyle = {
     '--theme-color': settings?.themeColor || '#0f172a',
     fontFamily: settings?.fontFamily || "'Inter', sans-serif"
   };
-
-  const layoutClass = isTwoColumn ? 'layout-two-column' : 'layout-single';
 
   const renderSkillBlock = (label, skillString, isSidebar = false) => {
     if (!skillString) return null;
@@ -63,7 +74,7 @@ const CVPreview = ({ cvData, settings }) => {
     summary: summary ? (
       <div className="cv-section" key="summary">
         <h3 className="cv-section-title">Profile</h3>
-        <p className="cv-summary-text">{parseMarkdown(summary)}</p>
+        <div className="cv-summary-text">{renderRichText(summary)}</div>
       </div>
     ) : null,
     
@@ -98,7 +109,7 @@ const CVPreview = ({ cvData, settings }) => {
               <span>{exp.role}</span>
             </div>
             <div className="cv-item-description">
-              {renderBullets(exp.description)}
+              {renderRichText(exp.description)}
             </div>
           </div>
         ))}
@@ -119,7 +130,7 @@ const CVPreview = ({ cvData, settings }) => {
               </div>
             )}
             <div className="cv-item-description">
-              {renderBullets(proj.description)}
+              {renderRichText(proj.description)}
             </div>
           </div>
         ))}

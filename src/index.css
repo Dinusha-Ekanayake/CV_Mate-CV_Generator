@@ -66,6 +66,11 @@ input:focus, textarea:focus, select:focus {
   background: rgba(255, 255, 255, 0.08);
 }
 
+select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
 textarea {
   resize: vertical;
   min-height: 100px;
@@ -129,9 +134,12 @@ label {
 
 /* Print Styles for CV */
 @media print {
-  body {
+  html, body {
     background: white;
     color: black;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
   }
   
   .no-print {

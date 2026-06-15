@@ -1,91 +1,106 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+
+import { SortableItem } from './SortableItem';
+import RichTextEditor from './RichTextEditor';
 import './CVForm.css';
 
 const CVForm = ({ cvData, setCvData }) => {
 
+  // Ensure all legacy items have an id on mount
+  useEffect(() => {
+    let needsUpdate = false;
+    const newData = { ...cvData };
+    ['education', 'experience', 'projects'].forEach(section => {
+      newData[section] = newData[section].map(item => {
+        if (!item.id) {
+          needsUpdate = true;
+          return { ...item, id: crypto.randomUUID() };
+        }
+        return item;
+      });
+    });
+    if (needsUpdate) {
+      setCvData(newData);
+    }
+  }, [cvData, setCvData]);
+
   const handleChange = (section, field, value) => {
-    setCvData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
+    setCvData(prev => ({ ...prev, [section]: { ...prev[section], [field]: value } }));
   };
 
   const handleSimpleChange = (field, value) => {
-    setCvData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setCvData(prev => ({ ...prev, [field]: value }));
   };
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2.5 * 1024 * 1024) {
+        alert("Image is too large! Please select an image under 2.5MB to prevent storage quota issues.");
+        e.target.value = ''; // clear input
+        return;
+      }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        handleChange('personal', 'photo', reader.result);
-      };
+      reader.onloadend = () => handleChange('personal', 'photo', reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleArrayChange = (section, index, field, value) => {
-    setCvData(prev => {
-      const newArray = [...prev[section]];
-      newArray[index] = { ...newArray[index], [field]: value };
-      return { ...prev, [section]: newArray };
-    });
+  const handleArrayChange = (section, id, field, value) => {
+    setCvData(prev => ({
+      ...prev,
+      [section]: prev[section].map(item => item.id === id ? { ...item, [field]: value } : item)
+    }));
   };
 
   const addArrayItem = (section, emptyItem) => {
     setCvData(prev => ({
       ...prev,
-      [section]: [...prev[section], { ...emptyItem, hidden: false }]
+      [section]: [...prev[section], { ...emptyItem, id: crypto.randomUUID(), hidden: false }]
     }));
   };
 
-  const removeArrayItem = (section, index) => {
-    setCvData(prev => {
-      const newArray = [...prev[section]];
-      newArray.splice(index, 1);
-      return { ...prev, [section]: newArray };
-    });
+  const removeArrayItem = (section, id) => {
+    setCvData(prev => ({
+      ...prev,
+      [section]: prev[section].filter(item => item.id !== id)
+    }));
   };
 
-  const moveArrayItem = (section, index, direction) => {
-    setCvData(prev => {
-      const newArray = [...prev[section]];
-      if (direction === 'up' && index > 0) {
-        [newArray[index - 1], newArray[index]] = [newArray[index], newArray[index - 1]];
-      } else if (direction === 'down' && index < newArray.length - 1) {
-        [newArray[index + 1], newArray[index]] = [newArray[index], newArray[index + 1]];
-      }
-      return { ...prev, [section]: newArray };
-    });
+  const toggleVisibility = (section, id) => {
+    setCvData(prev => ({
+      ...prev,
+      [section]: prev[section].map(item => item.id === id ? { ...item, hidden: !item.hidden } : item)
+    }));
   };
 
-  const toggleVisibility = (section, index) => {
-    setCvData(prev => {
-      const newArray = [...prev[section]];
-      newArray[index] = { ...newArray[index], hidden: !newArray[index].hidden };
-      return { ...prev, [section]: newArray };
-    });
+  const handleDragEnd = (event, section) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setCvData((prev) => {
+        const oldIndex = prev[section].findIndex(item => item.id === active.id);
+        const newIndex = prev[section].findIndex(item => item.id === over.id);
+        return {
+          ...prev,
+          [section]: arrayMove(prev[section], oldIndex, newIndex),
+        };
+      });
+    }
   };
 
-  const renderArrayControls = (section, index, arrayLength, isHidden) => (
+  const renderArrayControls = (section, id, isHidden) => (
     <div className="array-controls">
       <button 
+        type="button"
         className={`btn-toggle ${isHidden ? 'hidden' : ''}`} 
-        onClick={() => toggleVisibility(section, index)}
+        onClick={() => toggleVisibility(section, id)}
         title={isHidden ? "Show in CV" : "Hide from CV"}
       >
         {isHidden ? '👁️‍🗨️' : '👁️'}
       </button>
-      {index > 0 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'up')} title="Move Up">↑</button>}
-      {index < arrayLength - 1 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'down')} title="Move Down">↓</button>}
-      <button className="btn-remove" onClick={() => removeArrayItem(section, index)} title="Remove">×</button>
+      <button type="button" className="btn-remove" onClick={() => removeArrayItem(section, id)} title="Remove">×</button>
     </div>
   );
 
@@ -135,90 +150,114 @@ const CVForm = ({ cvData, setCvData }) => {
 
       <h2 className="section-title">Professional Summary</h2>
       <div className="glass-panel form-section-panel">
-        <div className="form-group">
-          <textarea value={cvData.summary} onChange={e => handleSimpleChange('summary', e.target.value)} placeholder="Briefly describe your background, focus in AI/SE, and career goals... (Supports Markdown **bold**, *italic*, [link](url))" />
+        <div className="form-group" style={{display: 'flex', flexDirection: 'column'}}>
+          <RichTextEditor 
+            value={cvData.summary} 
+            onChange={(val) => handleSimpleChange('summary', val)} 
+            placeholder="Briefly describe your background, focus in AI/SE, and career goals..." 
+          />
         </div>
       </div>
 
       <h2 className="section-title">Education</h2>
       <div className="glass-panel form-section-panel">
-        {cvData.education.map((edu, index) => (
-          <div key={index} className={`dynamic-item ${edu.hidden ? 'item-hidden' : ''}`}>
-            {renderArrayControls('education', index, cvData.education.length, edu.hidden)}
-            <div className="form-row">
-              <div className="form-group">
-                <label>Institution</label>
-                <input type="text" value={edu.institution || ''} onChange={e => handleArrayChange('education', index, 'institution', e.target.value)} placeholder="University Name" />
-              </div>
-              <div className="form-group">
-                <label>Degree</label>
-                <input type="text" value={edu.degree || ''} onChange={e => handleArrayChange('education', index, 'degree', e.target.value)} placeholder="BSc Computer Science" />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Dates</label>
-                <input type="text" value={edu.dates || ''} onChange={e => handleArrayChange('education', index, 'dates', e.target.value)} placeholder="Sep 2020 - May 2024" />
-              </div>
-              <div className="form-group">
-                <label>Results / GPA</label>
-                <input type="text" value={edu.gpa || ''} onChange={e => handleArrayChange('education', index, 'gpa', e.target.value)} placeholder="AAB or 3.8 / 4.0" />
-              </div>
-            </div>
-          </div>
-        ))}
+        <DndContext collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'education')}>
+          <SortableContext items={cvData.education.map(e => e.id)} strategy={verticalListSortingStrategy}>
+            {cvData.education.map((edu) => (
+              <SortableItem key={edu.id} id={edu.id} isHidden={edu.hidden}>
+                {renderArrayControls('education', edu.id, edu.hidden)}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Institution</label>
+                    <input type="text" value={edu.institution || ''} onChange={e => handleArrayChange('education', edu.id, 'institution', e.target.value)} placeholder="University Name" />
+                  </div>
+                  <div className="form-group">
+                    <label>Degree</label>
+                    <input type="text" value={edu.degree || ''} onChange={e => handleArrayChange('education', edu.id, 'degree', e.target.value)} placeholder="BSc Computer Science" />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Dates</label>
+                    <input type="text" value={edu.dates || ''} onChange={e => handleArrayChange('education', edu.id, 'dates', e.target.value)} placeholder="Sep 2020 - May 2024" />
+                  </div>
+                  <div className="form-group">
+                    <label>Results / GPA</label>
+                    <input type="text" value={edu.gpa || ''} onChange={e => handleArrayChange('education', edu.id, 'gpa', e.target.value)} placeholder="AAB or 3.8 / 4.0" />
+                  </div>
+                </div>
+              </SortableItem>
+            ))}
+          </SortableContext>
+        </DndContext>
         <button className="btn btn-secondary w-100" onClick={() => addArrayItem('education', { institution: '', degree: '', dates: '', gpa: '' })}>+ Add Education</button>
       </div>
 
       <h2 className="section-title">Experience</h2>
       <div className="glass-panel form-section-panel">
-        {cvData.experience.map((exp, index) => (
-          <div key={index} className={`dynamic-item ${exp.hidden ? 'item-hidden' : ''}`}>
-            {renderArrayControls('experience', index, cvData.experience.length, exp.hidden)}
-            <div className="form-row">
-              <div className="form-group">
-                <label>Company</label>
-                <input type="text" value={exp.company || ''} onChange={e => handleArrayChange('experience', index, 'company', e.target.value)} placeholder="Tech Corp" />
-              </div>
-              <div className="form-group">
-                <label>Role</label>
-                <input type="text" value={exp.role || ''} onChange={e => handleArrayChange('experience', index, 'role', e.target.value)} placeholder="AI Intern" />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Dates</label>
-              <input type="text" value={exp.dates || ''} onChange={e => handleArrayChange('experience', index, 'dates', e.target.value)} placeholder="Jun 2023 - Aug 2023" />
-            </div>
-            <div className="form-group">
-              <label>Description (Supports Markdown)</label>
-              <textarea value={exp.description || ''} onChange={e => handleArrayChange('experience', index, 'description', e.target.value)} placeholder="- Developed a **machine learning** model...&#10;- Improved accuracy by 15%..." />
-            </div>
-          </div>
-        ))}
+        <DndContext collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'experience')}>
+          <SortableContext items={cvData.experience.map(e => e.id)} strategy={verticalListSortingStrategy}>
+            {cvData.experience.map((exp) => (
+              <SortableItem key={exp.id} id={exp.id} isHidden={exp.hidden}>
+                {renderArrayControls('experience', exp.id, exp.hidden)}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Company</label>
+                    <input type="text" value={exp.company || ''} onChange={e => handleArrayChange('experience', exp.id, 'company', e.target.value)} placeholder="Tech Corp" />
+                  </div>
+                  <div className="form-group">
+                    <label>Role</label>
+                    <input type="text" value={exp.role || ''} onChange={e => handleArrayChange('experience', exp.id, 'role', e.target.value)} placeholder="AI Intern" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Dates</label>
+                  <input type="text" value={exp.dates || ''} onChange={e => handleArrayChange('experience', exp.id, 'dates', e.target.value)} placeholder="Jun 2023 - Aug 2023" />
+                </div>
+                <div className="form-group" style={{display: 'flex', flexDirection: 'column'}}>
+                  <label>Description</label>
+                  <RichTextEditor 
+                    value={exp.description || ''} 
+                    onChange={(val) => handleArrayChange('experience', exp.id, 'description', val)} 
+                    placeholder="Describe your role and impact..." 
+                  />
+                </div>
+              </SortableItem>
+            ))}
+          </SortableContext>
+        </DndContext>
         <button className="btn btn-secondary w-100" onClick={() => addArrayItem('experience', { company: '', role: '', dates: '', description: '' })}>+ Add Experience</button>
       </div>
 
       <h2 className="section-title">AI / SE Projects</h2>
       <div className="glass-panel form-section-panel">
-        {cvData.projects.map((proj, index) => (
-          <div key={index} className={`dynamic-item ${proj.hidden ? 'item-hidden' : ''}`}>
-            {renderArrayControls('projects', index, cvData.projects.length, proj.hidden)}
-            <div className="form-row">
-              <div className="form-group">
-                <label>Project Name</label>
-                <input type="text" value={proj.name || ''} onChange={e => handleArrayChange('projects', index, 'name', e.target.value)} placeholder="Neural Network Visualizer" />
-              </div>
-              <div className="form-group">
-                <label>Tech Stack</label>
-                <input type="text" value={proj.tech || ''} onChange={e => handleArrayChange('projects', index, 'tech', e.target.value)} placeholder="Python, PyTorch, React" />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Description (Supports Markdown)</label>
-              <textarea value={proj.description || ''} onChange={e => handleArrayChange('projects', index, 'description', e.target.value)} placeholder="- Built a CNN for image classification...&#10;- Deployed via Docker..." />
-            </div>
-          </div>
-        ))}
+        <DndContext collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'projects')}>
+          <SortableContext items={cvData.projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
+            {cvData.projects.map((proj) => (
+              <SortableItem key={proj.id} id={proj.id} isHidden={proj.hidden}>
+                {renderArrayControls('projects', proj.id, proj.hidden)}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Project Name</label>
+                    <input type="text" value={proj.name || ''} onChange={e => handleArrayChange('projects', proj.id, 'name', e.target.value)} placeholder="Neural Network Visualizer" />
+                  </div>
+                  <div className="form-group">
+                    <label>Tech Stack</label>
+                    <input type="text" value={proj.tech || ''} onChange={e => handleArrayChange('projects', proj.id, 'tech', e.target.value)} placeholder="Python, PyTorch, React" />
+                  </div>
+                </div>
+                <div className="form-group" style={{display: 'flex', flexDirection: 'column'}}>
+                  <label>Description</label>
+                  <RichTextEditor 
+                    value={proj.description || ''} 
+                    onChange={(val) => handleArrayChange('projects', proj.id, 'description', val)} 
+                    placeholder="Describe the project and technologies used..." 
+                  />
+                </div>
+              </SortableItem>
+            ))}
+          </SortableContext>
+        </DndContext>
         <button className="btn btn-secondary w-100" onClick={() => addArrayItem('projects', { name: '', tech: '', description: '' })}>+ Add Project</button>
       </div>
 

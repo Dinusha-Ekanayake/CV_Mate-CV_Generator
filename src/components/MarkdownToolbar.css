@@ -1,0 +1,61 @@
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: -4px; /* Pull textarea up */
+}
+
+.md-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.md-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.md-btn.italic {
+  font-style: italic;
+}
+
+.md-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 5px;
+}
+
+.ai-enhance-btn {
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-enhance-btn:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+
+.ai-enhance-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ai-enhance-btn.enhancing {
+  color: #fbbf24; /* yellow/gold */
+}

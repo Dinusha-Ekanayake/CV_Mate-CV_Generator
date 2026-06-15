@@ -22,13 +22,13 @@ const sampleData = {
   },
   summary: 'Passionate Artificial Intelligence undergraduate with a strong foundation in machine learning, deep neural networks, and scalable software engineering. Proven ability to build intelligent systems and optimize complex algorithms.',
   education: [
-    { institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: '3.8 / 4.0' }
+    { id: 'edu-1', institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: '3.8 / 4.0' }
   ],
   experience: [
-    { company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
+    { id: 'exp-1', company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
   ],
   projects: [
-    { name: 'Neural Network Visualizer', tech: 'React, D3.js, TensorFlow.js', description: '- Developed an interactive web application that allows users to build and visualize neural networks directly in the browser.\n- See it live at [nn-viz.dev](https://example.com)' }
+    { id: 'proj-1', name: 'Neural Network Visualizer', tech: 'React, D3.js, TensorFlow.js', description: '- Developed an interactive web application that allows users to build and visualize neural networks directly in the browser.\n- See it live at [nn-viz.dev](https://example.com)' }
   ],
   skills: {
     languages: 'Python, JavaScript (ES6+), C++, SQL',
@@ -38,6 +38,38 @@ const sampleData = {
 };
 
 const defaultSectionOrder = ['summary', 'education', 'experience', 'projects', 'skills'];
+
+// --- WCAG Contrast Helper Functions ---
+const getLuminance = (r, g, b) => {
+  const [rs, gs, bs] = [r, g, b].map(c => {
+    c = c / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+};
+
+const hexToRgb = (hex) => {
+  const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+};
+
+const checkWCAGContrast = (hexColor) => {
+  const rgb1 = hexToRgb(hexColor);
+  const rgb2 = hexToRgb('#ffffff'); // Contrast against white background/text
+  if (!rgb1 || !rgb2) return true; // default safe
+  const l1 = getLuminance(rgb1.r, rgb1.g, rgb1.b);
+  const l2 = getLuminance(rgb2.r, rgb2.g, rgb2.b);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  const ratio = (lighter + 0.05) / (darker + 0.05);
+  return ratio >= 4.5; // WCAG AA standard
+};
 
 function App() {
   const [cvData, setCvData] = useState(() => {
@@ -66,11 +98,20 @@ function App() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem('cvData', JSON.stringify(cvData));
+    try {
+      localStorage.setItem('cvData', JSON.stringify(cvData));
+    } catch (error) {
+      console.error("Local storage error:", error);
+      alert("Failed to save CV data to local storage. You may have exceeded the storage quota (e.g., image too large).");
+    }
   }, [cvData]);
 
   useEffect(() => {
-    localStorage.setItem('cvSettings', JSON.stringify(settings));
+    try {
+      localStorage.setItem('cvSettings', JSON.stringify(settings));
+    } catch (error) {
+      console.error("Local storage error:", error);
+    }
   }, [settings]);
 
   const handlePrint = () => window.print();
@@ -134,11 +175,14 @@ function App() {
     }, 50);
   };
 
+  const hasGoodContrast = checkWCAGContrast(settings.themeColor);
+
   return (
     <div className="app-container">
       <header className="app-header no-print">
-        <div className="logo">
-          <span className="accent">AI</span>/SE CV Generator
+        <div className="logo" style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+          <img src="/logo.png" alt="CV Mate Logo" style={{width: '32px', height: '32px', borderRadius: '6px'}} />
+          <span>CV <span className="accent">Mate</span> - CV Generator</span>
         </div>
         <div className="header-actions">
           <input type="file" accept=".json" style={{display: 'none'}} ref={fileInputRef} onChange={handleImport} />
@@ -164,17 +208,20 @@ function App() {
                 <select value={settings.layout} onChange={e => setSettings({...settings, layout: e.target.value})}>
                   <option value="single">Single Column</option>
                   <option value="two-column">Two Column</option>
+                  <option value="executive">Executive (Classic)</option>
+                  <option value="creative">Creative (Timeline)</option>
                 </select>
               </div>
               <div className="form-group">
-                <label>Accent Color</label>
-                <select value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})}>
-                  <option value="#0f172a">Classic Slate</option>
-                  <option value="#0ea5e9">Ocean Blue</option>
-                  <option value="#10b981">Emerald Green</option>
-                  <option value="#8b5cf6">Royal Purple</option>
-                  <option value="#f43f5e">Rose Red</option>
-                </select>
+                <label>Theme Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input type="color" value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})} />
+                  {!hasGoodContrast && (
+                    <span style={{ color: '#ef4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }} title="This color fails WCAG AA contrast standards against white text/backgrounds. It may be hard to read!">
+                      ⚠️ Poor Contrast
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="form-group">
                 <label>Typography</label>
