@@ -37,6 +37,27 @@ const CVPreview = ({ cvData, settings }) => {
 
   const layoutClass = isTwoColumn ? 'layout-two-column' : 'layout-single';
 
+  const renderSkillBlock = (label, skillString, isSidebar = false) => {
+    if (!skillString) return null;
+    if (settings?.skillStyle === 'tags') {
+      return (
+        <div className={`cv-skill-group tags-mode ${isSidebar ? 'sidebar-style' : ''}`}>
+          <strong style={{display: 'block', marginBottom: '4px'}}>{label}</strong>
+          <div className="skill-tags-container">
+            {skillString.split(',').map(s => s.trim()).filter(s => s).map((s, i) => (
+              <span key={i} className="skill-tag">{s}</span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className={isSidebar ? "cv-skill-group" : "cv-skill-row"}>
+        <strong>{label}{!isSidebar && ':'}</strong> {isSidebar ? <div>{skillString}</div> : skillString}
+      </div>
+    );
+  };
+
   // Component Map for dynamic ordering
   const sectionsMap = {
     summary: summary ? (
@@ -109,21 +130,9 @@ const CVPreview = ({ cvData, settings }) => {
       <div className="cv-section" key="skills">
         <h3 className="cv-section-title">Skills</h3>
         <div className="cv-skills">
-          {skills.languages && (
-            <div className="cv-skill-row">
-              <strong>Languages:</strong> {skills.languages}
-            </div>
-          )}
-          {skills.frameworks && (
-            <div className="cv-skill-row">
-              <strong>Frameworks:</strong> {skills.frameworks}
-            </div>
-          )}
-          {skills.tools && (
-            <div className="cv-skill-row">
-              <strong>Tools:</strong> {skills.tools}
-            </div>
-          )}
+          {renderSkillBlock('Languages', skills.languages)}
+          {renderSkillBlock('Frameworks', skills.frameworks)}
+          {renderSkillBlock('Tools', skills.tools)}
         </div>
       </div>
     ) : null
@@ -156,24 +165,9 @@ const CVPreview = ({ cvData, settings }) => {
               <div className="cv-section sidebar-section">
                 <h3 className="cv-section-title">Skills</h3>
                 <div className="cv-skills-stacked">
-                  {skills.languages && (
-                    <div className="cv-skill-group">
-                      <strong>Languages</strong>
-                      <div>{skills.languages}</div>
-                    </div>
-                  )}
-                  {skills.frameworks && (
-                    <div className="cv-skill-group">
-                      <strong>Frameworks</strong>
-                      <div>{skills.frameworks}</div>
-                    </div>
-                  )}
-                  {skills.tools && (
-                    <div className="cv-skill-group">
-                      <strong>Tools</strong>
-                      <div>{skills.tools}</div>
-                    </div>
-                  )}
+                  {renderSkillBlock('Languages', skills.languages, true)}
+                  {renderSkillBlock('Frameworks', skills.frameworks, true)}
+                  {renderSkillBlock('Tools', skills.tools, true)}
                 </div>
               </div>
             )}

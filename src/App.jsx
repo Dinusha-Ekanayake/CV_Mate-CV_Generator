@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import CVForm from './components/CVForm';
 import CVPreview from './components/CVPreview';
+import ATSAnalyzer from './components/ATSAnalyzer';
 
 const initialData = {
   personal: {
@@ -54,10 +55,11 @@ function App() {
         layout: parsed.layout || 'single',
         themeColor: parsed.themeColor || '#0f172a',
         fontFamily: parsed.fontFamily || "'Inter', sans-serif",
-        sectionOrder: parsed.sectionOrder || defaultSectionOrder
+        sectionOrder: parsed.sectionOrder || defaultSectionOrder,
+        skillStyle: parsed.skillStyle || 'classic'
       };
     } catch {
-      return { layout: 'single', themeColor: '#0f172a', fontFamily: "'Inter', sans-serif", sectionOrder: defaultSectionOrder };
+      return { layout: 'single', themeColor: '#0f172a', fontFamily: "'Inter', sans-serif", sectionOrder: defaultSectionOrder, skillStyle: 'classic' };
     }
   });
 
@@ -115,6 +117,23 @@ function App() {
     });
   };
 
+  const handleAutoFit = () => {
+    const container = document.querySelector('.cv-preview-container');
+    if (!container) return;
+    
+    container.style.zoom = '1';
+    
+    setTimeout(() => {
+      const MAX_HEIGHT = 1120; // Approx 297mm at 96dpi
+      let zoomLevel = 1.0;
+      
+      while (container.scrollHeight > MAX_HEIGHT && zoomLevel > 0.5) {
+        zoomLevel -= 0.02;
+        container.style.zoom = zoomLevel.toString();
+      }
+    }, 50);
+  };
+
   return (
     <div className="app-container">
       <header className="app-header no-print">
@@ -127,6 +146,7 @@ function App() {
           <button className="btn btn-secondary" onClick={handleExport} style={{marginRight: '10px'}}>Export JSON</button>
           <button className="btn btn-secondary" onClick={clearForm} style={{marginRight: '10px'}}>Clear</button>
           <button className="btn btn-secondary" onClick={loadSample} style={{marginRight: '10px'}}>Load Sample</button>
+          <button className="btn btn-secondary" onClick={handleAutoFit} style={{marginRight: '10px'}}>✨ Auto-Fit</button>
           <button className="btn btn-primary" onClick={handlePrint}>
             Export PDF
           </button>
@@ -135,6 +155,7 @@ function App() {
 
       <main className="main-content">
         <section className="form-section no-print">
+          <ATSAnalyzer cvData={cvData} />
           <div className="settings-panel glass-panel" style={{marginBottom: '2rem'}}>
             <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>CV Settings & Layout</h2>
             <div className="form-row">
@@ -161,6 +182,13 @@ function App() {
                   <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
                   <option value="'Georgia', serif">Classic Serif (Georgia)</option>
                   <option value="'Courier New', monospace">Code (Monospace)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Skill Style</label>
+                <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
+                  <option value="classic">Classic (Comma Separated)</option>
+                  <option value="tags">Modern Tags</option>
                 </select>
               </div>
             </div>
