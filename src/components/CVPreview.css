@@ -24,28 +24,8 @@
   width: 210mm;
   min-height: 297mm;
   background-color: white;
-  
-  /* True visual pagination illusion! */
-  -webkit-mask-image: repeating-linear-gradient(
-    to bottom,
-    black 0,
-    black 297mm,
-    transparent 297mm,
-    transparent calc(297mm + 15px)
-  );
-  mask-image: repeating-linear-gradient(
-    to bottom,
-    black 0,
-    black 297mm,
-    transparent 297mm,
-    transparent calc(297mm + 15px)
-  );
-
-  /* Drop shadow perfectly outlines the sliced pages */
-  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
-  
   color: #111827;
-  line-height: 1.5;
+  line-height: calc(1.5 * var(--spacing-multiplier));
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
@@ -64,24 +44,26 @@
 
 /* Layouts */
 .layout-single {
-  padding: 20mm;
+  padding: calc(20mm * var(--spacing-multiplier));
 }
 
 .layout-two-column {
-  display: grid;
-  grid-template-columns: 65mm 1fr;
+  display: flex;
   min-height: 297mm;
   background: linear-gradient(to right, #f8fafc 0, #f8fafc 65mm, white 65mm, white 100%);
 }
 
 .cv-sidebar {
-  padding: 20mm 10mm;
+  width: 65mm;
+  flex-shrink: 0;
+  padding: calc(20mm * var(--spacing-multiplier)) 10mm;
   border-right: 1px solid #e2e8f0;
   background: transparent !important;
 }
 
 .cv-main-content {
-  padding: 20mm;
+  flex: 1;
+  padding: calc(20mm * var(--spacing-multiplier));
 }
 
 /* Typography & Theming */
@@ -312,21 +294,20 @@
   }
 
   .layout-two-column {
-    display: table !important;
+    display: flex !important;
     width: 100% !important;
     min-height: auto !important;
     page-break-inside: auto;
+    break-inside: auto;
   }
   
   .layout-two-column > .cv-sidebar {
-    display: table-cell !important;
     width: 65mm !important;
-    height: 100%;
+    flex-shrink: 0 !important;
   }
 
   .layout-two-column > .cv-main-content {
-    display: table-cell !important;
-    width: auto !important;
+    flex: 1 !important;
   }
 
   .cv-section-title, .cv-item {

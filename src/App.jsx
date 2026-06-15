@@ -18,7 +18,11 @@ const initialData = {
   education: [],
   experience: [],
   projects: [],
-  skills: { languages: '', frameworks: '', tools: '' },
+  skills: [
+    { id: 'sk-1', category: 'Languages', items: '' },
+    { id: 'sk-2', category: 'Frameworks', items: '' },
+    { id: 'sk-3', category: 'Tools', items: '' }
+  ],
   coverLetter: {
     recipientName: 'Hiring Manager',
     companyName: 'Tech Innovators Inc.',
@@ -42,11 +46,11 @@ const sampleData = {
   projects: [
     { id: 'proj-2', name: 'Resume Builder', tech: 'React, Firebase, Electron', description: '<ul><li>Built a cross-platform desktop & web resume builder.</li><li>Implemented drag-and-drop components and real-time PDF generation.</li></ul>' }
   ],
-  skills: {
-    languages: 'Python, JavaScript, TypeScript, Java, C++',
-    frameworks: 'React, Node.js, PyTorch, TensorFlow, Next.js',
-    tools: 'Git, Docker, AWS, Firebase, MongoDB'
-  },
+  skills: [
+    { id: 'sk-1', category: 'Languages', items: 'Python, JavaScript, TypeScript, Java, C++' },
+    { id: 'sk-2', category: 'Frameworks', items: 'React, Node.js, PyTorch, TensorFlow, Next.js' },
+    { id: 'sk-3', category: 'Tools', items: 'Git, Docker, AWS, Firebase, MongoDB' }
+  ],
   coverLetter: {
     recipientName: 'Sarah Jenkins, Head of Engineering',
     companyName: 'OpenAI',
@@ -91,11 +95,21 @@ const checkWCAGContrast = (hexColor) => {
 
 const hydrateData = (parsed) => {
   if (!parsed) return initialData;
+  
+  let migratedSkills = parsed.skills || initialData.skills;
+  if (!Array.isArray(migratedSkills)) {
+    migratedSkills = [
+      { id: 'sk-lang', category: 'Languages', items: migratedSkills.languages || '' },
+      { id: 'sk-fram', category: 'Frameworks', items: migratedSkills.frameworks || '' },
+      { id: 'sk-tool', category: 'Tools', items: migratedSkills.tools || '' }
+    ];
+  }
+
   return {
     ...initialData,
     ...parsed,
     personal: { ...initialData.personal, ...(parsed.personal || {}) },
-    skills: { ...initialData.skills, ...(parsed.skills || {}) },
+    skills: migratedSkills,
     coverLetter: { ...initialData.coverLetter, ...(parsed.coverLetter || {}) }
   };
 };
@@ -385,7 +399,22 @@ function App() {
                       }}
                     />
                   ))}
-                  <input type="color" title="Custom Color" value={settings.themeColor} onChange={e => setSettings({...settings, palette: 'custom', themeColor: e.target.value})} style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '50%', cursor: 'pointer', overflow: 'hidden' }} />
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label>Custom Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input 
+                    type="color" 
+                    title="Custom Color" 
+                    value={settings.themeColor} 
+                    onChange={e => setSettings({...settings, palette: 'custom', themeColor: e.target.value})} 
+                    style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '50%', cursor: 'pointer', overflow: 'hidden' }} 
+                  />
+                  <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontFamily: 'monospace' }}>
+                    {settings.themeColor.toUpperCase()}
+                  </span>
                 </div>
               </div>
 

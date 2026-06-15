@@ -22,14 +22,16 @@ const CVForm = ({ cvData, setCvData }) => {
   useEffect(() => {
     let needsUpdate = false;
     const newData = { ...cvData };
-    ['education', 'experience', 'projects'].forEach(section => {
-      newData[section] = newData[section].map(item => {
-        if (!item.id) {
-          needsUpdate = true;
-          return { ...item, id: crypto.randomUUID() };
-        }
-        return item;
-      });
+    ['education', 'experience', 'projects', 'skills'].forEach(section => {
+      if (Array.isArray(newData[section])) {
+        newData[section] = newData[section].map(item => {
+          if (!item.id) {
+            needsUpdate = true;
+            return { ...item, id: crypto.randomUUID() };
+          }
+          return item;
+        });
+      }
     });
     if (needsUpdate) {
       setCvData(newData);
@@ -273,18 +275,26 @@ const CVForm = ({ cvData, setCvData }) => {
 
       <h2 className="section-title">Skills</h2>
       <div className="glass-panel form-section-panel">
-        <div className="form-group">
-          <label>Languages</label>
-          <input type="text" value={cvData.skills.languages} onChange={e => handleChange('skills', 'languages', e.target.value)} placeholder="Python, JavaScript, C++, SQL" />
-        </div>
-        <div className="form-group">
-          <label>AI/ML Frameworks</label>
-          <input type="text" value={cvData.skills.frameworks} onChange={e => handleChange('skills', 'frameworks', e.target.value)} placeholder="TensorFlow, PyTorch, Scikit-Learn" />
-        </div>
-        <div className="form-group">
-          <label>Tools & Platforms</label>
-          <input type="text" value={cvData.skills.tools} onChange={e => handleChange('skills', 'tools', e.target.value)} placeholder="Git, Docker, AWS, Linux" />
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'skills')}>
+          <SortableContext items={(Array.isArray(cvData.skills) ? cvData.skills : []).map(s => s.id)} strategy={verticalListSortingStrategy}>
+            {(Array.isArray(cvData.skills) ? cvData.skills : []).map((skill) => (
+              <SortableItem key={skill.id} id={skill.id} isHidden={skill.hidden}>
+                {renderArrayControls('skills', skill.id, skill.hidden)}
+                <div className="form-row">
+                  <div className="form-group" style={{ flex: '0 0 30%' }}>
+                    <label>Category</label>
+                    <input type="text" value={skill.category || ''} onChange={e => handleArrayChange('skills', skill.id, 'category', e.target.value)} placeholder="Languages" />
+                  </div>
+                  <div className="form-group" style={{ flex: '1' }}>
+                    <label>Skills (comma separated)</label>
+                    <input type="text" value={skill.items || ''} onChange={e => handleArrayChange('skills', skill.id, 'items', e.target.value)} placeholder="React, Node.js" />
+                  </div>
+                </div>
+              </SortableItem>
+            ))}
+          </SortableContext>
+        </DndContext>
+        <button className="btn btn-secondary w-100" onClick={() => addArrayItem('skills', { category: '', items: '' })}>+ Add Skill Category</button>
       </div>
     </div>
   );

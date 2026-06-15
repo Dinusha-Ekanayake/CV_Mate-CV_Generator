@@ -201,13 +201,15 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
       </div>
     ) : null,
 
-    skills: (skills.languages || skills.frameworks || skills.tools) ? (
+    skills: (Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) ? (
       <div className="cv-section" key="skills">
         <SectionHeader title="Skills" icon={Wrench} />
         <div className="cv-skills">
-          {renderSkillBlock('Languages', skills.languages)}
-          {renderSkillBlock('Frameworks', skills.frameworks)}
-          {renderSkillBlock('Tools', skills.tools)}
+          {skills.filter(s => !s.hidden && s.items).map((skill, idx) => (
+            <React.Fragment key={skill.id || idx}>
+              {renderSkillBlock(skill.category, skill.items)}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     ) : null
@@ -247,13 +249,15 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
             </div>
           </div>
 
-          {(skills.languages || skills.frameworks || skills.tools) && (
+          {(Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) && (
             <div className="cv-section sidebar-section">
               <h3 className="cv-section-title">Skills</h3>
-              <div className="cv-skills-stacked">
-                {renderSkillBlock('Languages', skills.languages, true)}
-                {renderSkillBlock('Frameworks', skills.frameworks, true)}
-                {renderSkillBlock('Tools', skills.tools, true)}
+              <div className={settings?.skillStyle === 'tags' ? "cv-skills-stacked" : "cv-contact-list"}>
+                {skills.filter(s => !s.hidden && s.items).map((skill, idx) => (
+                  <React.Fragment key={skill.id || idx}>
+                    {renderSkillBlock(skill.category, skill.items, true)}
+                  </React.Fragment>
+                ))}
               </div>
             </div>
           )}
@@ -390,52 +394,50 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
         {/* Hidden Ruler for exact 297mm pixel calculation on user's monitor */}
         <div ref={rulerRef} style={{ height: '297mm', position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
 
-        {/* Master Content (Invisible on screen, Visible on print) */}
+        {/* Master Pageless Content */}
         <div 
           ref={masterRef}
-          className={`cv-preview-container print-only ${layoutClass}`} 
+          className={`cv-preview-container ${layoutClass}`} 
           style={{ 
             ...previewStyle, 
             height: 'auto', 
             minHeight: '297mm',
-            position: 'absolute', // Taking it out of flow for screen
-            visibility: 'hidden' // Invisible on screen, but print-only overrides this in CSS
+            position: 'relative',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+            backgroundColor: 'white',
+            borderRadius: '4px'
           }}
         >
-          {renderContent()}
-        </div>
-
-        {/* Sliced Pages (Visible on screen, Hidden on print) */}
-        {Array.from({ length: numPages }).map((_, i) => (
-          <div 
-            key={i} 
-            className="cv-page-slice no-print" 
-            style={{ 
-              height: '297mm', 
-              width: '210mm', 
-              overflow: 'hidden', 
-              position: 'relative',
-              backgroundColor: 'white',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-              borderRadius: '4px'
-            }}
-          >
-            <div 
-              className={`cv-preview-container ${layoutClass}`} 
-              style={{ 
-                ...previewStyle, 
-                position: 'absolute', 
-                top: `calc(-${i} * 297mm)`, 
+          {/* Visual Page Break Indicators */}
+          {Array.from({ length: numPages - 1 }).map((_, i) => (
+            <div
+              key={i}
+              className="no-print page-break-indicator"
+              style={{
+                position: 'absolute',
+                top: `calc(${i + 1} * 297mm)`,
                 left: 0,
-                width: '210mm',
-                height: 'auto',
-                minHeight: '297mm'
+                width: '100%',
+                borderBottom: '2px dashed rgba(239, 68, 68, 0.6)', /* Subtle Red Dashed Line */
+                zIndex: 10
               }}
             >
-              {renderContent()}
+              <span style={{
+                position: 'absolute',
+                right: '10px',
+                top: '-20px',
+                color: 'rgba(239, 68, 68, 0.6)',
+                fontSize: '0.8rem',
+                fontWeight: 'bold',
+                background: 'rgba(255,255,255,0.9)',
+                padding: '2px 6px',
+                borderRadius: '4px'
+              }}>Page {i + 2} Break</span>
             </div>
-          </div>
-        ))}
+          ))}
+
+          {renderContent()}
+        </div>
       </div>
     </div>
   );
