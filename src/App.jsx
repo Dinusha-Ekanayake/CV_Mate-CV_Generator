@@ -137,8 +137,9 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header no-print">
-        <div className="logo">
-          <span className="accent">AI</span>/SE CV Generator
+        <div className="logo" style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+          <img src="/logo.png" alt="CV Mate Logo" style={{width: '32px', height: '32px', borderRadius: '6px'}} />
+          <span>CV <span className="accent">Mate</span> - CV Generator</span>
         </div>
         <div className="header-actions">
           <input type="file" accept=".json" style={{display: 'none'}} ref={fileInputRef} onChange={handleImport} />
