@@ -1,12 +1,22 @@
 import React, { useEffect } from 'react';
-import { DndContext, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 import { SortableItem } from './SortableItem';
 import RichTextEditor from './RichTextEditor';
 import './CVForm.css';
 
 const CVForm = ({ cvData, setCvData }) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Ensure all legacy items have an id on mount
   useEffect(() => {
@@ -161,7 +171,7 @@ const CVForm = ({ cvData, setCvData }) => {
 
       <h2 className="section-title">Education</h2>
       <div className="glass-panel form-section-panel">
-        <DndContext collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'education')}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'education')}>
           <SortableContext items={cvData.education.map(e => e.id)} strategy={verticalListSortingStrategy}>
             {cvData.education.map((edu) => (
               <SortableItem key={edu.id} id={edu.id} isHidden={edu.hidden}>
@@ -195,7 +205,7 @@ const CVForm = ({ cvData, setCvData }) => {
 
       <h2 className="section-title">Experience</h2>
       <div className="glass-panel form-section-panel">
-        <DndContext collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'experience')}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'experience')}>
           <SortableContext items={cvData.experience.map(e => e.id)} strategy={verticalListSortingStrategy}>
             {cvData.experience.map((exp) => (
               <SortableItem key={exp.id} id={exp.id} isHidden={exp.hidden}>
@@ -231,7 +241,7 @@ const CVForm = ({ cvData, setCvData }) => {
 
       <h2 className="section-title">AI / SE Projects</h2>
       <div className="glass-panel form-section-panel">
-        <DndContext collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'projects')}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'projects')}>
           <SortableContext items={cvData.projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
             {cvData.projects.map((proj) => (
               <SortableItem key={proj.id} id={proj.id} isHidden={proj.hidden}>

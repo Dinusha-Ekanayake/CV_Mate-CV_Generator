@@ -55,6 +55,13 @@
   word-wrap: break-word;
 }
 
+/* Ensure items don't split across pages */
+.cv-item, .cv-section-title, .sidebar-section {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+
 /* Layouts */
 .layout-single {
   padding: 20mm;

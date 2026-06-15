@@ -7,6 +7,33 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
   const { personal = {}, summary = '', education = [], experience = [], projects = [], skills = {} } = cvData;
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef(null);
+  
+  // Pagination State
+  const [numPages, setNumPages] = useState(1);
+  const masterRef = useRef(null);
+  const rulerRef = useRef(null);
+  const [pageHeightPx, setPageHeightPx] = useState(1122); // Fallback for 297mm
+
+  useEffect(() => {
+    if (rulerRef.current) {
+      setPageHeightPx(rulerRef.current.offsetHeight);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!masterRef.current || pageHeightPx <= 0) return;
+    const observer = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const h = entry.contentRect.height;
+        const pagesNeeded = Math.max(1, Math.ceil(h / pageHeightPx));
+        if (pagesNeeded !== numPages) {
+          setNumPages(pagesNeeded);
+        }
+      }
+    });
+    observer.observe(masterRef.current);
+    return () => observer.disconnect();
+  }, [pageHeightPx, numPages, cvData, settings]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -183,6 +210,80 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
   const isElectron = typeof window !== 'undefined' && window.require;
 
+  const renderContent = () => {
+    return isTwoColumn ? (
+      <>
+        <aside className="cv-sidebar">
+          {personal.photo && (
+            <div className="cv-photo">
+              <img src={personal.photo} alt="Profile" />
+            </div>
+          )}
+          
+          <div className="cv-section sidebar-section">
+            <h3 className="cv-section-title">Contact</h3>
+            <div className="cv-contact-list">
+              {personal.email && <div>{personal.email}</div>}
+              {personal.phone && <div>{personal.phone}</div>}
+              {personal.linkedin && <div>{personal.linkedin}</div>}
+              {personal.github && <div>{personal.github}</div>}
+              {personal.portfolio && <div>{personal.portfolio}</div>}
+            </div>
+          </div>
+
+          {(skills.languages || skills.frameworks || skills.tools) && (
+            <div className="cv-section sidebar-section">
+              <h3 className="cv-section-title">Skills</h3>
+              <div className="cv-skills-stacked">
+                {renderSkillBlock('Languages', skills.languages, true)}
+                {renderSkillBlock('Frameworks', skills.frameworks, true)}
+                {renderSkillBlock('Tools', skills.tools, true)}
+              </div>
+            </div>
+          )}
+        </aside>
+
+        <main className="cv-main-content">
+          <div className="cv-header">
+            <div className="cv-header-content">
+              <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
+              <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
+            </div>
+          </div>
+          
+          {/* Render sections according to order, excluding skills which is in sidebar */}
+          {order.filter(sec => sec !== 'skills').map(sec => sectionsMap[sec])}
+        </main>
+      </>
+    ) : (
+      <>
+        <div className="cv-header single-col-header">
+          <div className="cv-header-content">
+            <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
+            <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
+            
+            <div className="cv-contact-info">
+              {personal.email && <span>{personal.email}</span>}
+              {personal.phone && <span> • {personal.phone}</span>}
+              {personal.linkedin && <span> • {personal.linkedin}</span>}
+              {personal.github && <span> • {personal.github}</span>}
+              {personal.portfolio && <span> • {personal.portfolio}</span>}
+            </div>
+          </div>
+          {personal.photo && (
+            <div className="cv-photo">
+              <img src={personal.photo} alt="Profile" />
+            </div>
+          )}
+        </div>
+
+        <div className="cv-body">
+          {order.map(sec => sectionsMap[sec])}
+        </div>
+      </>
+    );
+  };
+
   return (
     <div 
       className="cv-preview-wrapper" 
@@ -262,87 +363,62 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
           transform: `scale(${zoom})`,
           transformOrigin: 'top center',
           transition: 'transform 0.1s ease-out',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.5)', // Enhanced 3D shadow for paper depth
-          borderRadius: '4px'
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '30px'
         }}
       >
-        <div className={`cv-preview-container print-only ${layoutClass}`} style={previewStyle}>
-      
-      {isTwoColumn ? (
-        <>
-          <aside className="cv-sidebar">
-            {personal.photo && (
-              <div className="cv-photo">
-                <img src={personal.photo} alt="Profile" />
-              </div>
-            )}
-            
-            <div className="cv-section sidebar-section">
-              <h3 className="cv-section-title">Contact</h3>
-              <div className="cv-contact-list">
-                {personal.email && <div>{personal.email}</div>}
-                {personal.phone && <div>{personal.phone}</div>}
-                {personal.linkedin && <div>{personal.linkedin}</div>}
-                {personal.github && <div>{personal.github}</div>}
-                {personal.portfolio && <div>{personal.portfolio}</div>}
-              </div>
-            </div>
+        {/* Hidden Ruler for exact 297mm pixel calculation on user's monitor */}
+        <div ref={rulerRef} style={{ height: '297mm', position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
 
-            {(skills.languages || skills.frameworks || skills.tools) && (
-              <div className="cv-section sidebar-section">
-                <h3 className="cv-section-title">Skills</h3>
-                <div className="cv-skills-stacked">
-                  {renderSkillBlock('Languages', skills.languages, true)}
-                  {renderSkillBlock('Frameworks', skills.frameworks, true)}
-                  {renderSkillBlock('Tools', skills.tools, true)}
-                </div>
-              </div>
-            )}
-          </aside>
+        {/* Master Content (Invisible on screen, Visible on print) */}
+        <div 
+          ref={masterRef}
+          className={`cv-preview-container print-only ${layoutClass}`} 
+          style={{ 
+            ...previewStyle, 
+            height: 'auto', 
+            minHeight: '297mm',
+            position: 'absolute', // Taking it out of flow for screen
+            visibility: 'hidden' // Invisible on screen, but print-only overrides this in CSS
+          }}
+        >
+          {renderContent()}
+        </div>
 
-          <main className="cv-main-content">
-            <div className="cv-header">
-              <div className="cv-header-content">
-                <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
-                <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
-              </div>
+        {/* Sliced Pages (Visible on screen, Hidden on print) */}
+        {Array.from({ length: numPages }).map((_, i) => (
+          <div 
+            key={i} 
+            className="cv-page-slice no-print" 
+            style={{ 
+              height: '297mm', 
+              width: '210mm', 
+              overflow: 'hidden', 
+              position: 'relative',
+              backgroundColor: 'white',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+              borderRadius: '4px'
+            }}
+          >
+            <div 
+              className={`cv-preview-container ${layoutClass}`} 
+              style={{ 
+                ...previewStyle, 
+                position: 'absolute', 
+                top: `calc(-${i} * 297mm)`, 
+                left: 0,
+                width: '210mm',
+                height: 'auto',
+                minHeight: '297mm'
+              }}
+            >
+              {renderContent()}
             </div>
-            
-            {/* Render sections according to order, excluding skills which is in sidebar */}
-            {order.filter(sec => sec !== 'skills').map(sec => sectionsMap[sec])}
-          </main>
-        </>
-      ) : (
-        <>
-          <div className="cv-header single-col-header">
-            <div className="cv-header-content">
-              <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
-              <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
-              
-              <div className="cv-contact-info">
-                {personal.email && <span>{personal.email}</span>}
-                {personal.phone && <span> • {personal.phone}</span>}
-                {personal.linkedin && <span> • {personal.linkedin}</span>}
-                {personal.github && <span> • {personal.github}</span>}
-                {personal.portfolio && <span> • {personal.portfolio}</span>}
-              </div>
-            </div>
-            {personal.photo && (
-              <div className="cv-photo">
-                <img src={personal.photo} alt="Profile" />
-              </div>
-            )}
           </div>
-
-          <div className="cv-body">
-            {order.map(sec => sectionsMap[sec])}
-          </div>
-        </>
-      )}
-    </div>
+        ))}
       </div>
     </div>
   );
 };
-
 export default CVPreview;
