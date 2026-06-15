@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Briefcase, GraduationCap, FolderDot, Wrench } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import './CVPreview.css';
 
@@ -88,20 +88,28 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
   const isTwoColumn = settings?.layout === 'two-column' || settings?.layout === 'creative';
   const layoutStyleName = settings?.layout || 'single';
-  const layoutClass = `layout-${layoutStyleName}`;
+  const layoutClass = `layout-${layoutStyleName} ${settings?.darkMode ? 'cv-dark-mode' : ''}`;
   const order = settings?.sectionOrder || ['summary', 'education', 'experience', 'projects', 'skills'];
 
   const previewStyle = {
     '--theme-color': settings?.themeColor || '#0f172a',
-    fontFamily: settings?.fontFamily || "'Inter', sans-serif"
+    '--heading-font': settings?.headingFont || "'Inter', sans-serif",
+    '--body-font': settings?.bodyFont || "'Inter', sans-serif",
+    '--spacing-multiplier': settings?.density === 'compact' ? 0.6 : settings?.density === 'spacious' ? 1.5 : 1,
+    '--photo-radius': settings?.photoShape === 'square' ? '4px' : settings?.photoShape === 'rounded' ? '24px' : '50%',
+    fontFamily: settings?.bodyFont || settings?.fontFamily || "'Inter', sans-serif"
   };
+
+  const getHeadingFontName = () => settings?.headingFont ? settings.headingFont.split("'")[1] : 'Inter';
+  const getBodyFontName = () => settings?.bodyFont ? settings.bodyFont.split("'")[1] : 'Inter';
+  const fontLink = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(getHeadingFontName())}:wght@400;500;600;700&family=${encodeURIComponent(getBodyFontName())}:wght@400;500;600;700&display=swap`;
 
   const renderSkillBlock = (label, skillString, isSidebar = false) => {
     if (!skillString) return null;
     if (settings?.skillStyle === 'tags') {
       return (
         <div className={`cv-skill-group tags-mode ${isSidebar ? 'sidebar-style' : ''}`}>
-          <strong style={{display: 'block', marginBottom: '4px'}}>{label}</strong>
+          <strong style={{display: 'block', marginBottom: 'calc(4px * var(--spacing-multiplier))'}}>{label}</strong>
           <div className="skill-tags-container">
             {skillString.split(',').map(s => s.trim()).filter(s => s).map((s, i) => (
               <span key={i} className="skill-tag">{s}</span>
@@ -117,18 +125,26 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
     );
   };
 
+  // Icon Helper
+  const SectionHeader = ({ title, icon: Icon }) => (
+    <h3 className="cv-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {settings?.showIcons && <Icon size={20} className="section-icon" color="var(--theme-color)" />}
+      {title}
+    </h3>
+  );
+
   // Component Map for dynamic ordering
   const sectionsMap = {
     summary: summary ? (
       <div className="cv-section" key="summary">
-        <h3 className="cv-section-title">Profile</h3>
+        <SectionHeader title="Profile" icon={Briefcase} />
         <div className="cv-summary-text">{renderRichText(summary)}</div>
       </div>
     ) : null,
     
     education: (education || []).filter(e => !e.hidden).length > 0 ? (
       <div className="cv-section" key="education">
-        <h3 className="cv-section-title">Education</h3>
+        <SectionHeader title="Education" icon={GraduationCap} />
         {(education || []).filter(e => !e.hidden).map((edu, idx) => (
           <div key={idx} className="cv-item">
             <div className="cv-item-header">
@@ -146,7 +162,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
     experience: (experience || []).filter(e => !e.hidden).length > 0 ? (
       <div className="cv-section" key="experience">
-        <h3 className="cv-section-title">Experience</h3>
+        <SectionHeader title="Experience" icon={Briefcase} />
         {(experience || []).filter(e => !e.hidden).map((exp, idx) => (
           <div key={idx} className="cv-item">
             <div className="cv-item-header">
@@ -166,7 +182,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
     projects: (projects || []).filter(p => !p.hidden).length > 0 ? (
       <div className="cv-section" key="projects">
-        <h3 className="cv-section-title">Projects</h3>
+        <SectionHeader title="Projects" icon={FolderDot} />
         {(projects || []).filter(p => !p.hidden).map((proj, idx) => (
           <div key={idx} className="cv-item">
             <div className="cv-item-header">
@@ -187,7 +203,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
     skills: (skills.languages || skills.frameworks || skills.tools) ? (
       <div className="cv-section" key="skills">
-        <h3 className="cv-section-title">Skills</h3>
+        <SectionHeader title="Skills" icon={Wrench} />
         <div className="cv-skills">
           {renderSkillBlock('Languages', skills.languages)}
           {renderSkillBlock('Frameworks', skills.frameworks)}
@@ -299,6 +315,9 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
         padding: '20px 0'
       }}
     >
+      {/* Dynamic Google Fonts Injection */}
+      <link href={fontLink} rel="stylesheet" />
+
       {/* Floating Zoom Controls */}
       <div 
         className="zoom-controls no-print"

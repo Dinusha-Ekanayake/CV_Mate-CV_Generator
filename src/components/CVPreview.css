@@ -86,19 +86,21 @@
 
 /* Typography & Theming */
 .cv-name {
+  font-family: var(--heading-font, inherit);
   font-size: 2.5rem;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 5px;
+  margin-bottom: calc(5px * var(--spacing-multiplier));
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
 
 .cv-title {
+  font-family: var(--heading-font, inherit);
   font-size: 1.25rem;
   font-weight: 500;
   color: var(--theme-color);
-  margin-bottom: 10px;
+  margin-bottom: calc(10px * var(--spacing-multiplier));
 }
 
 /* Header (Single Column) */
@@ -134,7 +136,7 @@
 .cv-photo {
   width: 100px;
   height: 100px;
-  border-radius: 50%;
+  border-radius: var(--photo-radius, 50%);
   overflow: hidden;
   border: 3px solid #e2e8f0;
   margin-left: 20px;
@@ -155,16 +157,17 @@
 }
 
 .cv-section {
-  margin-bottom: 20px;
+  margin-bottom: calc(20px * var(--spacing-multiplier));
 }
 
 .cv-section-title {
+  font-family: var(--heading-font, inherit);
   font-size: 1.25rem;
   font-weight: 600;
   color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 5px;
-  margin-bottom: 10px;
+  padding-bottom: calc(5px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -180,7 +183,7 @@
 }
 
 .cv-item {
-  margin-bottom: 20px;
+  margin-bottom: calc(20px * var(--spacing-multiplier));
   page-break-inside: avoid;
   break-inside: avoid;
 }
@@ -384,4 +387,51 @@
   height: 10px;
   border-radius: 50%;
   background: var(--theme-color);
+}
+
+/* --- OPTION 3: DARK MODE RESUME --- */
+.cv-dark-mode {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+.cv-dark-mode .cv-name {
+  color: #f8fafc;
+}
+
+.cv-dark-mode .cv-section-title {
+  color: #f1f5f9;
+  border-bottom-color: #334155;
+}
+
+.cv-dark-mode .cv-item-title {
+  color: #f8fafc;
+}
+
+.cv-dark-mode .cv-item-subheader {
+  color: #cbd5e1;
+}
+
+.cv-dark-mode .cv-summary-text,
+.cv-dark-mode .cv-item-description {
+  color: #cbd5e1;
+}
+
+.cv-dark-mode .cv-contact-info {
+  color: #cbd5e1;
+}
+
+.cv-dark-mode .cv-sidebar {
+  border-right-color: #334155;
+}
+
+/* Update gradient for two-column in dark mode */
+.cv-dark-mode.layout-two-column {
+  background: linear-gradient(to right, #1e293b 0, #1e293b 65mm, #0f172a 65mm, #0f172a 100%);
+}
+
+.cv-dark-mode .skill-tag {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
 }

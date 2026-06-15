@@ -119,13 +119,25 @@ function App() {
       const parsed = saved ? JSON.parse(saved) : {};
       return {
         layout: parsed.layout || 'single',
-        themeColor: parsed.themeColor || '#0f172a',
-        fontFamily: parsed.fontFamily || "'Inter', sans-serif",
+        themeColor: parsed.themeColor || '#0f172a', // kept for legacy fallback
+        palette: parsed.palette || 'default',
+        headingFont: parsed.headingFont || "'Inter', sans-serif",
+        bodyFont: parsed.bodyFont || "'Inter', sans-serif",
+        fontFamily: parsed.fontFamily || "'Inter', sans-serif", // kept for legacy
         sectionOrder: parsed.sectionOrder || defaultSectionOrder,
-        skillStyle: parsed.skillStyle || 'classic'
+        skillStyle: parsed.skillStyle || 'classic',
+        density: parsed.density || 'normal',
+        darkMode: parsed.darkMode || false,
+        showIcons: parsed.showIcons || false,
+        photoShape: parsed.photoShape || 'circle'
       };
     } catch {
-      return { layout: 'single', themeColor: '#0f172a', fontFamily: "'Inter', sans-serif", sectionOrder: defaultSectionOrder, skillStyle: 'classic' };
+      return { 
+        layout: 'single', themeColor: '#0f172a', palette: 'default',
+        headingFont: "'Inter', sans-serif", bodyFont: "'Inter', sans-serif", fontFamily: "'Inter', sans-serif", 
+        sectionOrder: defaultSectionOrder, skillStyle: 'classic',
+        density: 'normal', darkMode: false, showIcons: false, photoShape: 'circle'
+      };
     }
   });
 
@@ -337,7 +349,7 @@ function App() {
 
           <div className="settings-panel glass-panel" style={{marginBottom: '2rem'}}>
             <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>Document Settings & Layout</h2>
-            <div className="form-row">
+            <div className="settings-grid">
               {activeTab === 'resume' && (
                 <div className="form-group">
                   <label>Layout Style</label>
@@ -349,33 +361,101 @@ function App() {
                   </select>
                 </div>
               )}
+              {/* Option 4: Color Palettes */}
               <div className="form-group">
-                <label>Theme Color</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input type="color" value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})} />
-                  {!hasGoodContrast && (
-                    <span style={{ color: '#ef4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }} title="This color fails WCAG AA contrast standards against white text/backgrounds. It may be hard to read!">
-                      ⚠️ Poor Contrast
-                    </span>
-                  )}
+                <label>Theme Color Palette</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {[
+                    { id: 'default', color: '#3b82f6', bg: '#0f172a', name: 'Slate Blue' },
+                    { id: 'midnight', color: '#fbbf24', bg: '#1e293b', name: 'Midnight Gold' },
+                    { id: 'forest', color: '#10b981', bg: '#064e3b', name: 'Forest Sage' },
+                    { id: 'cyberpunk', color: '#06b6d4', bg: '#2e1065', name: 'Cyberpunk Neon' },
+                    { id: 'crimson', color: '#e11d48', bg: '#1c1917', name: 'Crimson Ash' }
+                  ].map(pal => (
+                    <button 
+                      key={pal.id}
+                      onClick={() => setSettings({...settings, palette: pal.id, themeColor: pal.color})}
+                      title={pal.name}
+                      style={{
+                        width: '30px', height: '30px', borderRadius: '50%',
+                        background: `linear-gradient(135deg, ${pal.bg} 50%, ${pal.color} 50%)`,
+                        border: settings.palette === pal.id ? '2px solid white' : '2px solid transparent',
+                        cursor: 'pointer',
+                        boxShadow: settings.palette === pal.id ? `0 0 0 2px ${pal.color}` : 'none'
+                      }}
+                    />
+                  ))}
+                  <input type="color" title="Custom Color" value={settings.themeColor} onChange={e => setSettings({...settings, palette: 'custom', themeColor: e.target.value})} style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '50%', cursor: 'pointer', overflow: 'hidden' }} />
                 </div>
               </div>
+
+              {/* Option 1: Advanced Typography */}
               <div className="form-group">
-                <label>Typography</label>
-                <select value={settings.fontFamily} onChange={e => setSettings({...settings, fontFamily: e.target.value})}>
+                <label>Heading Font</label>
+                <select value={settings.headingFont} onChange={e => setSettings({...settings, headingFont: e.target.value})}>
                   <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
-                  <option value="'Georgia', serif">Classic Serif (Georgia)</option>
-                  <option value="'Courier New', monospace">Code (Monospace)</option>
+                  <option value="'Playfair Display', serif">Classic Serif (Playfair)</option>
+                  <option value="'Space Grotesk', sans-serif">Tech (Space Grotesk)</option>
+                  <option value="'Georgia', serif">Formal Serif (Georgia)</option>
                 </select>
               </div>
-              {activeTab === 'resume' && (
-                <div className="form-group">
-                  <label>Skill Style</label>
-                  <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
-                    <option value="classic">Classic (Comma Separated)</option>
-                    <option value="tags">Modern Tags</option>
-                  </select>
+              <div className="form-group">
+                <label>Body Font</label>
+                <select value={settings.bodyFont} onChange={e => setSettings({...settings, bodyFont: e.target.value})}>
+                  <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
+                  <option value="'Lato', sans-serif">Clean Sans (Lato)</option>
+                  <option value="'Merriweather', serif">Formal Serif (Merriweather)</option>
+                </select>
+              </div>
+
+              {/* Option 2: Density Slider */}
+              <div className="form-group">
+                <label>Document Density</label>
+                <select value={settings.density} onChange={e => setSettings({...settings, density: e.target.value})}>
+                  <option value="compact">Compact (Fit more per page)</option>
+                  <option value="normal">Standard (Balanced)</option>
+                  <option value="spacious">Spacious (Airy & Elegant)</option>
+                </select>
+              </div>
+
+              {/* Option 3: Dark Mode */}
+              <div className="form-group">
+                <label>Document Mode</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => setSettings({...settings, darkMode: false})} style={{ flex: 1, padding: '8px', background: !settings.darkMode ? '#e2e8f0' : 'transparent', color: !settings.darkMode ? '#0f172a' : '#94a3b8', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>☀️ Light</button>
+                  <button onClick={() => setSettings({...settings, darkMode: true})} style={{ flex: 1, padding: '8px', background: settings.darkMode ? '#1e293b' : 'transparent', color: settings.darkMode ? '#f8fafc' : '#94a3b8', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>🌙 Dark</button>
                 </div>
+              </div>
+
+              {activeTab === 'resume' && (
+                <>
+                  {/* Option 5: Section Icons */}
+                  <div className="form-group">
+                    <label>Section Icons</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '36px' }}>
+                      <input type="checkbox" id="showIcons" checked={settings.showIcons} onChange={e => setSettings({...settings, showIcons: e.target.checked})} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                      <label htmlFor="showIcons" style={{ margin: 0, cursor: 'pointer', display: 'inline', width: 'auto' }}>Show premium icons</label>
+                    </div>
+                  </div>
+                  
+                  {/* Option 5: Photo Shapes */}
+                  <div className="form-group">
+                    <label>Profile Photo Shape</label>
+                    <select value={settings.photoShape} onChange={e => setSettings({...settings, photoShape: e.target.value})}>
+                      <option value="circle">Circle</option>
+                      <option value="rounded">Rounded Square</option>
+                      <option value="square">Square</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Skill Style</label>
+                    <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
+                      <option value="classic">Classic (Comma Separated)</option>
+                      <option value="tags">Modern Tags</option>
+                    </select>
+                  </div>
+                </>
               )}
             </div>
             
