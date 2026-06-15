@@ -3,7 +3,7 @@ import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 
 import { SortableItem } from './SortableItem';
-import MarkdownToolbar from './MarkdownToolbar';
+import RichTextEditor from './RichTextEditor';
 import './CVForm.css';
 
 const CVForm = ({ cvData, setCvData }) => {
@@ -151,11 +151,9 @@ const CVForm = ({ cvData, setCvData }) => {
       <h2 className="section-title">Professional Summary</h2>
       <div className="glass-panel form-section-panel">
         <div className="form-group" style={{display: 'flex', flexDirection: 'column'}}>
-          <MarkdownToolbar value={cvData.summary} onChange={(val) => handleSimpleChange('summary', val)} />
-          <textarea 
-            style={{borderTopLeftRadius: 0, borderTopRightRadius: 0}}
+          <RichTextEditor 
             value={cvData.summary} 
-            onChange={e => handleSimpleChange('summary', e.target.value)} 
+            onChange={(val) => handleSimpleChange('summary', val)} 
             placeholder="Briefly describe your background, focus in AI/SE, and career goals..." 
           />
         </div>
@@ -218,12 +216,10 @@ const CVForm = ({ cvData, setCvData }) => {
                 </div>
                 <div className="form-group" style={{display: 'flex', flexDirection: 'column'}}>
                   <label>Description</label>
-                  <MarkdownToolbar value={exp.description || ''} onChange={(val) => handleArrayChange('experience', exp.id, 'description', val)} />
-                  <textarea 
-                    style={{borderTopLeftRadius: 0, borderTopRightRadius: 0}}
+                  <RichTextEditor 
                     value={exp.description || ''} 
-                    onChange={e => handleArrayChange('experience', exp.id, 'description', e.target.value)} 
-                    placeholder="- Developed a **machine learning** model...&#10;- Improved accuracy by 15%..." 
+                    onChange={(val) => handleArrayChange('experience', exp.id, 'description', val)} 
+                    placeholder="Describe your role and impact..." 
                   />
                 </div>
               </SortableItem>
@@ -252,12 +248,10 @@ const CVForm = ({ cvData, setCvData }) => {
                 </div>
                 <div className="form-group" style={{display: 'flex', flexDirection: 'column'}}>
                   <label>Description</label>
-                  <MarkdownToolbar value={proj.description || ''} onChange={(val) => handleArrayChange('projects', proj.id, 'description', val)} />
-                  <textarea 
-                    style={{borderTopLeftRadius: 0, borderTopRightRadius: 0}}
+                  <RichTextEditor 
                     value={proj.description || ''} 
-                    onChange={e => handleArrayChange('projects', proj.id, 'description', e.target.value)} 
-                    placeholder="- Built a CNN for image classification...&#10;- Deployed via Docker..." 
+                    onChange={(val) => handleArrayChange('projects', proj.id, 'description', val)} 
+                    placeholder="Describe the project and technologies used..." 
                   />
                 </div>
               </SortableItem>

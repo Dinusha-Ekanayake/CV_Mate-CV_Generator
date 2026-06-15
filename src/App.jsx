@@ -39,6 +39,38 @@ const sampleData = {
 
 const defaultSectionOrder = ['summary', 'education', 'experience', 'projects', 'skills'];
 
+// --- WCAG Contrast Helper Functions ---
+const getLuminance = (r, g, b) => {
+  const [rs, gs, bs] = [r, g, b].map(c => {
+    c = c / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+};
+
+const hexToRgb = (hex) => {
+  const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+};
+
+const checkWCAGContrast = (hexColor) => {
+  const rgb1 = hexToRgb(hexColor);
+  const rgb2 = hexToRgb('#ffffff'); // Contrast against white background/text
+  if (!rgb1 || !rgb2) return true; // default safe
+  const l1 = getLuminance(rgb1.r, rgb1.g, rgb1.b);
+  const l2 = getLuminance(rgb2.r, rgb2.g, rgb2.b);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  const ratio = (lighter + 0.05) / (darker + 0.05);
+  return ratio >= 4.5; // WCAG AA standard
+};
+
 function App() {
   const [cvData, setCvData] = useState(() => {
     try {
@@ -143,6 +175,8 @@ function App() {
     }, 50);
   };
 
+  const hasGoodContrast = checkWCAGContrast(settings.themeColor);
+
   return (
     <div className="app-container">
       <header className="app-header no-print">
@@ -179,14 +213,15 @@ function App() {
                 </select>
               </div>
               <div className="form-group">
-                <label>Accent Color</label>
-                <select value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})}>
-                  <option value="#0f172a">Classic Slate</option>
-                  <option value="#0ea5e9">Ocean Blue</option>
-                  <option value="#10b981">Emerald Green</option>
-                  <option value="#8b5cf6">Royal Purple</option>
-                  <option value="#f43f5e">Rose Red</option>
-                </select>
+                <label>Theme Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input type="color" value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})} />
+                  {!hasGoodContrast && (
+                    <span style={{ color: '#ef4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }} title="This color fails WCAG AA contrast standards against white text/backgrounds. It may be hard to read!">
+                      ⚠️ Poor Contrast
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="form-group">
                 <label>Typography</label>
