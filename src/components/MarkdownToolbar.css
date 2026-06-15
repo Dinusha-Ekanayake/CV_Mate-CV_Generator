@@ -46,7 +46,16 @@
   gap: 4px;
 }
 
-.ai-enhance-btn:hover {
+.ai-enhance-btn:hover:not(:disabled) {
   background: rgba(16, 185, 129, 0.1);
   color: #34d399;
+}
+
+.ai-enhance-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ai-enhance-btn.enhancing {
+  color: #fbbf24; /* yellow/gold */
 }
