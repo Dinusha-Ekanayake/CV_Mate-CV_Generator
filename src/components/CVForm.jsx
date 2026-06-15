@@ -42,7 +42,7 @@ const CVForm = ({ cvData, setCvData }) => {
   const addArrayItem = (section, emptyItem) => {
     setCvData(prev => ({
       ...prev,
-      [section]: [...prev[section], emptyItem]
+      [section]: [...prev[section], { ...emptyItem, hidden: false }]
     }));
   };
 
@@ -66,11 +66,26 @@ const CVForm = ({ cvData, setCvData }) => {
     });
   };
 
-  const renderArrayControls = (section, index, arrayLength) => (
+  const toggleVisibility = (section, index) => {
+    setCvData(prev => {
+      const newArray = [...prev[section]];
+      newArray[index] = { ...newArray[index], hidden: !newArray[index].hidden };
+      return { ...prev, [section]: newArray };
+    });
+  };
+
+  const renderArrayControls = (section, index, arrayLength, isHidden) => (
     <div className="array-controls">
-      {index > 0 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'up')}>↑</button>}
-      {index < arrayLength - 1 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'down')}>↓</button>}
-      <button className="btn-remove" onClick={() => removeArrayItem(section, index)}>×</button>
+      <button 
+        className={`btn-toggle ${isHidden ? 'hidden' : ''}`} 
+        onClick={() => toggleVisibility(section, index)}
+        title={isHidden ? "Show in CV" : "Hide from CV"}
+      >
+        {isHidden ? '👁️‍🗨️' : '👁️'}
+      </button>
+      {index > 0 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'up')} title="Move Up">↑</button>}
+      {index < arrayLength - 1 && <button className="btn-move" onClick={() => moveArrayItem(section, index, 'down')} title="Move Down">↓</button>}
+      <button className="btn-remove" onClick={() => removeArrayItem(section, index)} title="Remove">×</button>
     </div>
   );
 
@@ -121,33 +136,33 @@ const CVForm = ({ cvData, setCvData }) => {
       <h2 className="section-title">Professional Summary</h2>
       <div className="glass-panel form-section-panel">
         <div className="form-group">
-          <textarea value={cvData.summary} onChange={e => handleSimpleChange('summary', e.target.value)} placeholder="Briefly describe your background, focus in AI/SE, and career goals..." />
+          <textarea value={cvData.summary} onChange={e => handleSimpleChange('summary', e.target.value)} placeholder="Briefly describe your background, focus in AI/SE, and career goals... (Supports Markdown **bold**, *italic*, [link](url))" />
         </div>
       </div>
 
       <h2 className="section-title">Education</h2>
       <div className="glass-panel form-section-panel">
         {cvData.education.map((edu, index) => (
-          <div key={index} className="dynamic-item">
-            {renderArrayControls('education', index, cvData.education.length)}
+          <div key={index} className={`dynamic-item ${edu.hidden ? 'item-hidden' : ''}`}>
+            {renderArrayControls('education', index, cvData.education.length, edu.hidden)}
             <div className="form-row">
               <div className="form-group">
                 <label>Institution</label>
-                <input type="text" value={edu.institution} onChange={e => handleArrayChange('education', index, 'institution', e.target.value)} placeholder="University Name" />
+                <input type="text" value={edu.institution || ''} onChange={e => handleArrayChange('education', index, 'institution', e.target.value)} placeholder="University Name" />
               </div>
               <div className="form-group">
                 <label>Degree</label>
-                <input type="text" value={edu.degree} onChange={e => handleArrayChange('education', index, 'degree', e.target.value)} placeholder="BSc Computer Science" />
+                <input type="text" value={edu.degree || ''} onChange={e => handleArrayChange('education', index, 'degree', e.target.value)} placeholder="BSc Computer Science" />
               </div>
             </div>
             <div className="form-row">
               <div className="form-group">
                 <label>Dates</label>
-                <input type="text" value={edu.dates} onChange={e => handleArrayChange('education', index, 'dates', e.target.value)} placeholder="Sep 2020 - May 2024" />
+                <input type="text" value={edu.dates || ''} onChange={e => handleArrayChange('education', index, 'dates', e.target.value)} placeholder="Sep 2020 - May 2024" />
               </div>
               <div className="form-group">
                 <label>Results / GPA</label>
-                <input type="text" value={edu.gpa} onChange={e => handleArrayChange('education', index, 'gpa', e.target.value)} placeholder="AAB or 3.8 / 4.0" />
+                <input type="text" value={edu.gpa || ''} onChange={e => handleArrayChange('education', index, 'gpa', e.target.value)} placeholder="AAB or 3.8 / 4.0" />
               </div>
             </div>
           </div>
@@ -158,25 +173,25 @@ const CVForm = ({ cvData, setCvData }) => {
       <h2 className="section-title">Experience</h2>
       <div className="glass-panel form-section-panel">
         {cvData.experience.map((exp, index) => (
-          <div key={index} className="dynamic-item">
-            {renderArrayControls('experience', index, cvData.experience.length)}
+          <div key={index} className={`dynamic-item ${exp.hidden ? 'item-hidden' : ''}`}>
+            {renderArrayControls('experience', index, cvData.experience.length, exp.hidden)}
             <div className="form-row">
               <div className="form-group">
                 <label>Company</label>
-                <input type="text" value={exp.company} onChange={e => handleArrayChange('experience', index, 'company', e.target.value)} placeholder="Tech Corp" />
+                <input type="text" value={exp.company || ''} onChange={e => handleArrayChange('experience', index, 'company', e.target.value)} placeholder="Tech Corp" />
               </div>
               <div className="form-group">
                 <label>Role</label>
-                <input type="text" value={exp.role} onChange={e => handleArrayChange('experience', index, 'role', e.target.value)} placeholder="AI Intern" />
+                <input type="text" value={exp.role || ''} onChange={e => handleArrayChange('experience', index, 'role', e.target.value)} placeholder="AI Intern" />
               </div>
             </div>
             <div className="form-group">
               <label>Dates</label>
-              <input type="text" value={exp.dates} onChange={e => handleArrayChange('experience', index, 'dates', e.target.value)} placeholder="Jun 2023 - Aug 2023" />
+              <input type="text" value={exp.dates || ''} onChange={e => handleArrayChange('experience', index, 'dates', e.target.value)} placeholder="Jun 2023 - Aug 2023" />
             </div>
             <div className="form-group">
-              <label>Description (bullet points)</label>
-              <textarea value={exp.description} onChange={e => handleArrayChange('experience', index, 'description', e.target.value)} placeholder="- Developed a machine learning model...&#10;- Improved accuracy by 15%..." />
+              <label>Description (Supports Markdown)</label>
+              <textarea value={exp.description || ''} onChange={e => handleArrayChange('experience', index, 'description', e.target.value)} placeholder="- Developed a **machine learning** model...&#10;- Improved accuracy by 15%..." />
             </div>
           </div>
         ))}
@@ -186,21 +201,21 @@ const CVForm = ({ cvData, setCvData }) => {
       <h2 className="section-title">AI / SE Projects</h2>
       <div className="glass-panel form-section-panel">
         {cvData.projects.map((proj, index) => (
-          <div key={index} className="dynamic-item">
-            {renderArrayControls('projects', index, cvData.projects.length)}
+          <div key={index} className={`dynamic-item ${proj.hidden ? 'item-hidden' : ''}`}>
+            {renderArrayControls('projects', index, cvData.projects.length, proj.hidden)}
             <div className="form-row">
               <div className="form-group">
                 <label>Project Name</label>
-                <input type="text" value={proj.name} onChange={e => handleArrayChange('projects', index, 'name', e.target.value)} placeholder="Neural Network Visualizer" />
+                <input type="text" value={proj.name || ''} onChange={e => handleArrayChange('projects', index, 'name', e.target.value)} placeholder="Neural Network Visualizer" />
               </div>
               <div className="form-group">
                 <label>Tech Stack</label>
-                <input type="text" value={proj.tech} onChange={e => handleArrayChange('projects', index, 'tech', e.target.value)} placeholder="Python, PyTorch, React" />
+                <input type="text" value={proj.tech || ''} onChange={e => handleArrayChange('projects', index, 'tech', e.target.value)} placeholder="Python, PyTorch, React" />
               </div>
             </div>
             <div className="form-group">
-              <label>Description (bullet points)</label>
-              <textarea value={proj.description} onChange={e => handleArrayChange('projects', index, 'description', e.target.value)} placeholder="- Built a CNN for image classification...&#10;- Deployed via Docker..." />
+              <label>Description (Supports Markdown)</label>
+              <textarea value={proj.description || ''} onChange={e => handleArrayChange('projects', index, 'description', e.target.value)} placeholder="- Built a CNN for image classification...&#10;- Deployed via Docker..." />
             </div>
           </div>
         ))}
