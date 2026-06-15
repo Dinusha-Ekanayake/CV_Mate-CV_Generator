@@ -122,6 +122,10 @@ label {
   background: rgba(255, 255, 255, 0.15);
 }
 
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
 .btn-danger {
   background: rgba(239, 68, 68, 0.1);
   color: var(--error);
