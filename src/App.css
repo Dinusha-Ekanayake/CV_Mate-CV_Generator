@@ -70,7 +70,71 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3); 
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive: tablets & phones
+   The desktop layout is a fixed two-pane flex row. On narrow screens we stack
+   the editor above the preview and let the page scroll naturally instead of
+   clipping (the old `overflow:hidden` + 400px min-width made it blank on phones).
+   --------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .app-container {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+    position: sticky;
+    top: 0;
+  }
+
+  .app-controls {
+    flex-wrap: wrap;
+    gap: 12px !important;
+    justify-content: center;
+  }
+
+  .main-content {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .form-section {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--bg-panel-border);
+    padding: 1rem;
+    overflow: visible;
+  }
+
+  .preview-section {
+    width: 100%;
+    padding: 1rem 0.5rem;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-header {
+    padding: 10px;
+  }
+  .app-controls {
+    gap: 8px !important;
+  }
+  /* Keep header button clusters readable; allow each group to wrap on its own */
+  .actions-group,
+  .primary-group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 @media print {
