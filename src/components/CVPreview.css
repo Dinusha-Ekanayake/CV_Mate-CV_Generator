@@ -103,27 +103,51 @@
   margin-bottom: calc(14px * var(--spacing-multiplier));
 }
 
-/* --- Two-column paginated: continuous sidebar band + paginated main column --- */
-.is-paginated.is-two-col {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: block;        /* override .layout-two-column flex; sidebar is absolute */
-  background: transparent !important; /* the gradient bg would tile across the gap */
-}
+/* --- Two-column paginated: per-page sidebar strip + paginated main column --- */
 
-/* Sidebar band runs the full document height behind every page sheet. */
-.is-paginated.is-two-col .cv-sidebar-band {
+/* Per-page sidebar strip, drawn inside each white page sheet so it breaks at every
+   page gap (no bleed-through). Width matches the content sidebar (65mm). */
+.page-sheet-sidebar {
   position: absolute;
   top: 0;
   left: 0;
   width: 65mm;
   height: 100%;
-  z-index: 2;
-  border-right: 1px solid #e2e8f0;
   background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.layout-creative .page-sheet-sidebar {
+  background: var(--theme-color);
+  border-right: none;
+}
+.cv-dark-mode .page-sheet-sidebar {
+  background: #1e293b;
+  border-right-color: #334155;
+}
+
+.is-paginated.is-two-col {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;        /* override .layout-two-column flex */
+  background: transparent !important;
+}
+
+/* Sidebar content holder: transparent (the strip behind provides the color),
+   clipped to one page so content never spills into the inter-page gap. */
+.is-paginated.is-two-col .cv-sidebar-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 65mm;
+  z-index: 2;
+  background: transparent;
+  border-right: none;
   padding: calc(18mm * var(--spacing-multiplier)) 10mm;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Main paginated column is offset to the right of the sidebar. */
@@ -140,37 +164,38 @@
   padding-right: calc(12mm * var(--spacing-multiplier));
 }
 
-/* The header in the two-column main column shouldn't show the single-col rule/photo block awkwardly */
 .is-paginated.is-two-col .single-col-header {
   border-bottom: 2px solid var(--theme-color);
 }
 
-/* Creative variant: colored sidebar band */
-.layout-creative.is-two-col .cv-sidebar-band {
-  background: var(--theme-color);
-  color: #fff;
-  border-right: none;
-}
-.layout-creative.is-two-col .cv-sidebar-band .cv-section-title,
-.layout-creative.is-two-col .cv-sidebar-band .cv-contact-list,
-.layout-creative.is-two-col .cv-sidebar-band .cv-skill-group strong,
-.layout-creative.is-two-col .cv-sidebar-band .cv-skill-group div {
+/* Creative variant: white text on the colored sidebar content. */
+.layout-creative.is-two-col .cv-sidebar-content,
+.layout-creative.is-two-col .cv-sidebar-content .cv-section-title,
+.layout-creative.is-two-col .cv-sidebar-content .cv-contact-list,
+.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group strong,
+.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group div {
   color: #fff;
 }
-.layout-creative.is-two-col .cv-sidebar-band .skill-tag {
+.layout-creative.is-two-col .cv-sidebar-content .skill-tag {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
 }
 
-/* Dark mode sidebar band */
-.cv-dark-mode.is-two-col .cv-sidebar-band {
-  background: #1e293b;
-  border-right-color: #334155;
-}
-
 .cv-dark-mode .page-sheet {
   background: #0f172a;
+}
+
+/* Two-column dark mode: sidebar content text + section titles go light. */
+.cv-dark-mode.is-two-col .cv-sidebar-content,
+.cv-dark-mode.is-two-col .cv-sidebar-content .cv-contact-list,
+.cv-dark-mode.is-two-col .cv-sidebar-content .cv-skill-group div {
+  color: #cbd5e1;
+}
+.cv-dark-mode.is-two-col .cv-sidebar-content .cv-section-title,
+.cv-dark-mode.is-two-col .cv-sidebar-content .cv-skill-group strong {
+  color: #f1f5f9;
+  border-bottom-color: #334155;
 }
 
 /* User-requested forced page break before a section (print only) */
@@ -512,19 +537,32 @@
     margin-bottom: calc(14px * var(--spacing-multiplier));
   }
 
-  /* Two-column print: sidebar becomes a static flex column so it prints with the
-     content; the continuous-band offset is removed. */
+  /* Two-column print: the screen-only per-page strips are hidden with .page-sheets,
+     so the sidebar content holder takes a static flex column and gets its own
+     background back (the print engine then flows it down each printed page). */
   .is-paginated.is-two-col {
     display: flex !important;
     position: static !important;
     padding: 0 !important;
   }
-  .is-paginated.is-two-col .cv-sidebar-band {
+  .is-paginated.is-two-col .cv-sidebar-content {
     position: static !important;
     height: auto !important;
+    min-height: 100% !important;
     width: 65mm !important;
     flex-shrink: 0 !important;
     z-index: auto !important;
+    overflow: visible !important;
+    background: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+  }
+  .layout-creative.is-two-col .cv-sidebar-content {
+    background: var(--theme-color) !important;
+    border-right: none !important;
+  }
+  .cv-dark-mode.is-two-col .cv-sidebar-content {
+    background: #1e293b !important;
+    border-right-color: #334155 !important;
   }
   .is-paginated.is-two-col .cv-main-paginated {
     margin-left: 0 !important;

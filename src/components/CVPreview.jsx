@@ -403,7 +403,9 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
           className="page-stack"
           style={{ position: 'relative', width: '210mm', height: `${numPages * pageHeightPx + (numPages - 1) * PAGE_GAP}px` }}
         >
-          {/* White page sheets with visible gaps between them */}
+          {/* White page sheets with visible gaps between them. In two-column mode
+              each sheet carries its own sidebar-colored strip so the band breaks
+              cleanly at every page gap instead of bleeding through it. */}
           <div className="page-sheets" aria-hidden="true">
             {Array.from({ length: numPages }).map((_, i) => (
               <div
@@ -414,20 +416,22 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
                   height: `${pageHeightPx}px`
                 }}
               >
+                {isTwoColumn && <span className="page-sheet-sidebar" />}
                 <span className="page-sheet-label no-print">Page {i + 1} / {numPages}</span>
               </div>
             ))}
           </div>
 
           {isTwoColumn ? (
-            // Two-column: a continuous sidebar strip spanning every page, with the
-            // main content column paginated alongside it.
+            // Two-column: per-page sidebar strips (drawn in the sheet loop) with the
+            // sidebar content on page 1 and the main column paginated alongside.
             <div
               className={`cv-preview-container is-paginated is-two-col ${layoutClass}`}
               style={{ ...previewStyle, position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
             >
-              {/* Continuous sidebar band behind the content, full document height */}
-              <aside className="cv-sidebar cv-sidebar-band" aria-hidden="false">
+              {/* Sidebar content (lives on page 1). The colored strip behind it is
+                  drawn per-page in the sheet loop above, so it breaks at each gap. */}
+              <aside className="cv-sidebar cv-sidebar-content" style={{ height: `${pageHeightPx}px` }}>
                 {personal.photo && (
                   <div className="cv-photo">
                     <img src={personal.photo} alt="Profile" />
