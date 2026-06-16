@@ -1,21 +1,29 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
+import { legacyToHtml } from '../utils/richText';
 import './MarkdownToolbar.css'; // We'll reuse the toolbar styles for now
 
 const RichTextEditor = ({ value, onChange, placeholder }) => {
   const editorRef = useRef(null);
 
-  // We only want to set innerHTML on mount or if the external value changes drastically 
-  // (e.g. loading a new CV), not on every keystroke to prevent losing cursor position.
+  // We only set innerHTML on mount or when the external value changes
+  // substantially (e.g. loading a different CV) — not on every keystroke, which
+  // would reset the caret. Legacy markdown values are converted to HTML first so
+  // the editor shows formatted text instead of raw `**asterisks**`.
   useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = value || '';
+    if (!editorRef.current) return;
+    const html = legacyToHtml(value);
+    if (html !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = html;
     }
   }, [value]);
 
   const handleInput = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
+    if (!editorRef.current) return;
+    let html = editorRef.current.innerHTML;
+    // Normalize "empty" content (contenteditable often leaves <br> or empty tags)
+    // so the placeholder shows and we don't persist junk.
+    if (html === '<br>' || html === '<div><br></div>' || html === '<p><br></p>') html = '';
+    onChange(html);
   };
 
   const execCommand = (command, value = null) => {
@@ -49,6 +57,10 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
           if (url) execCommand('createLink', url);
         }} title="Insert Link">🔗</button>
         <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'unlink')} title="Remove Link">🚫</button>
+
+        <div className="md-divider"></div>
+
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'removeFormat')} title="Clear formatting">⌫ Clear</button>
       </div>
       
       <div 

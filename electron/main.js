@@ -15,8 +15,12 @@ function createWindow() {
     width: 1280,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      // Secure defaults: no Node in the renderer, isolated context, and a
+      // narrow preload bridge instead.
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
     title: "CV Mate - Elite Edition",
     autoHideMenuBar: true,
@@ -35,8 +39,13 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
 
-  // Setup Auto-Updater (Silent OTA updates)
-  autoUpdater.checkForUpdatesAndNotify();
+  // Setup Auto-Updater (Silent OTA updates). Only in packaged/production builds —
+  // there is no update feed during local development, and it logs errors there.
+  if (!isDev) {
+    autoUpdater.checkForUpdatesAndNotify().catch(err =>
+      console.error('Auto-update check failed:', err)
+    );
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

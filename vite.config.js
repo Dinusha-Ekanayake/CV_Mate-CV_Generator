@@ -4,15 +4,37 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        // Split large, independent vendor groups into their own chunks so the
+        // initial app payload is smaller and they can be cached separately.
+        // (Rolldown/Vite 8 expects manualChunks as a function.)
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('firebase') || id.includes('@firebase')) return 'firebase';
+            if (id.includes('@dnd-kit')) return 'dnd';
+          }
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'logo.png'],
+      workbox: {
+        // html2pdf is a heavy, on-demand chunk (only loaded when the user clicks
+        // "Download PDF"). Keep it out of the install-time precache so first load
+        // stays light; it's fetched from the network when actually needed.
+        globIgnores: ['**/html2pdf-*.js'],
+        maximumFileSizeToCacheInBytes: 600 * 1024
+      },
       manifest: {
         name: 'CV Mate - CV Generator',
         short_name: 'CV Mate',
-        description: 'Advanced AI/SE CV Generator',
+        description: 'Build professional CVs, resumes & cover letters',
         theme_color: '#0f172a',
         icons: [
           {

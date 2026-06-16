@@ -1,195 +1,141 @@
-import { useState, useEffect, useRef } from 'react';
-import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, CloudOff } from 'lucide-react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, Undo2, Redo2, FileDown } from 'lucide-react';
 import './App.css';
 import CVForm from './components/CVForm';
 import CVPreview from './components/CVPreview';
-import CoverLetterForm from './components/CoverLetterForm';
-import CoverLetterPreview from './components/CoverLetterPreview';
-import ATSAnalyzer from './components/ATSAnalyzer';
+import ProfileSwitcher from './components/ProfileSwitcher';
+import SettingsPanel from './components/SettingsPanel';
+
+// Lazy-loaded: only needed on the cover-letter tab, so they stay out of the
+// initial bundle.
+const CoverLetterForm = lazy(() => import('./components/CoverLetterForm'));
+const CoverLetterPreview = lazy(() => import('./components/CoverLetterPreview'));
+const ATSAnalyzer = lazy(() => import('./components/ATSAnalyzer'));
+import { useProfiles, normalizeProfilesState } from './hooks/useProfiles';
+import { useHistory } from './hooks/useHistory';
+import { downloadPdf } from './utils/pdf';
+import { sampleData, hydrateData } from './data/cvDefaults';
 import { auth, provider, db } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-
-const initialData = {
-  personal: {
-    name: '', title: '', email: '', phone: '', linkedin: '', github: '', portfolio: '', photo: null,
-  },
-  summary: '',
-  education: [],
-  experience: [],
-  projects: [],
-  skills: { languages: '', frameworks: '', tools: '' },
-  coverLetter: {
-    recipientName: 'Hiring Manager',
-    companyName: 'Tech Innovators Inc.',
-    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-    body: 'I am writing to express my strong interest in the open position at your company. With my background in software engineering and passion for building scalable applications, I believe I would be a great fit for your team.<br><br>In my previous roles, I have successfully delivered high-impact projects while maintaining a focus on clean, maintainable code. I am particularly drawn to your company\'s mission and the innovative work your team is doing.<br><br>Thank you for considering my application. I look forward to the possibility of discussing this exciting opportunity with you.'
-  }
-};
-
-const sampleData = {
-  personal: {
-    name: 'Alan Turing', title: 'AI Software Engineer', email: 'alan@example.com', phone: '+1 234 567 8900',
-    linkedin: 'linkedin.com/in/alanturing', github: 'github.com/alanturing', portfolio: 'alanturing.dev', photo: null,
-  },
-  summary: 'Passionate Artificial Intelligence undergraduate with a strong foundation in machine learning, deep neural networks, and scalable software engineering. Proven ability to build intelligent systems and optimize complex algorithms.',
-  education: [
-    { id: 'edu-1', institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: '3.8 / 4.0' }
-  ],
-  experience: [
-    { id: 'exp-1', company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
-  ],
-  projects: [
-    { id: 'proj-2', name: 'Resume Builder', tech: 'React, Firebase, Electron', description: '<ul><li>Built a cross-platform desktop & web resume builder.</li><li>Implemented drag-and-drop components and real-time PDF generation.</li></ul>' }
-  ],
-  skills: {
-    languages: 'Python, JavaScript, TypeScript, Java, C++',
-    frameworks: 'React, Node.js, PyTorch, TensorFlow, Next.js',
-    tools: 'Git, Docker, AWS, Firebase, MongoDB'
-  },
-  coverLetter: {
-    recipientName: 'Sarah Jenkins, Head of Engineering',
-    companyName: 'OpenAI',
-    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-    body: 'Dear Sarah,<br><br>I am writing to express my profound interest in the AI Software Engineer position at OpenAI. As a passionate developer with a deep background in machine learning and scalable web infrastructure, I have followed OpenAI’s breakthroughs closely and am inspired by your mission to ensure artificial general intelligence benefits all of humanity.<br><br>During my time at University of Moratuwa and my subsequent internships, I architected neural network visualizers and deployed deep learning models that processed real-time data. My recent project, a React-based application that integrates generative AI, gave me hands-on experience dealing with latency optimizations and complex state management—challenges I know your team tackles daily.<br><br>What excites me most about this role is the opportunity to work at the bleeding edge of AI while ensuring robust, user-centric software design. I bring a blend of rigorous academic research and practical, shipping-focused software engineering.<br><br>I would welcome the opportunity to discuss how my background in both frontend engineering and AI model integration aligns with your engineering goals. Thank you for your time and consideration.<br><br>Best regards,<br>Alan Turing'
-  }
-};
-
-const defaultSectionOrder = ['summary', 'education', 'experience', 'projects', 'skills'];
-
-// --- WCAG Contrast Helper Functions ---
-const getLuminance = (r, g, b) => {
-  const [rs, gs, bs] = [r, g, b].map(c => {
-    c = c / 255;
-    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-  });
-  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
-};
-
-const hexToRgb = (hex) => {
-  const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
-};
-
-const checkWCAGContrast = (hexColor) => {
-  const rgb1 = hexToRgb(hexColor);
-  const rgb2 = hexToRgb('#ffffff'); // Contrast against white background/text
-  if (!rgb1 || !rgb2) return true; // default safe
-  const l1 = getLuminance(rgb1.r, rgb1.g, rgb1.b);
-  const l2 = getLuminance(rgb2.r, rgb2.g, rgb2.b);
-  const lighter = Math.max(l1, l2);
-  const darker = Math.min(l1, l2);
-  const ratio = (lighter + 0.05) / (darker + 0.05);
-  return ratio >= 4.5; // WCAG AA standard
-};
-
-const hydrateData = (parsed) => {
-  if (!parsed) return initialData;
-  return {
-    ...initialData,
-    ...parsed,
-    personal: { ...initialData.personal, ...(parsed.personal || {}) },
-    skills: { ...initialData.skills, ...(parsed.skills || {}) },
-    coverLetter: { ...initialData.coverLetter, ...(parsed.coverLetter || {}) }
-  };
-};
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState('resume');
+  // Gates cloud writes until the initial cloud load for the signed-in user has
+  // finished, so local default state can never overwrite existing cloud data.
+  const [cloudReady, setCloudReady] = useState(false);
 
-  const [cvData, setCvData] = useState(() => {
-    try {
-      const saved = localStorage.getItem('cvData');
-      if (saved) return hydrateData(JSON.parse(saved));
-      return initialData;
-    } catch { return initialData; }
-  });
-
-  const [settings, setSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem('cvSettings');
-      const parsed = saved ? JSON.parse(saved) : {};
-      return {
-        layout: parsed.layout || 'single',
-        themeColor: parsed.themeColor || '#0f172a',
-        fontFamily: parsed.fontFamily || "'Inter', sans-serif",
-        sectionOrder: parsed.sectionOrder || defaultSectionOrder,
-        skillStyle: parsed.skillStyle || 'classic'
-      };
-    } catch {
-      return { layout: 'single', themeColor: '#0f172a', fontFamily: "'Inter', sans-serif", sectionOrder: defaultSectionOrder, skillStyle: 'classic' };
-    }
-  });
+  const {
+    profiles,
+    activeProfileId,
+    cvData,
+    settings,
+    setCvData,
+    setSettings,
+    selectProfile,
+    addProfile,
+    duplicateProfile,
+    renameProfile,
+    deleteProfile,
+    replaceAll,
+    profilesState
+  } = useProfiles();
 
   const fileInputRef = useRef(null);
 
-  // Auth Listener
+  // Undo/redo timeline for the active profile's content + settings.
+  const { undo, redo, canUndo, canRedo } = useHistory({
+    cvData, settings, setCvData, setSettings, key: activeProfileId
+  });
+
+  // Auth Listener — loads the full multi-profile document from Firestore on login.
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
-        // Load data from Firestore on login
+        setCloudReady(false); // block writes until this load completes
         setIsSyncing(true);
         try {
           const docRef = doc(db, 'users', user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.cvData) setCvData(hydrateData(data.cvData));
-            if (data.settings) setSettings(data.settings);
+            // normalizeProfilesState handles both the new {profiles,...} shape and
+            // the legacy {cvData, settings} cloud shape.
+            const normalized = normalizeProfilesState(docSnap.data());
+            if (normalized) replaceAll(normalized);
           }
         } catch (error) {
           console.error("Failed to load from cloud:", error);
         }
         setIsSyncing(false);
+        setCloudReady(true); // safe to sync local changes back from here on
+      } else {
+        setCloudReady(false);
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [replaceAll]);
 
-  // Save to LocalStorage & Firestore
+  // Cloud sync — localStorage is handled inside useProfiles; this debounces a
+  // Firestore write of the entire profiles state whenever it changes. Gated on
+  // cloudReady so the initial local state can't clobber freshly-loaded cloud data.
   useEffect(() => {
-    try {
-      localStorage.setItem('cvData', JSON.stringify(cvData));
-    } catch (error) {
-      console.error("Local storage error:", error);
-    }
-    
-    if (currentUser) {
-      const timeout = setTimeout(() => {
-        setIsSyncing(true);
-        setDoc(doc(db, 'users', currentUser.uid), { cvData, settings }, { merge: true })
-          .then(() => setIsSyncing(false))
-          .catch(e => {
-            console.error('Cloud sync failed:', e);
-            setIsSyncing(false);
-          });
-      }, 1000); // Debounce cloud writes by 1 second
-      return () => clearTimeout(timeout);
-    }
-  }, [cvData, settings, currentUser]);
+    if (!currentUser || !cloudReady) return;
+    const timeout = setTimeout(() => {
+      setIsSyncing(true);
+      // Firestore documents are capped at ~1 MiB. Large base64 photos across many
+      // profiles can exceed this, so drop photos from the cloud payload when the
+      // serialized doc would be too big — text data stays in sync regardless.
+      let payload = profilesState;
+      if (JSON.stringify(profilesState).length > 900_000) {
+        payload = {
+          ...profilesState,
+          profiles: profilesState.profiles.map(p => ({
+            ...p,
+            cvData: { ...p.cvData, personal: { ...p.cvData.personal, photo: null } }
+          }))
+        };
+      }
+      setDoc(doc(db, 'users', currentUser.uid), payload, { merge: false })
+        .then(() => setIsSyncing(false))
+        .catch(e => {
+          console.error('Cloud sync failed:', e);
+          setIsSyncing(false);
+        });
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [profilesState, currentUser, cloudReady]);
 
+  // The preview computes the best density for one-page fit and reports it here.
   useEffect(() => {
-    try {
-      localStorage.setItem('cvSettings', JSON.stringify(settings));
-    } catch (error) {
-      console.error("Local storage error:", error);
-    }
-  }, [settings]);
+    const apply = (e) => setSettings(prev => ({ ...prev, density: e.detail }));
+    window.addEventListener('cv-set-density', apply);
+    return () => window.removeEventListener('cv-set-density', apply);
+  }, [setSettings]);
 
   const handlePrint = () => window.print();
 
+  const [isDownloading, setIsDownloading] = useState(false);
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      const base = (cvData.personal?.name || 'My_CV').trim().replace(/\s+/g, '_');
+      await downloadPdf({ fileName: `${base}.pdf` });
+    } catch (e) {
+      console.error('PDF download failed:', e);
+      alert('Could not generate the PDF. Try the Print / PDF button instead.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const loadSample = () => setCvData(sampleData);
   const clearForm = () => {
-    if (window.confirm("Are you sure you want to clear all data?")) setCvData(initialData);
+    if (window.confirm("Are you sure you want to clear all data in this profile?")) {
+      setCvData(hydrateData(null));
+    }
   };
 
   const handleExport = () => {
@@ -208,9 +154,18 @@ function App() {
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target.result);
+        // Basic shape validation so a valid-but-unrelated JSON can't silently wipe the CV.
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          throw new Error('Not a CV data object.');
+        }
+        const looksLikeCV = ['personal', 'summary', 'education', 'experience', 'projects', 'skills', 'coverLetter']
+          .some(key => key in parsed);
+        if (!looksLikeCV) {
+          throw new Error('This file does not look like exported CV data.');
+        }
         setCvData(hydrateData(parsed));
       } catch (err) {
-        alert("Invalid JSON file.");
+        alert(`Could not import file: ${err.message}`);
       }
     };
     reader.readAsText(file);
@@ -230,23 +185,26 @@ function App() {
   };
 
   const handleAutoFit = () => {
-    const container = document.querySelector('.cv-preview-container');
-    if (!container) return;
-    
-    container.style.zoom = '1';
-    
-    setTimeout(() => {
-      const MAX_HEIGHT = 1120; // Approx 297mm at 96dpi
-      let zoomLevel = 1.0;
-      
-      while (container.scrollHeight > MAX_HEIGHT && zoomLevel > 0.5) {
-        zoomLevel -= 0.02;
-        container.style.zoom = zoomLevel.toString();
-      }
-    }, 50);
+    // The preview owns its zoom state, so signal it to fit the page to the viewport.
+    window.dispatchEvent(new CustomEvent('cv-auto-fit'));
   };
 
-  const hasGoodContrast = checkWCAGContrast(settings.themeColor);
+  // Toggle a forced page break before a given section in the printed PDF.
+  const togglePageBreak = (section) => {
+    setSettings(prev => {
+      const current = Array.isArray(prev.pageBreaks) ? prev.pageBreaks : [];
+      const next = current.includes(section)
+        ? current.filter(s => s !== section)
+        : [...current, section];
+      return { ...prev, pageBreaks: next };
+    });
+  };
+
+  // Fit-to-one-page: pick the densest spacing that still fits on a single A4 page,
+  // falling back to the most compact option. The preview measures and reports back.
+  const handleFitOnePage = () => {
+    window.dispatchEvent(new CustomEvent('cv-fit-one-page'));
+  };
 
   return (
     <div className="app-container">
@@ -259,6 +217,17 @@ function App() {
           </div>
         </div>
         <div className="app-controls" style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          {/* Profile Switcher */}
+          <ProfileSwitcher
+            profiles={profiles}
+            activeProfileId={activeProfileId}
+            onSelect={selectProfile}
+            onAdd={addProfile}
+            onRename={renameProfile}
+            onDuplicate={duplicateProfile}
+            onDelete={deleteProfile}
+          />
+
           {/* Auth Group */}
           <div className="auth-group" style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(15, 23, 42, 0.4)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
             {currentUser ? (
@@ -266,7 +235,7 @@ function App() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {isSyncing ? <Cloud size={14} className="sync-pulse" color="#06b6d4" /> : <Cloud size={14} color="#10b981" />}
                   <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500 }}>
-                    {currentUser.email.split('@')[0]}
+                    {(currentUser.email || currentUser.displayName || 'Account').split('@')[0]}
                   </span>
                 </div>
                 <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.1)' }}></div>
@@ -302,10 +271,26 @@ function App() {
 
           {/* Primary Group */}
           <div className="primary-group" style={{ display: 'flex', gap: '10px' }}>
+            <div className="undo-redo-group" style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.4)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', backdropFilter: 'blur(10px)' }}>
+              <button onClick={undo} disabled={!canUndo} className="action-btn" title="Undo (Ctrl+Z)" style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', background: 'transparent', border: 'none', borderRight: '1px solid rgba(255,255,255,0.08)', color: canUndo ? '#f8fafc' : '#475569', cursor: canUndo ? 'pointer' : 'not-allowed' }}>
+                <Undo2 size={15} />
+              </button>
+              <button onClick={redo} disabled={!canRedo} className="action-btn" title="Redo (Ctrl+Shift+Z)" style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', background: 'transparent', border: 'none', color: canRedo ? '#f8fafc' : '#475569', cursor: canRedo ? 'pointer' : 'not-allowed' }}>
+                <Redo2 size={15} />
+              </button>
+            </div>
             <button onClick={handleAutoFit} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', fontSize: '0.85rem' }}>
               <Maximize size={14} /> Auto-Fit
             </button>
-            <button onClick={handlePrint} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px', fontSize: '0.85rem' }}>
+            {activeTab === 'resume' && (
+              <button onClick={handleFitOnePage} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', fontSize: '0.85rem' }} title="Auto-adjust density to fit one A4 page">
+                <FileDown size={14} /> Fit 1 Page
+              </button>
+            )}
+            <button onClick={handleDownloadPdf} disabled={isDownloading} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', fontSize: '0.85rem' }} title="Download a PDF file directly">
+              <Download size={15} /> {isDownloading ? 'Saving…' : 'Download PDF'}
+            </button>
+            <button onClick={handlePrint} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px', fontSize: '0.85rem' }} title="Open print dialog (best quality, vector text)">
               <Printer size={16} /> Print / PDF
             </button>
           </div>
@@ -333,80 +318,39 @@ function App() {
             </button>
           </div>
 
-          {activeTab === 'resume' && <ATSAnalyzer cvData={cvData} />}
+          {activeTab === 'resume' && (
+            <Suspense fallback={null}>
+              <ATSAnalyzer cvData={cvData} />
+            </Suspense>
+          )}
 
-          <div className="settings-panel glass-panel" style={{marginBottom: '2rem'}}>
-            <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>Document Settings & Layout</h2>
-            <div className="form-row">
-              {activeTab === 'resume' && (
-                <div className="form-group">
-                  <label>Layout Style</label>
-                  <select value={settings.layout} onChange={e => setSettings({...settings, layout: e.target.value})}>
-                    <option value="single">Single Column</option>
-                    <option value="two-column">Two Column</option>
-                    <option value="executive">Executive (Classic)</option>
-                    <option value="creative">Creative (Timeline)</option>
-                  </select>
-                </div>
-              )}
-              <div className="form-group">
-                <label>Theme Color</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input type="color" value={settings.themeColor} onChange={e => setSettings({...settings, themeColor: e.target.value})} />
-                  {!hasGoodContrast && (
-                    <span style={{ color: '#ef4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }} title="This color fails WCAG AA contrast standards against white text/backgrounds. It may be hard to read!">
-                      ⚠️ Poor Contrast
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Typography</label>
-                <select value={settings.fontFamily} onChange={e => setSettings({...settings, fontFamily: e.target.value})}>
-                  <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
-                  <option value="'Georgia', serif">Classic Serif (Georgia)</option>
-                  <option value="'Courier New', monospace">Code (Monospace)</option>
-                </select>
-              </div>
-              {activeTab === 'resume' && (
-                <div className="form-group">
-                  <label>Skill Style</label>
-                  <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
-                    <option value="classic">Classic (Comma Separated)</option>
-                    <option value="tags">Modern Tags</option>
-                  </select>
-                </div>
-              )}
-            </div>
-            
-            {activeTab === 'resume' && (
-              <div className="form-group" style={{marginTop: '1rem'}}>
-                <label>Section Order (Global)</label>
-                <div className="section-reorder-list">
-                  {settings.sectionOrder.map((sec, i) => (
-                    <div key={sec} className="section-reorder-item">
-                      <span style={{textTransform: 'capitalize'}}>{sec}</span>
-                      <div>
-                        {i > 0 && <button onClick={() => moveSection(i, 'up')}>↑</button>}
-                        {i < settings.sectionOrder.length - 1 && <button onClick={() => moveSection(i, 'down')}>↓</button>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <SettingsPanel
+            settings={settings}
+            setSettings={setSettings}
+            activeTab={activeTab}
+            sectionOrder={settings.sectionOrder}
+            onMoveSection={moveSection}
+            onTogglePageBreak={togglePageBreak}
+          />
           {activeTab === 'resume' ? (
             <CVForm cvData={cvData} setCvData={setCvData} />
           ) : (
-            <CoverLetterForm cvData={cvData} setCvData={setCvData} />
+            <Suspense fallback={<div className="lazy-fallback">Loading…</div>}>
+              <CoverLetterForm cvData={cvData} setCvData={setCvData} />
+            </Suspense>
           )}
+
+          <footer className="app-credit no-print">
+            Developed by <span className="app-credit-name">&copy; Dinusha Ekanayake</span>
+          </footer>
         </section>
         <section className="preview-section">
           {activeTab === 'resume' ? (
             <CVPreview cvData={cvData} settings={settings} />
           ) : (
-            <CoverLetterPreview cvData={cvData} settings={settings} />
+            <Suspense fallback={<div className="lazy-fallback">Loading…</div>}>
+              <CoverLetterPreview cvData={cvData} settings={settings} />
+            </Suspense>
           )}
         </section>
       </main>

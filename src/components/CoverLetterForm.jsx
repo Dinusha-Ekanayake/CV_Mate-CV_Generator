@@ -1,4 +1,3 @@
-import React from 'react';
 import RichTextEditor from './RichTextEditor';
 
 const CoverLetterForm = ({ cvData, setCvData }) => {
@@ -59,39 +58,74 @@ const CoverLetterForm = ({ cvData, setCvData }) => {
         <div className="form-row">
           <div className="form-group">
             <label>Recipient Name / Hiring Manager</label>
-            <input 
-              type="text" 
-              value={coverLetter.recipientName} 
-              onChange={e => handleChange('recipientName', e.target.value)} 
-              placeholder="e.g. Sarah Jenkins, Head of Engineering" 
+            <input
+              type="text"
+              value={coverLetter.recipientName || ''}
+              onChange={e => handleChange('recipientName', e.target.value)}
+              placeholder="e.g. Sarah Jenkins, Head of Engineering"
             />
           </div>
           <div className="form-group">
-            <label>Company Name</label>
-            <input 
-              type="text" 
-              value={coverLetter.companyName} 
-              onChange={e => handleChange('companyName', e.target.value)} 
-              placeholder="e.g. Tech Innovators Inc." 
+            <label>Company / Organization</label>
+            <input
+              type="text"
+              value={coverLetter.companyName || ''}
+              onChange={e => handleChange('companyName', e.target.value)}
+              placeholder="e.g. Tech Innovators Inc."
             />
           </div>
         </div>
-        <div className="form-group">
-          <label>Date</label>
-          <input 
-            type="text" 
-            value={coverLetter.date} 
-            onChange={e => handleChange('date', e.target.value)} 
-          />
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Position Applied For</label>
+            <input
+              type="text"
+              value={coverLetter.position || ''}
+              onChange={e => handleChange('position', e.target.value)}
+              placeholder="e.g. Junior Software Engineer (optional)"
+            />
+          </div>
+          <div className="form-group">
+            <label>Date</label>
+            <input
+              type="text"
+              value={coverLetter.date || ''}
+              onChange={e => handleChange('date', e.target.value)}
+              placeholder="e.g. June 16, 2026"
+            />
+          </div>
         </div>
-        
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Greeting</label>
+            <select value={coverLetter.greeting || 'Dear'} onChange={e => handleChange('greeting', e.target.value)}>
+              <option value="Dear">Dear</option>
+              <option value="Hello">Hello</option>
+              <option value="To">To</option>
+              <option value="Respected">Respected</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Closing / Sign-off</label>
+            <select value={coverLetter.closing || 'Sincerely'} onChange={e => handleChange('closing', e.target.value)}>
+              <option value="Sincerely">Sincerely</option>
+              <option value="Best regards">Best regards</option>
+              <option value="Kind regards">Kind regards</option>
+              <option value="Yours faithfully">Yours faithfully</option>
+              <option value="Respectfully">Respectfully</option>
+            </select>
+          </div>
+        </div>
+
         <div className="form-group" style={{ display: 'flex', flexDirection: 'column', marginTop: '10px' }}>
           <label>Letter Body</label>
           <div style={{ minHeight: '300px' }}>
-            <RichTextEditor 
-              value={coverLetter.body} 
-              onChange={(val) => handleChange('body', val)} 
-              placeholder="Dear Hiring Manager..." 
+            <RichTextEditor
+              value={coverLetter.body}
+              onChange={(val) => handleChange('body', val)}
+              placeholder="Write your cover letter here…"
             />
           </div>
         </div>

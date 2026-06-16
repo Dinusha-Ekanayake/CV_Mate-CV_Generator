@@ -59,3 +59,26 @@
 .ai-enhance-btn.enhancing {
   color: #fbbf24; /* yellow/gold */
 }
+
+/* WYSIWYG editor placeholder + focus state */
+.wysiwyg-editor-area:empty::before {
+  content: attr(data-placeholder);
+  color: #64748b;
+  pointer-events: none;
+}
+
+.wysiwyg-container:focus-within {
+  border-color: var(--accent-primary, #3b82f6) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Make pasted/rendered lists look right inside the dark editor */
+.wysiwyg-editor-area ul,
+.wysiwyg-editor-area ol {
+  padding-left: 22px;
+  margin: 4px 0;
+}
+
+.wysiwyg-editor-area a {
+  color: #60a5fa;
+}

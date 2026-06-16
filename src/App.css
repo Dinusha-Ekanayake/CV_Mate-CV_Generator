@@ -128,3 +128,75 @@
 .section-reorder-item button:hover {
   background: #64748b;
 }
+
+.app-credit {
+  margin-top: 2.5rem;
+  padding: 1.25rem 0 0.5rem;
+  border-top: 1px solid var(--bg-panel-border);
+  text-align: center;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.app-credit-name {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.app-credit-name:hover {
+  color: #60a5fa;
+}
+
+/* Smooth hover feedback for the segmented action buttons */
+.action-btn:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.lazy-fallback {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.section-reorder-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.page-break-toggle {
+  width: auto !important;
+  height: auto !important;
+  padding: 3px 8px !important;
+  font-size: 0.7rem !important;
+  background: rgba(255,255,255,0.06) !important;
+  color: #94a3b8 !important;
+  border: 1px solid transparent !important;
+  white-space: nowrap;
+}
+
+.page-break-toggle.active {
+  background: rgba(59,130,246,0.18) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59,130,246,0.4) !important;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem 1.5rem;
+  align-items: flex-start;
+}
+
+.settings-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.settings-grid select,
+.settings-grid input[type="text"] {
+  width: 100%;
+}

@@ -24,74 +24,205 @@
   width: 210mm;
   min-height: 297mm;
   background-color: white;
-  
-  /* True visual pagination illusion! */
-  -webkit-mask-image: repeating-linear-gradient(
-    to bottom,
-    black 0,
-    black 297mm,
-    transparent 297mm,
-    transparent calc(297mm + 15px)
-  );
-  mask-image: repeating-linear-gradient(
-    to bottom,
-    black 0,
-    black 297mm,
-    transparent 297mm,
-    transparent calc(297mm + 15px)
-  );
-
-  /* Drop shadow perfectly outlines the sliced pages */
-  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
-  
   color: #111827;
-  line-height: 1.5;
+  /* Base font size scales with the user's font-size control; line-height stays a
+     unitless multiplier so it auto-tracks the font size, and letter-spacing is
+     derived from the scale for balanced spacing at any size. */
+  font-size: calc(16px * var(--font-scale, 1));
+  line-height: calc(1.5 * var(--spacing-multiplier));
+  letter-spacing: calc((var(--font-scale, 1) - 1) * 0.15px);
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
-  
+
   /* Layout stability */
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
 
+/* Ensure items don't split across pages */
+.cv-item, .cv-section-title, .sidebar-section {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Real stacked page sheets (single-column paginated preview) */
+.page-sheets {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.page-sheet {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.page-sheet-label {
+  position: absolute;
+  left: 100%;
+  bottom: 6px;
+  margin-left: 12px;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Paginated content: no container padding (the paginator + per-block margins
+   supply page margins); horizontal page margins applied to each block. */
+.cv-preview-container.is-paginated {
+  /* left/right/bottom = 0 (block padding handles side margins); top is set inline
+     to the page top margin. Two-class specificity beats .layout-* padding rules. */
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  min-height: 0;
+  display: flow-root;    /* contain child margins so block offsets apply cleanly */
+}
+
+.cv-preview-container.is-paginated .cv-block {
+  padding-left: calc(20mm * var(--spacing-multiplier));
+  padding-right: calc(20mm * var(--spacing-multiplier));
+}
+
+.cv-preview-container.is-paginated .cv-section-head {
+  margin-bottom: 0;
+}
+
+.cv-preview-container.is-paginated .cv-section-item {
+  margin-bottom: calc(14px * var(--spacing-multiplier));
+}
+
+/* --- Two-column paginated: continuous sidebar band + paginated main column --- */
+.is-paginated.is-two-col {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;        /* override .layout-two-column flex; sidebar is absolute */
+  background: transparent !important; /* the gradient bg would tile across the gap */
+}
+
+/* Sidebar band runs the full document height behind every page sheet. */
+.is-paginated.is-two-col .cv-sidebar-band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 65mm;
+  height: 100%;
+  z-index: 2;
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: calc(18mm * var(--spacing-multiplier)) 10mm;
+  box-sizing: border-box;
+}
+
+/* Main paginated column is offset to the right of the sidebar. */
+.is-paginated.is-two-col .cv-main-paginated {
+  position: relative;
+  z-index: 3;
+  margin-left: 65mm;
+  display: flow-root;
+}
+
+/* In two-column, block side padding is relative to the main column, not the page. */
+.is-paginated.is-two-col .cv-block {
+  padding-left: calc(12mm * var(--spacing-multiplier));
+  padding-right: calc(12mm * var(--spacing-multiplier));
+}
+
+/* The header in the two-column main column shouldn't show the single-col rule/photo block awkwardly */
+.is-paginated.is-two-col .single-col-header {
+  border-bottom: 2px solid var(--theme-color);
+}
+
+/* Creative variant: colored sidebar band */
+.layout-creative.is-two-col .cv-sidebar-band {
+  background: var(--theme-color);
+  color: #fff;
+  border-right: none;
+}
+.layout-creative.is-two-col .cv-sidebar-band .cv-section-title,
+.layout-creative.is-two-col .cv-sidebar-band .cv-contact-list,
+.layout-creative.is-two-col .cv-sidebar-band .cv-skill-group strong,
+.layout-creative.is-two-col .cv-sidebar-band .cv-skill-group div {
+  color: #fff;
+}
+.layout-creative.is-two-col .cv-sidebar-band .skill-tag {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* Dark mode sidebar band */
+.cv-dark-mode.is-two-col .cv-sidebar-band {
+  background: #1e293b;
+  border-right-color: #334155;
+}
+
+.cv-dark-mode .page-sheet {
+  background: #0f172a;
+}
+
+/* User-requested forced page break before a section (print only) */
+@media print {
+  .cv-page-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+}
+
+
 /* Layouts */
 .layout-single {
-  padding: 20mm;
+  padding: calc(20mm * var(--spacing-multiplier));
 }
 
 .layout-two-column {
-  display: grid;
-  grid-template-columns: 65mm 1fr;
+  display: flex;
   min-height: 297mm;
   background: linear-gradient(to right, #f8fafc 0, #f8fafc 65mm, white 65mm, white 100%);
 }
 
 .cv-sidebar {
-  padding: 20mm 10mm;
+  width: 65mm;
+  flex-shrink: 0;
+  padding: calc(20mm * var(--spacing-multiplier)) 10mm;
   border-right: 1px solid #e2e8f0;
   background: transparent !important;
 }
 
 .cv-main-content {
-  padding: 20mm;
+  flex: 1;
+  padding: calc(20mm * var(--spacing-multiplier));
 }
 
 /* Typography & Theming */
 .cv-name {
-  font-size: 2.5rem;
+  font-family: var(--heading-font, inherit);
+  font-size: 2.5em;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 5px;
+  margin-bottom: calc(5px * var(--spacing-multiplier));
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
 
 .cv-title {
-  font-size: 1.25rem;
+  font-family: var(--heading-font, inherit);
+  font-size: 1.25em;
   font-weight: 500;
   color: var(--theme-color);
-  margin-bottom: 10px;
+  margin-bottom: calc(10px * var(--spacing-multiplier));
 }
 
 /* Header (Single Column) */
@@ -112,11 +243,12 @@
 }
 
 .cv-contact-info {
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: #4b5563;
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 5px;
+  align-items: center;
+  gap: 6px 12px;
   word-break: break-word;
 }
 
@@ -127,7 +259,7 @@
 .cv-photo {
   width: 100px;
   height: 100px;
-  border-radius: 50%;
+  border-radius: var(--photo-radius, 50%);
   overflow: hidden;
   border: 3px solid #e2e8f0;
   margin-left: 20px;
@@ -148,32 +280,33 @@
 }
 
 .cv-section {
-  margin-bottom: 20px;
+  margin-bottom: calc(20px * var(--spacing-multiplier));
 }
 
 .cv-section-title {
-  font-size: 1.25rem;
+  font-family: var(--heading-font, inherit);
+  font-size: 1.25em;
   font-weight: 600;
   color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 5px;
-  margin-bottom: 10px;
+  padding-bottom: calc(5px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .sidebar-section .cv-section-title {
-  font-size: 1.1rem;
+  font-size: 1.1em;
   border-bottom: 1px solid #cbd5e1;
 }
 
 .cv-summary-text {
-  font-size: 0.95rem;
+  font-size: 0.95em;
   color: #334155;
 }
 
 .cv-item {
-  margin-bottom: 20px;
+  margin-bottom: calc(20px * var(--spacing-multiplier));
   page-break-inside: avoid;
   break-inside: avoid;
 }
@@ -186,12 +319,12 @@
 
 .cv-item-title {
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1.05em;
   color: #0f172a;
 }
 
 .cv-item-date {
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: var(--theme-color);
   font-weight: 600;
 }
@@ -199,7 +332,7 @@
 .cv-item-subheader {
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
+  font-size: 0.95em;
   color: #334155;
   font-weight: 500;
   margin-bottom: 5px;
@@ -207,12 +340,33 @@
 
 .cv-tech-stack {
   font-style: italic;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   color: #64748b;
 }
 
+.cv-type-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--theme-color);
+  background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-color) 35%, transparent);
+  border-radius: 10px;
+  vertical-align: middle;
+}
+
+.cv-dark-mode .cv-type-badge {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
 .cv-item-description {
-  font-size: 0.9rem;
+  font-size: 0.9em;
   color: #4b5563;
 }
 
@@ -226,7 +380,7 @@
 }
 
 .cv-skills {
-  font-size: 0.95rem;
+  font-size: 0.95em;
 }
 
 .cv-skill-row {
@@ -244,7 +398,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: #4b5563;
   word-break: break-word;
 }
@@ -257,13 +411,13 @@
 
 .cv-skill-group strong {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   color: #0f172a;
   margin-bottom: 3px;
 }
 
 .cv-skill-group div {
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: #4b5563;
 }
 
@@ -277,6 +431,13 @@
   body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  
+  .scalable-paper {
+    transform: none !important;
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
   }
   
   .cv-preview-container {
@@ -302,26 +463,73 @@
   }
 
   .layout-two-column {
-    display: table !important;
+    display: flex !important;
     width: 100% !important;
     min-height: auto !important;
     page-break-inside: auto;
+    break-inside: auto;
   }
   
   .layout-two-column > .cv-sidebar {
-    display: table-cell !important;
     width: 65mm !important;
-    height: 100%;
+    flex-shrink: 0 !important;
   }
 
   .layout-two-column > .cv-main-content {
-    display: table-cell !important;
-    width: auto !important;
+    flex: 1 !important;
   }
 
   .cv-section-title, .cv-item {
     page-break-inside: avoid;
     break-inside: avoid;
+  }
+
+  /* Paginated single-column: discard the on-screen sheet illusion and let the
+     print engine paginate naturally. */
+  .page-sheets { display: none !important; }
+  .page-stack { height: auto !important; width: 100% !important; }
+
+  .cv-preview-container.is-paginated {
+    padding: 20mm !important;
+  }
+  /* Neutralize the JS-computed screen margins; restore normal flow + spacing. */
+  .cv-preview-container.is-paginated .cv-block {
+    margin-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .cv-preview-container.is-paginated .cv-section-head {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  .cv-preview-container.is-paginated .cv-section-head[data-block-break] {
+    break-before: page;
+    page-break-before: always;
+  }
+  .cv-preview-container.is-paginated .cv-section-item {
+    margin-bottom: calc(14px * var(--spacing-multiplier));
+  }
+
+  /* Two-column print: sidebar becomes a static flex column so it prints with the
+     content; the continuous-band offset is removed. */
+  .is-paginated.is-two-col {
+    display: flex !important;
+    position: static !important;
+    padding: 0 !important;
+  }
+  .is-paginated.is-two-col .cv-sidebar-band {
+    position: static !important;
+    height: auto !important;
+    width: 65mm !important;
+    flex-shrink: 0 !important;
+    z-index: auto !important;
+  }
+  .is-paginated.is-two-col .cv-main-paginated {
+    margin-left: 0 !important;
+    flex: 1 !important;
+    padding: 20mm 15mm !important;
   }
 }
 
@@ -377,4 +585,132 @@
   height: 10px;
   border-radius: 50%;
   background: var(--theme-color);
+}
+
+/* --- Cover Letter --- */
+.cover-letter-body {
+  margin-top: calc(40px * var(--spacing-multiplier));
+  font-size: 11pt;
+  line-height: calc(1.6 * var(--spacing-multiplier));
+  color: #222;
+  font-family: var(--body-font, inherit);
+}
+
+.cover-letter-meta {
+  margin-bottom: calc(30px * var(--spacing-multiplier));
+  color: #333;
+}
+
+.cover-letter-recipient {
+  margin-top: 16px;
+}
+
+.cover-letter-subject {
+  margin-bottom: calc(18px * var(--spacing-multiplier));
+}
+
+.cover-letter-greeting {
+  margin-bottom: calc(14px * var(--spacing-multiplier));
+}
+
+.cover-letter-text {
+  font-size: 11pt;
+  line-height: calc(1.6 * var(--spacing-multiplier));
+  color: #222;
+}
+
+.cover-letter-text p {
+  margin-bottom: calc(12px * var(--spacing-multiplier));
+}
+
+.cover-letter-signature {
+  margin-top: calc(40px * var(--spacing-multiplier));
+  color: #333;
+}
+
+.cover-letter-signature-name {
+  margin-top: 24px;
+  font-weight: bold;
+}
+
+.cv-dark-mode .cover-letter-body,
+.cv-dark-mode .cover-letter-meta,
+.cv-dark-mode .cover-letter-text,
+.cv-dark-mode .cover-letter-signature {
+  color: #cbd5e1;
+}
+
+.cv-dark-mode .cover-letter-signature-name {
+  color: #f8fafc;
+}
+
+/* Layout: Minimal — clean, understated, generous whitespace */
+.layout-minimal {
+  padding: calc(22mm * var(--spacing-multiplier)) calc(22mm * var(--spacing-multiplier));
+}
+.layout-minimal .single-col-header {
+  border-bottom: none;
+  padding-bottom: 6px;
+  margin-bottom: 26px;
+}
+.layout-minimal .cv-name {
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+.layout-minimal .cv-section-title {
+  border-bottom: none;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.95rem;
+  color: var(--theme-color);
+}
+.layout-minimal .cv-item-date {
+  font-weight: 500;
+}
+
+/* --- OPTION 3: DARK MODE RESUME --- */
+.cv-dark-mode {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+.cv-dark-mode .cv-name {
+  color: #f8fafc;
+}
+
+.cv-dark-mode .cv-section-title {
+  color: #f1f5f9;
+  border-bottom-color: #334155;
+}
+
+.cv-dark-mode .cv-item-title {
+  color: #f8fafc;
+}
+
+.cv-dark-mode .cv-item-subheader {
+  color: #cbd5e1;
+}
+
+.cv-dark-mode .cv-summary-text,
+.cv-dark-mode .cv-item-description {
+  color: #cbd5e1;
+}
+
+.cv-dark-mode .cv-contact-info {
+  color: #cbd5e1;
+}
+
+.cv-dark-mode .cv-sidebar {
+  border-right-color: #334155;
+}
+
+/* Update gradient for two-column in dark mode */
+.cv-dark-mode.layout-two-column {
+  background: linear-gradient(to right, #1e293b 0, #1e293b 65mm, #0f172a 65mm, #0f172a 100%);
+}
+
+.cv-dark-mode .skill-tag {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
 }
