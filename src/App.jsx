@@ -4,7 +4,7 @@ import './App.css';
 import CVForm from './components/CVForm';
 import CVPreview from './components/CVPreview';
 import ProfileSwitcher from './components/ProfileSwitcher';
-import LayoutPicker from './components/LayoutPicker';
+import SettingsPanel from './components/SettingsPanel';
 
 // Lazy-loaded: only needed on the cover-letter tab, so they stay out of the
 // initial bundle.
@@ -316,159 +316,14 @@ function App() {
             </Suspense>
           )}
 
-          <div className="settings-panel glass-panel" style={{marginBottom: '2rem'}}>
-            <h2 className="section-title" style={{marginTop: 0, marginBottom: '1rem'}}>Document Settings & Layout</h2>
-            <div className="settings-grid">
-              {activeTab === 'resume' && (
-                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                  <label>Layout Style</label>
-                  <LayoutPicker
-                    value={settings.layout}
-                    accent={settings.themeColor}
-                    onChange={(layout) => setSettings({ ...settings, layout })}
-                  />
-                </div>
-              )}
-              {/* Option 4: Color Palettes */}
-              <div className="form-group">
-                <label>Theme Color Palette</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {[
-                    { id: 'default', color: '#3b82f6', bg: '#0f172a', name: 'Slate Blue' },
-                    { id: 'midnight', color: '#fbbf24', bg: '#1e293b', name: 'Midnight Gold' },
-                    { id: 'forest', color: '#10b981', bg: '#064e3b', name: 'Forest Sage' },
-                    { id: 'cyberpunk', color: '#06b6d4', bg: '#2e1065', name: 'Cyberpunk Neon' },
-                    { id: 'crimson', color: '#e11d48', bg: '#1c1917', name: 'Crimson Ash' }
-                  ].map(pal => (
-                    <button 
-                      key={pal.id}
-                      onClick={() => setSettings({...settings, palette: pal.id, themeColor: pal.color})}
-                      title={pal.name}
-                      style={{
-                        width: '30px', height: '30px', borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${pal.bg} 50%, ${pal.color} 50%)`,
-                        border: settings.palette === pal.id ? '2px solid white' : '2px solid transparent',
-                        cursor: 'pointer',
-                        boxShadow: settings.palette === pal.id ? `0 0 0 2px ${pal.color}` : 'none'
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label>Custom Color</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input 
-                    type="color" 
-                    title="Custom Color" 
-                    value={settings.themeColor} 
-                    onChange={e => setSettings({...settings, palette: 'custom', themeColor: e.target.value})} 
-                    style={{ width: '30px', height: '30px', padding: 0, border: 'none', borderRadius: '50%', cursor: 'pointer', overflow: 'hidden' }} 
-                  />
-                  <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontFamily: 'monospace' }}>
-                    {settings.themeColor.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Option 1: Advanced Typography */}
-              <div className="form-group">
-                <label>Heading Font</label>
-                <select value={settings.headingFont} onChange={e => setSettings({...settings, headingFont: e.target.value})}>
-                  <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
-                  <option value="'Playfair Display', serif">Classic Serif (Playfair)</option>
-                  <option value="'Space Grotesk', sans-serif">Tech (Space Grotesk)</option>
-                  <option value="'Georgia', serif">Formal Serif (Georgia)</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Body Font</label>
-                <select value={settings.bodyFont} onChange={e => setSettings({...settings, bodyFont: e.target.value})}>
-                  <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
-                  <option value="'Lato', sans-serif">Clean Sans (Lato)</option>
-                  <option value="'Merriweather', serif">Formal Serif (Merriweather)</option>
-                </select>
-              </div>
-
-              {/* Option 2: Density Slider */}
-              <div className="form-group">
-                <label>Document Density</label>
-                <select value={settings.density} onChange={e => setSettings({...settings, density: e.target.value})}>
-                  <option value="compact">Compact (Fit more per page)</option>
-                  <option value="normal">Standard (Balanced)</option>
-                  <option value="spacious">Spacious (Airy & Elegant)</option>
-                </select>
-              </div>
-
-              {/* Option 3: Dark Mode */}
-              <div className="form-group">
-                <label>Document Mode</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={() => setSettings({...settings, darkMode: false})} style={{ flex: 1, padding: '8px', background: !settings.darkMode ? '#e2e8f0' : 'transparent', color: !settings.darkMode ? '#0f172a' : '#94a3b8', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>☀️ Light</button>
-                  <button onClick={() => setSettings({...settings, darkMode: true})} style={{ flex: 1, padding: '8px', background: settings.darkMode ? '#1e293b' : 'transparent', color: settings.darkMode ? '#f8fafc' : '#94a3b8', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>🌙 Dark</button>
-                </div>
-              </div>
-
-              {activeTab === 'resume' && (
-                <>
-                  {/* Option 5: Section Icons */}
-                  <div className="form-group">
-                    <label>Section Icons</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '36px' }}>
-                      <input type="checkbox" id="showIcons" checked={settings.showIcons} onChange={e => setSettings({...settings, showIcons: e.target.checked})} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                      <label htmlFor="showIcons" style={{ margin: 0, cursor: 'pointer', display: 'inline', width: 'auto' }}>Show premium icons</label>
-                    </div>
-                  </div>
-                  
-                  {/* Option 5: Photo Shapes */}
-                  <div className="form-group">
-                    <label>Profile Photo Shape</label>
-                    <select value={settings.photoShape} onChange={e => setSettings({...settings, photoShape: e.target.value})}>
-                      <option value="circle">Circle</option>
-                      <option value="rounded">Rounded Square</option>
-                      <option value="square">Square</option>
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Skill Style</label>
-                    <select value={settings.skillStyle} onChange={e => setSettings({...settings, skillStyle: e.target.value})}>
-                      <option value="classic">Classic (Comma Separated)</option>
-                      <option value="tags">Modern Tags</option>
-                    </select>
-                  </div>
-                </>
-              )}
-            </div>
-            
-            {activeTab === 'resume' && (
-              <div className="form-group" style={{marginTop: '1rem'}}>
-                <label>Section Order &amp; Page Breaks</label>
-                <div className="section-reorder-list">
-                  {settings.sectionOrder.map((sec, i) => {
-                    const hasBreak = Array.isArray(settings.pageBreaks) && settings.pageBreaks.includes(sec);
-                    return (
-                      <div key={sec} className="section-reorder-item">
-                        <span style={{textTransform: 'capitalize'}}>{sec}</span>
-                        <div className="section-reorder-actions">
-                          <button
-                            className={`page-break-toggle ${hasBreak ? 'active' : ''}`}
-                            onClick={() => togglePageBreak(sec)}
-                            title={hasBreak ? 'Remove page break before this section' : 'Start this section on a new page'}
-                          >
-                            ⤓ Break
-                          </button>
-                          {i > 0 && <button onClick={() => moveSection(i, 'up')}>↑</button>}
-                          {i < settings.sectionOrder.length - 1 && <button onClick={() => moveSection(i, 'down')}>↓</button>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+          <SettingsPanel
+            settings={settings}
+            setSettings={setSettings}
+            activeTab={activeTab}
+            sectionOrder={settings.sectionOrder}
+            onMoveSection={moveSection}
+            onTogglePageBreak={togglePageBreak}
+          />
           {activeTab === 'resume' ? (
             <CVForm cvData={cvData} setCvData={setCvData} />
           ) : (

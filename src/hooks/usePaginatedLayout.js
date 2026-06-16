@@ -47,11 +47,18 @@ export const usePaginatedLayout = ({
       return { height: b.offsetHeight, mt, mb };
     });
 
-    let page = 0;            // current page index (0-based)
-    let cursor = pageMargin; // running y-offset where the next block's content-box top sits
+    // Geometry is expressed as flow-offset from the container's content-box top
+    // (the container supplies the first page's top margin via padding-top).
+    //   - Each page's usable content height = pageHeightPx - 2*pageMargin.
+    //   - Moving to the next page costs: bottom margin of this page + visual gap +
+    //     top margin of the next page  =  2*pageMargin + pageGap.
+    const usable = pageHeightPx - pageMargin * 2;
+    const pageStep = usable + pageMargin * 2 + pageGap;
+    const pageFlowTop = (p) => p * pageStep;            // content top of page p (flow coords)
+    const pageFlowBottom = (p) => p * pageStep + usable; // content bottom of page p
 
-    const pageContentTop = (p) => p * (pageHeightPx + pageGap) + pageMargin;
-    const pageContentBottom = (p) => p * (pageHeightPx + pageGap) + (pageHeightPx - pageMargin);
+    let page = 0;
+    let cursor = 0; // flow offset of the next block's content-box top
 
     blocks.forEach((block, idx) => {
       const { height, mt, mb } = metrics[idx];
@@ -64,18 +71,16 @@ export const usePaginatedLayout = ({
         neededH += metrics[idx + 1].mt + metrics[idx + 1].height;
       }
 
-      const atPageTop = Math.abs(cursor - pageContentTop(page)) < 1;
+      const atPageTop = Math.abs(cursor - pageFlowTop(page)) < 1;
 
       if (idx === 0) {
-        // First block: push it down by the top page margin from the sheet top.
-        block.style.marginTop = `${pageMargin}px`;
-      } else if ((forceBreak || cursor + mt + neededH > pageContentBottom(page) + 0.5) && !atPageTop) {
-        // Push to the top of the next page.
+        block.style.marginTop = '0px';
+      } else if ((forceBreak || cursor + mt + neededH > pageFlowBottom(page) + 0.5) && !atPageTop) {
+        // Push this block to the top of the next page.
         page += 1;
-        const newTop = pageContentTop(page);
+        const newTop = pageFlowTop(page);
         block.style.marginTop = `${newTop - cursor}px`;
-        cursor = newTop;
-        cursor += height + mb;
+        cursor = newTop + height + mb;
         return;
       } else {
         block.style.marginTop = `${mt}px`;
@@ -94,18 +99,26 @@ export const usePaginatedLayout = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout, ...deps]);
 
-  // Re-run when fonts finish loading or the container resizes (images, async fonts).
+  // Re-run when fonts finish loading or a block's intrinsic size changes (images,
+  // async fonts, edits). Coalesced via rAF; we observe only the blocks' content
+  // boxes (not the container) so our own margin-top writes don't re-trigger it.
   useEffect(() => {
     const container = contentRef.current;
     if (!container) return;
-    const ro = new ResizeObserver(() => layout());
-    // Observe children so intra-block growth (e.g. an image load) re-triggers.
-    Array.from(container.children).forEach(c => ro.observe(c));
-    ro.observe(container);
 
-    if (document.fonts?.ready) document.fonts.ready.then(() => layout());
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => layout());
+    };
 
-    return () => ro.disconnect();
+    const ro = new ResizeObserver(schedule);
+    Array.from(container.querySelectorAll(':scope > [data-block]')).forEach(c => ro.observe(c));
+
+    let cancelled = false;
+    if (document.fonts?.ready) document.fonts.ready.then(() => { if (!cancelled) schedule(); });
+
+    return () => { cancelled = true; cancelAnimationFrame(frame); ro.disconnect(); };
   }, [contentRef, layout]);
 
   return { numPages, recalc: layout };

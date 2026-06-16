@@ -25,11 +25,16 @@
   min-height: 297mm;
   background-color: white;
   color: #111827;
+  /* Base font size scales with the user's font-size control; line-height stays a
+     unitless multiplier so it auto-tracks the font size, and letter-spacing is
+     derived from the scale for balanced spacing at any size. */
+  font-size: calc(16px * var(--font-scale, 1));
   line-height: calc(1.5 * var(--spacing-multiplier));
+  letter-spacing: calc((var(--font-scale, 1) - 1) * 0.15px);
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
-  
+
   /* Layout stability */
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -76,9 +81,13 @@
 /* Paginated content: no container padding (the paginator + per-block margins
    supply page margins); horizontal page margins applied to each block. */
 .cv-preview-container.is-paginated {
-  padding: 0 !important;
+  /* left/right/bottom = 0 (block padding handles side margins); top is set inline
+     to the page top margin. Two-class specificity beats .layout-* padding rules. */
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
   min-height: 0;
-  display: flow-root; /* contain child margins so the first block's top margin applies */
+  display: flow-root;    /* contain child margins so block offsets apply cleanly */
 }
 
 .cv-preview-container.is-paginated .cv-block {
@@ -92,6 +101,72 @@
 
 .cv-preview-container.is-paginated .cv-section-item {
   margin-bottom: calc(14px * var(--spacing-multiplier));
+}
+
+/* --- Two-column paginated: continuous sidebar band + paginated main column --- */
+.is-paginated.is-two-col {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;        /* override .layout-two-column flex; sidebar is absolute */
+  background: transparent !important; /* the gradient bg would tile across the gap */
+}
+
+/* Sidebar band runs the full document height behind every page sheet. */
+.is-paginated.is-two-col .cv-sidebar-band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 65mm;
+  height: 100%;
+  z-index: 2;
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: calc(18mm * var(--spacing-multiplier)) 10mm;
+  box-sizing: border-box;
+}
+
+/* Main paginated column is offset to the right of the sidebar. */
+.is-paginated.is-two-col .cv-main-paginated {
+  position: relative;
+  z-index: 3;
+  margin-left: 65mm;
+  display: flow-root;
+}
+
+/* In two-column, block side padding is relative to the main column, not the page. */
+.is-paginated.is-two-col .cv-block {
+  padding-left: calc(12mm * var(--spacing-multiplier));
+  padding-right: calc(12mm * var(--spacing-multiplier));
+}
+
+/* The header in the two-column main column shouldn't show the single-col rule/photo block awkwardly */
+.is-paginated.is-two-col .single-col-header {
+  border-bottom: 2px solid var(--theme-color);
+}
+
+/* Creative variant: colored sidebar band */
+.layout-creative.is-two-col .cv-sidebar-band {
+  background: var(--theme-color);
+  color: #fff;
+  border-right: none;
+}
+.layout-creative.is-two-col .cv-sidebar-band .cv-section-title,
+.layout-creative.is-two-col .cv-sidebar-band .cv-contact-list,
+.layout-creative.is-two-col .cv-sidebar-band .cv-skill-group strong,
+.layout-creative.is-two-col .cv-sidebar-band .cv-skill-group div {
+  color: #fff;
+}
+.layout-creative.is-two-col .cv-sidebar-band .skill-tag {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* Dark mode sidebar band */
+.cv-dark-mode.is-two-col .cv-sidebar-band {
+  background: #1e293b;
+  border-right-color: #334155;
 }
 
 .cv-dark-mode .page-sheet {
@@ -134,7 +209,7 @@
 /* Typography & Theming */
 .cv-name {
   font-family: var(--heading-font, inherit);
-  font-size: 2.5rem;
+  font-size: 2.5em;
   font-weight: 700;
   color: #0f172a;
   margin-bottom: calc(5px * var(--spacing-multiplier));
@@ -144,7 +219,7 @@
 
 .cv-title {
   font-family: var(--heading-font, inherit);
-  font-size: 1.25rem;
+  font-size: 1.25em;
   font-weight: 500;
   color: var(--theme-color);
   margin-bottom: calc(10px * var(--spacing-multiplier));
@@ -168,7 +243,7 @@
 }
 
 .cv-contact-info {
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: #4b5563;
   display: flex;
   flex-wrap: wrap;
@@ -210,7 +285,7 @@
 
 .cv-section-title {
   font-family: var(--heading-font, inherit);
-  font-size: 1.25rem;
+  font-size: 1.25em;
   font-weight: 600;
   color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
@@ -221,12 +296,12 @@
 }
 
 .sidebar-section .cv-section-title {
-  font-size: 1.1rem;
+  font-size: 1.1em;
   border-bottom: 1px solid #cbd5e1;
 }
 
 .cv-summary-text {
-  font-size: 0.95rem;
+  font-size: 0.95em;
   color: #334155;
 }
 
@@ -267,6 +342,27 @@
   font-style: italic;
   font-size: 0.9rem;
   color: #64748b;
+}
+
+.cv-type-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--theme-color);
+  background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--theme-color) 35%, transparent);
+  border-radius: 10px;
+  vertical-align: middle;
+}
+
+.cv-dark-mode .cv-type-badge {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .cv-item-description {
@@ -415,6 +511,26 @@
   .cv-preview-container.is-paginated .cv-section-item {
     margin-bottom: calc(14px * var(--spacing-multiplier));
   }
+
+  /* Two-column print: sidebar becomes a static flex column so it prints with the
+     content; the continuous-band offset is removed. */
+  .is-paginated.is-two-col {
+    display: flex !important;
+    position: static !important;
+    padding: 0 !important;
+  }
+  .is-paginated.is-two-col .cv-sidebar-band {
+    position: static !important;
+    height: auto !important;
+    width: 65mm !important;
+    flex-shrink: 0 !important;
+    z-index: auto !important;
+  }
+  .is-paginated.is-two-col .cv-main-paginated {
+    margin-left: 0 !important;
+    flex: 1 !important;
+    padding: 20mm 15mm !important;
+  }
 }
 
 /* Layout: Executive */
@@ -487,6 +603,14 @@
 
 .cover-letter-recipient {
   margin-top: 16px;
+}
+
+.cover-letter-subject {
+  margin-bottom: calc(18px * var(--spacing-multiplier));
+}
+
+.cover-letter-greeting {
+  margin-bottom: calc(14px * var(--spacing-multiplier));
 }
 
 .cover-letter-text {

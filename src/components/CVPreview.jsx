@@ -112,11 +112,13 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
   const layoutClass = `layout-${layoutStyleName} ${settings?.darkMode ? 'cv-dark-mode' : ''}`;
   const order = settings?.sectionOrder || ['summary', 'education', 'experience', 'projects', 'skills'];
 
+  const fontScale = Number(settings?.fontScale) || 1;
   const previewStyle = {
     '--theme-color': settings?.themeColor || '#0f172a',
     '--heading-font': settings?.headingFont || "'Inter', sans-serif",
     '--body-font': settings?.bodyFont || "'Inter', sans-serif",
     '--spacing-multiplier': settings?.density === 'compact' ? 0.6 : settings?.density === 'spacious' ? 1.5 : 1,
+    '--font-scale': fontScale,
     '--photo-radius': settings?.photoShape === 'square' ? '4px' : settings?.photoShape === 'rounded' ? '24px' : '50%',
     fontFamily: settings?.bodyFont || settings?.fontFamily || "'Inter', sans-serif"
   };
@@ -178,7 +180,10 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
       items: (experience || []).filter(e => !e.hidden).map((exp) => (
         <div key={exp.id} className="cv-item">
           <div className="cv-item-header">
-            <span className="cv-item-title">{exp.company}</span>
+            <span className="cv-item-title">
+              {exp.company}
+              {exp.type && <span className="cv-type-badge">{exp.type}</span>}
+            </span>
             <span className="cv-item-date">{exp.dates}</span>
           </div>
           <div className="cv-item-subheader">
@@ -253,20 +258,21 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
     return blocks;
   };
 
-  const bodyBlocks = renderBodyBlocks(order);
+  // In two-column layouts, skills live in the sidebar, so exclude them from the
+  // paginated main column.
+  const bodyBlocks = renderBodyBlocks(isTwoColumn ? order.filter(sec => sec !== 'skills') : order);
 
-  // Production paginator: measures the single-column blocks and distributes them
-  // across real A4 page sheets with proper margins. Disabled for two-column.
-  const { numPages: paginatedPages } = usePaginatedLayout({
+  // Production paginator: measures the content blocks and distributes them across
+  // real A4 page sheets with proper margins. For two-column it measures the main
+  // column; the sidebar band spans all pages behind it.
+  const { numPages } = usePaginatedLayout({
     contentRef: masterRef,
-    enabled: !isTwoColumn,
+    enabled: true,
     pageHeightPx,
     pageMargin,
     pageGap: PAGE_GAP,
     deps: [cvData, settings, zoom, isTwoColumn]
   });
-
-  const numPages = isTwoColumn ? 1 : paginatedPages;
 
   const handleNativeExport = async () => {
     try {
@@ -278,63 +284,6 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
   };
 
   const isElectron = typeof window !== 'undefined' && window.cvmate?.isElectron === true;
-
-  // Two-column layouts keep a continuous sidebar, so they aren't item-paginated;
-  // they render as a single flowing sheet (paginator disabled for them).
-  const renderTwoColumn = () => (
-    <>
-      <aside className="cv-sidebar">
-        {personal.photo && (
-          <div className="cv-photo">
-            <img src={personal.photo} alt="Profile" />
-          </div>
-        )}
-
-        <div className="cv-section sidebar-section">
-          <h3 className="cv-section-title">Contact</h3>
-          <div className="cv-contact-list">
-            {personal.email && <div>{personal.email}</div>}
-            {personal.phone && <div>{personal.phone}</div>}
-            {personal.linkedin && <div>{personal.linkedin}</div>}
-            {personal.github && <div>{personal.github}</div>}
-            {personal.portfolio && <div>{personal.portfolio}</div>}
-          </div>
-        </div>
-
-        {(Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) && (
-          <div className="cv-section sidebar-section">
-            <h3 className="cv-section-title">Skills</h3>
-            <div className={settings?.skillStyle === 'tags' ? "cv-skills-stacked" : "cv-contact-list"}>
-              {skills.filter(s => !s.hidden && s.items).map((skill, idx) => (
-                <React.Fragment key={skill.id || idx}>
-                  {renderSkillBlock(skill.category, skill.items, true)}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        )}
-      </aside>
-
-      <main className="cv-main-content">
-        <div className="cv-header">
-          <div className="cv-header-content">
-            <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
-            <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
-          </div>
-        </div>
-        {order.filter(sec => sec !== 'skills').map(sec => {
-          const data = sectionData[sec];
-          if (!data || data.items.length === 0) return null;
-          return (
-            <div className="cv-section" key={sec}>
-              <SectionHeader title={data.title} icon={data.icon} showIcons={settings?.showIcons} />
-              {data.items}
-            </div>
-          );
-        })}
-      </main>
-    </>
-  );
 
   // Single-column layouts render a flat list of [data-block] siblings that the
   // paginator measures and distributes across real page sheets.
@@ -448,47 +397,75 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
         {/* Hidden Ruler for exact 297mm pixel calculation on user's monitor */}
         <div ref={rulerRef} style={{ height: '297mm', position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
 
-        {isTwoColumn ? (
-          // Two-column: single continuous sheet.
-          <div
-            ref={masterRef}
-            className={`cv-preview-container ${layoutClass}`}
-            style={{
-              ...previewStyle,
-              height: 'auto',
-              minHeight: '297mm',
-              position: 'relative',
-              backgroundColor: 'white',
-              borderRadius: '4px',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-            }}
-          >
-            {renderTwoColumn()}
+        {/* Real stacked page sheets behind paginated content — for both single
+            and two-column layouts. */}
+        <div
+          className="page-stack"
+          style={{ position: 'relative', width: '210mm', height: `${numPages * pageHeightPx + (numPages - 1) * PAGE_GAP}px` }}
+        >
+          {/* White page sheets with visible gaps between them */}
+          <div className="page-sheets" aria-hidden="true">
+            {Array.from({ length: numPages }).map((_, i) => (
+              <div
+                key={i}
+                className="page-sheet"
+                style={{
+                  top: `${i * (pageHeightPx + PAGE_GAP)}px`,
+                  height: `${pageHeightPx}px`
+                }}
+              >
+                <span className="page-sheet-label no-print">Page {i + 1} / {numPages}</span>
+              </div>
+            ))}
           </div>
-        ) : (
-          // Single-column: real stacked page sheets behind paginated content.
-          <div
-            className="page-stack"
-            style={{ position: 'relative', width: '210mm', height: `${numPages * pageHeightPx + (numPages - 1) * PAGE_GAP}px` }}
-          >
-            {/* White page sheets with visible gaps between them */}
-            <div className="page-sheets" aria-hidden="true">
-              {Array.from({ length: numPages }).map((_, i) => (
-                <div
-                  key={i}
-                  className="page-sheet"
-                  style={{
-                    top: `${i * (pageHeightPx + PAGE_GAP)}px`,
-                    height: `${pageHeightPx}px`
-                  }}
-                >
-                  <span className="page-sheet-label no-print">Page {i + 1} / {numPages}</span>
-                </div>
-              ))}
-            </div>
 
-            {/* Paginated content overlaid on the sheets (transparent, no padding —
-                the paginator supplies per-block margins). */}
+          {isTwoColumn ? (
+            // Two-column: a continuous sidebar strip spanning every page, with the
+            // main content column paginated alongside it.
+            <div
+              className={`cv-preview-container is-paginated is-two-col ${layoutClass}`}
+              style={{ ...previewStyle, position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}
+            >
+              {/* Continuous sidebar band behind the content, full document height */}
+              <aside className="cv-sidebar cv-sidebar-band" aria-hidden="false">
+                {personal.photo && (
+                  <div className="cv-photo">
+                    <img src={personal.photo} alt="Profile" />
+                  </div>
+                )}
+                <div className="cv-section sidebar-section">
+                  <h3 className="cv-section-title">Contact</h3>
+                  <div className="cv-contact-list">
+                    {personal.email && <div>{personal.email}</div>}
+                    {personal.phone && <div>{personal.phone}</div>}
+                    {personal.linkedin && <div>{personal.linkedin}</div>}
+                    {personal.github && <div>{personal.github}</div>}
+                    {personal.portfolio && <div>{personal.portfolio}</div>}
+                  </div>
+                </div>
+                {(Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) && (
+                  <div className="cv-section sidebar-section">
+                    <h3 className="cv-section-title">Skills</h3>
+                    <div className={settings?.skillStyle === 'tags' ? "cv-skills-stacked" : "cv-contact-list"}>
+                      {skills.filter(s => !s.hidden && s.items).map((skill, idx) => (
+                        <React.Fragment key={skill.id || idx}>
+                          {renderSkillBlock(skill.category, skill.items, true)}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </aside>
+
+              {/* Paginated main column (measured by the paginator). padding-top
+                  supplies the first page's top margin. */}
+              <div ref={masterRef} className="cv-main-paginated" style={{ paddingTop: `${pageMargin}px` }}>
+                {headerBlock}
+                {bodyBlocks}
+              </div>
+            </div>
+          ) : (
+            // Single-column: paginated content overlaid on the sheets.
             <div
               ref={masterRef}
               className={`cv-preview-container is-paginated ${layoutClass}`}
@@ -497,14 +474,15 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
                 position: 'relative',
                 zIndex: 1,
                 background: 'transparent',
-                boxShadow: 'none'
+                boxShadow: 'none',
+                paddingTop: `${pageMargin}px`
               }}
             >
               {headerBlock}
               {bodyBlocks}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

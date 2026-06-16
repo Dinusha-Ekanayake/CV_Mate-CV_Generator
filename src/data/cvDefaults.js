@@ -17,6 +17,9 @@ export const initialData = {
   coverLetter: {
     recipientName: 'Hiring Manager',
     companyName: 'Tech Innovators Inc.',
+    position: '',
+    greeting: 'Dear',
+    closing: 'Sincerely',
     date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
     body: 'I am writing to express my strong interest in the open position at your company. With my background in software engineering and passion for building scalable applications, I believe I would be a great fit for your team.<br><br>In my previous roles, I have successfully delivered high-impact projects while maintaining a focus on clean, maintainable code. I am particularly drawn to your company\'s mission and the innovative work your team is doing.<br><br>Thank you for considering my application. I look forward to the possibility of discussing this exciting opportunity with you.'
   }
@@ -62,6 +65,7 @@ export const defaultSettings = {
   sectionOrder: defaultSectionOrder,
   skillStyle: 'classic',
   density: 'normal',
+  fontScale: 1, // 0.85 – 1.2, scales the document's base font size
   darkMode: false,
   showIcons: false,
   photoShape: 'circle'

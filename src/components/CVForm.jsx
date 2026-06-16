@@ -84,6 +84,20 @@ const CVForm = ({ cvData, setCvData }) => {
     }));
   };
 
+  const duplicateArrayItem = (section, id) => {
+    setCvData(prev => {
+      const list = prev[section];
+      const idx = list.findIndex(item => item.id === id);
+      if (idx === -1) return prev;
+      const copy = { ...list[idx], id: safeId() };
+      const next = [...list];
+      next.splice(idx + 1, 0, copy); // insert right after the original
+      return { ...prev, [section]: next };
+    });
+  };
+
+  const removePhoto = () => handleChange('personal', 'photo', null);
+
   const toggleVisibility = (section, id) => {
     setCvData(prev => ({
       ...prev,
@@ -107,15 +121,30 @@ const CVForm = ({ cvData, setCvData }) => {
 
   const renderArrayControls = (section, id, isHidden) => (
     <div className="array-controls">
-      <button 
+      <button
         type="button"
-        className={`btn-toggle ${isHidden ? 'hidden' : ''}`} 
+        className={`btn-toggle ${isHidden ? 'hidden' : ''}`}
         onClick={() => toggleVisibility(section, id)}
         title={isHidden ? "Show in CV" : "Hide from CV"}
       >
-        {isHidden ? '👁️‍🗨️' : '👁️'}
+        {isHidden ? '🙈' : '👁️'}
       </button>
-      <button type="button" className="btn-remove" onClick={() => removeArrayItem(section, id)} title="Remove">×</button>
+      <button
+        type="button"
+        className="btn-duplicate"
+        onClick={() => duplicateArrayItem(section, id)}
+        title="Duplicate"
+      >
+        ⧉
+      </button>
+      <button
+        type="button"
+        className="btn-remove"
+        onClick={() => { if (window.confirm('Remove this entry?')) removeArrayItem(section, id); }}
+        title="Remove"
+      >
+        ×
+      </button>
     </div>
   );
 
@@ -125,7 +154,21 @@ const CVForm = ({ cvData, setCvData }) => {
       <div className="glass-panel form-section-panel">
         <div className="form-group">
           <label>Profile Photo</label>
-          <input type="file" accept="image/*" onChange={handlePhotoUpload} />
+          <div className="photo-upload-row">
+            {cvData.personal.photo ? (
+              <img src={cvData.personal.photo} alt="Profile preview" className="photo-preview" />
+            ) : (
+              <div className="photo-preview photo-preview-empty">No photo</div>
+            )}
+            <div className="photo-upload-actions">
+              <input type="file" accept="image/*" onChange={handlePhotoUpload} />
+              {cvData.personal.photo && (
+                <button type="button" className="btn btn-secondary photo-remove-btn" onClick={removePhoto}>
+                  Remove photo
+                </button>
+              )}
+            </div>
+          </div>
         </div>
         <div className="form-row">
           <div className="form-group">
@@ -169,7 +212,7 @@ const CVForm = ({ cvData, setCvData }) => {
           <RichTextEditor 
             value={cvData.summary} 
             onChange={(val) => handleSimpleChange('summary', val)} 
-            placeholder="Briefly describe your background, focus in AI/SE, and career goals..." 
+            placeholder="Briefly describe your background, key strengths, and career goals..."
           />
         </div>
       </div>
@@ -205,6 +248,7 @@ const CVForm = ({ cvData, setCvData }) => {
             ))}
           </SortableContext>
         </DndContext>
+        {cvData.education.length === 0 && <div className="section-empty">No education added yet.</div>}
         <button className="btn btn-secondary w-100" onClick={() => addArrayItem('education', { institution: '', degree: '', dates: '', gpa: '' })}>+ Add Education</button>
       </div>
 
@@ -217,34 +261,50 @@ const CVForm = ({ cvData, setCvData }) => {
                 {renderArrayControls('experience', exp.id, exp.hidden)}
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Company</label>
-                    <input type="text" value={exp.company || ''} onChange={e => handleArrayChange('experience', exp.id, 'company', e.target.value)} placeholder="Tech Corp" />
+                    <label>Company / Organization</label>
+                    <input type="text" value={exp.company || ''} onChange={e => handleArrayChange('experience', exp.id, 'company', e.target.value)} placeholder="e.g. Tech Corp, IEEE Student Branch" />
                   </div>
                   <div className="form-group">
-                    <label>Role</label>
-                    <input type="text" value={exp.role || ''} onChange={e => handleArrayChange('experience', exp.id, 'role', e.target.value)} placeholder="AI Intern" />
+                    <label>Role / Position</label>
+                    <input type="text" value={exp.role || ''} onChange={e => handleArrayChange('experience', exp.id, 'role', e.target.value)} placeholder="e.g. AI Intern, Club President, Volunteer" />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label>Dates</label>
-                  <input type="text" value={exp.dates || ''} onChange={e => handleArrayChange('experience', exp.id, 'dates', e.target.value)} placeholder="Jun 2023 - Aug 2023" />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Dates</label>
+                    <input type="text" value={exp.dates || ''} onChange={e => handleArrayChange('experience', exp.id, 'dates', e.target.value)} placeholder="Jun 2023 - Aug 2023" />
+                  </div>
+                  <div className="form-group">
+                    <label>Type</label>
+                    <select value={exp.type || ''} onChange={e => handleArrayChange('experience', exp.id, 'type', e.target.value)}>
+                      <option value="">None</option>
+                      <option value="Work">Work</option>
+                      <option value="Internship">Internship</option>
+                      <option value="Part-time">Part-time</option>
+                      <option value="Leadership">Leadership</option>
+                      <option value="Volunteer">Volunteer</option>
+                      <option value="Research">Research</option>
+                      <option value="Freelance">Freelance</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="form-group" style={{display: 'flex', flexDirection: 'column'}}>
                   <label>Description</label>
-                  <RichTextEditor 
-                    value={exp.description || ''} 
-                    onChange={(val) => handleArrayChange('experience', exp.id, 'description', val)} 
-                    placeholder="Describe your role and impact..." 
+                  <RichTextEditor
+                    value={exp.description || ''}
+                    onChange={(val) => handleArrayChange('experience', exp.id, 'description', val)}
+                    placeholder="Describe your role and impact..."
                   />
                 </div>
               </SortableItem>
             ))}
           </SortableContext>
         </DndContext>
-        <button className="btn btn-secondary w-100" onClick={() => addArrayItem('experience', { company: '', role: '', dates: '', description: '' })}>+ Add Experience</button>
+        {cvData.experience.length === 0 && <div className="section-empty">No experience added yet.</div>}
+        <button className="btn btn-secondary w-100" onClick={() => addArrayItem('experience', { company: '', role: '', dates: '', type: '', description: '' })}>+ Add Experience</button>
       </div>
 
-      <h2 className="section-title">AI / SE Projects</h2>
+      <h2 className="section-title">Projects</h2>
       <div className="glass-panel form-section-panel">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, 'projects')}>
           <SortableContext items={cvData.projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
@@ -273,6 +333,7 @@ const CVForm = ({ cvData, setCvData }) => {
             ))}
           </SortableContext>
         </DndContext>
+        {cvData.projects.length === 0 && <div className="section-empty">No projects added yet.</div>}
         <button className="btn btn-secondary w-100" onClick={() => addArrayItem('projects', { name: '', tech: '', description: '' })}>+ Add Project</button>
       </div>
 

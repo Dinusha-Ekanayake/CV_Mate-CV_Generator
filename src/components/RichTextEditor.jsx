@@ -18,9 +18,12 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
   }, [value]);
 
   const handleInput = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
-    }
+    if (!editorRef.current) return;
+    let html = editorRef.current.innerHTML;
+    // Normalize "empty" content (contenteditable often leaves <br> or empty tags)
+    // so the placeholder shows and we don't persist junk.
+    if (html === '<br>' || html === '<div><br></div>' || html === '<p><br></p>') html = '';
+    onChange(html);
   };
 
   const execCommand = (command, value = null) => {
@@ -54,6 +57,10 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
           if (url) execCommand('createLink', url);
         }} title="Insert Link">🔗</button>
         <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'unlink')} title="Remove Link">🚫</button>
+
+        <div className="md-divider"></div>
+
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'removeFormat')} title="Clear formatting">⌫ Clear</button>
       </div>
       
       <div 
