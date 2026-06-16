@@ -1,14 +1,19 @@
 import { useRef, useEffect } from 'react';
+import { legacyToHtml } from '../utils/richText';
 import './MarkdownToolbar.css'; // We'll reuse the toolbar styles for now
 
 const RichTextEditor = ({ value, onChange, placeholder }) => {
   const editorRef = useRef(null);
 
-  // We only want to set innerHTML on mount or if the external value changes drastically 
-  // (e.g. loading a new CV), not on every keystroke to prevent losing cursor position.
+  // We only set innerHTML on mount or when the external value changes
+  // substantially (e.g. loading a different CV) — not on every keystroke, which
+  // would reset the caret. Legacy markdown values are converted to HTML first so
+  // the editor shows formatted text instead of raw `**asterisks**`.
   useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = value || '';
+    if (!editorRef.current) return;
+    const html = legacyToHtml(value);
+    if (html !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = html;
     }
   }, [value]);
 

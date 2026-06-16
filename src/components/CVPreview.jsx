@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize, Briefcase, GraduationCap, FolderDot, Wrench } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import { usePaginatedLayout } from '../hooks/usePaginatedLayout';
+import { legacyToHtml } from '../utils/richText';
 import './CVPreview.css';
 
 // Hoisted out of render so it isn't recreated each render (avoids state-reset
@@ -18,30 +20,21 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
   const containerRef = useRef(null);
   
   // Pagination State
-  const [numPages, setNumPages] = useState(1);
   const masterRef = useRef(null);
   const rulerRef = useRef(null);
   const [pageHeightPx, setPageHeightPx] = useState(1122); // Fallback for 297mm
+
+  // Visual gap shown between stacked page sheets on screen.
+  const PAGE_GAP = 28;
+  // Top/bottom margin inside each page (≈ the 20mm print margin at screen DPI).
+  const pageMargin = pageHeightPx > 0 ? Math.round(pageHeightPx * (20 / 297)) : 75;
+  const isTwoColumn = settings?.layout === 'two-column' || settings?.layout === 'creative';
 
   useEffect(() => {
     if (rulerRef.current) {
       setPageHeightPx(rulerRef.current.offsetHeight);
     }
   }, []);
-
-  useEffect(() => {
-    if (!masterRef.current || pageHeightPx <= 0) return;
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const h = entry.contentRect.height;
-        const pagesNeeded = Math.max(1, Math.ceil(h / pageHeightPx));
-        // Functional update avoids re-subscribing the observer on every page change.
-        setNumPages(prev => (prev !== pagesNeeded ? pagesNeeded : prev));
-      }
-    });
-    observer.observe(masterRef.current);
-    return () => observer.disconnect();
-  }, [pageHeightPx]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -105,43 +98,16 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
   const renderRichText = (text) => {
     if (!text) return null;
-    
-    // Check if it's legacy text (no HTML tags)
-    const isLegacy = !text.includes('<');
-    
-    let html = text;
-    if (isLegacy) {
-      // Inline markdown first (bold before italic so ** isn't eaten by *),
-      // then links. Done before block conversion so it applies inside bullets too.
-      const inline = (s) => s
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/(^|[^*])\*(?!\s)(.+?)\*/g, '$1<em>$2</em>')
-        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      const isBulletList = lines.length > 0 && lines.every(l => l.startsWith('-'));
-
-      if (isBulletList) {
-        const lis = lines.map(line => `<li>${inline(line.replace(/^-\s?/, ''))}</li>`).join('');
-        html = `<ul>${lis}</ul>`;
-      } else {
-        // Preserve line breaks for non-list legacy text.
-        html = lines.map(inline).join('<br>');
-      }
-    }
-
-    // Secure the HTML
-    const cleanHtml = DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
-    
+    // Normalize legacy markdown to HTML, then sanitize before injecting.
+    const cleanHtml = DOMPurify.sanitize(legacyToHtml(text), { ADD_ATTR: ['target'] });
     return (
-      <div 
-        className="rich-text-content" 
-        dangerouslySetInnerHTML={{ __html: cleanHtml }} 
+      <div
+        className="rich-text-content"
+        dangerouslySetInnerHTML={{ __html: cleanHtml }}
       />
     );
   };
 
-  const isTwoColumn = settings?.layout === 'two-column' || settings?.layout === 'creative';
   const layoutStyleName = settings?.layout || 'single';
   const layoutClass = `layout-${layoutStyleName} ${settings?.darkMode ? 'cv-dark-mode' : ''}`;
   const order = settings?.sectionOrder || ['summary', 'education', 'experience', 'projects', 'skills'];
@@ -180,100 +146,127 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
     );
   };
 
-  // Component Map for dynamic ordering
-  const sectionsMap = {
-    summary: summary ? (
-      <div className="cv-section" key="summary">
-        <SectionHeader title="Profile" icon={Briefcase} showIcons={settings?.showIcons} />
-        <div className="cv-summary-text">{renderRichText(summary)}</div>
-      </div>
-    ) : null,
+  const pageBreaks = Array.isArray(settings?.pageBreaks) ? settings.pageBreaks : [];
 
-    education: (education || []).filter(e => !e.hidden).length > 0 ? (
-      <div className="cv-section" key="education">
-        <SectionHeader title="Education" icon={GraduationCap} showIcons={settings?.showIcons} />
-        {(education || []).filter(e => !e.hidden).map((edu) => (
-          <div key={edu.id} className="cv-item">
-            <div className="cv-item-header">
-              <span className="cv-item-title">{edu.institution}</span>
-              <span className="cv-item-date">{edu.dates}</span>
-            </div>
+  // Each section is emitted as a flat list of pagination blocks: a section-title
+  // block (kept with the following item to avoid orphan headings) followed by one
+  // block per item. The paginator measures these to place real page breaks.
+  const sectionData = {
+    summary: {
+      icon: Briefcase, title: 'Profile',
+      items: summary ? [
+        <div className="cv-summary-text" key="s">{renderRichText(summary)}</div>
+      ] : []
+    },
+    education: {
+      icon: GraduationCap, title: 'Education',
+      items: (education || []).filter(e => !e.hidden).map((edu) => (
+        <div key={edu.id} className="cv-item">
+          <div className="cv-item-header">
+            <span className="cv-item-title">{edu.institution}</span>
+            <span className="cv-item-date">{edu.dates}</span>
+          </div>
+          <div className="cv-item-subheader">
+            <span>{edu.degree}</span>
+            {edu.gpa && <span>{edu.gpa}</span>}
+          </div>
+        </div>
+      ))
+    },
+    experience: {
+      icon: Briefcase, title: 'Experience',
+      items: (experience || []).filter(e => !e.hidden).map((exp) => (
+        <div key={exp.id} className="cv-item">
+          <div className="cv-item-header">
+            <span className="cv-item-title">{exp.company}</span>
+            <span className="cv-item-date">{exp.dates}</span>
+          </div>
+          <div className="cv-item-subheader">
+            <span>{exp.role}</span>
+          </div>
+          <div className="cv-item-description">
+            {renderRichText(exp.description)}
+          </div>
+        </div>
+      ))
+    },
+    projects: {
+      icon: FolderDot, title: 'Projects',
+      items: (projects || []).filter(p => !p.hidden).map((proj) => (
+        <div key={proj.id} className="cv-item">
+          <div className="cv-item-header">
+            <span className="cv-item-title">{proj.name}</span>
+          </div>
+          {proj.tech && (
             <div className="cv-item-subheader">
-              <span>{edu.degree}</span>
-              {edu.gpa && <span>{edu.gpa}</span>}
+              <span className="cv-tech-stack">Stack: {proj.tech}</span>
             </div>
+          )}
+          <div className="cv-item-description">
+            {renderRichText(proj.description)}
           </div>
-        ))}
-      </div>
-    ) : null,
-
-    experience: (experience || []).filter(e => !e.hidden).length > 0 ? (
-      <div className="cv-section" key="experience">
-        <SectionHeader title="Experience" icon={Briefcase} showIcons={settings?.showIcons} />
-        {(experience || []).filter(e => !e.hidden).map((exp) => (
-          <div key={exp.id} className="cv-item">
-            <div className="cv-item-header">
-              <span className="cv-item-title">{exp.company}</span>
-              <span className="cv-item-date">{exp.dates}</span>
-            </div>
-            <div className="cv-item-subheader">
-              <span>{exp.role}</span>
-            </div>
-            <div className="cv-item-description">
-              {renderRichText(exp.description)}
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : null,
-
-    projects: (projects || []).filter(p => !p.hidden).length > 0 ? (
-      <div className="cv-section" key="projects">
-        <SectionHeader title="Projects" icon={FolderDot} showIcons={settings?.showIcons} />
-        {(projects || []).filter(p => !p.hidden).map((proj) => (
-          <div key={proj.id} className="cv-item">
-            <div className="cv-item-header">
-              <span className="cv-item-title">{proj.name}</span>
-            </div>
-            {proj.tech && (
-              <div className="cv-item-subheader">
-                <span className="cv-tech-stack">Stack: {proj.tech}</span>
-              </div>
-            )}
-            <div className="cv-item-description">
-              {renderRichText(proj.description)}
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : null,
-
-    skills: (Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) ? (
-      <div className="cv-section" key="skills">
-        <SectionHeader title="Skills" icon={Wrench} showIcons={settings?.showIcons} />
-        <div className="cv-skills">
+        </div>
+      ))
+    },
+    skills: {
+      icon: Wrench, title: 'Skills',
+      items: (Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) ? [
+        <div className="cv-skills" key="sk">
           {skills.filter(s => !s.hidden && s.items).map((skill, idx) => (
             <React.Fragment key={skill.id || idx}>
               {renderSkillBlock(skill.category, skill.items)}
             </React.Fragment>
           ))}
         </div>
-      </div>
-    ) : null
+      ] : []
+    }
   };
 
-  // Wrap a rendered section so it starts on a new printed page when the user
-  // requested a page break before it. Wrapping (rather than cloning) keeps the
-  // section element's own `key` intact.
-  const pageBreaks = Array.isArray(settings?.pageBreaks) ? settings.pageBreaks : [];
-  const renderSection = (sec) => {
-    const el = sectionsMap[sec];
-    if (!el) return null;
-    if (pageBreaks.includes(sec)) {
-      return <div key={sec} className="cv-page-break-before">{el}</div>;
-    }
-    return el;
+  // Produce the flat array of [data-block] elements for the body, in section order.
+  const renderBodyBlocks = (sections) => {
+    const blocks = [];
+    sections.forEach((sec) => {
+      const data = sectionData[sec];
+      if (!data || data.items.length === 0) return;
+      const forceBreak = pageBreaks.includes(sec);
+      // Section heading — kept with the next block so it never sits alone at a
+      // page bottom; carries the forced page break when requested.
+      blocks.push(
+        <div
+          key={`${sec}-h`}
+          className="cv-block cv-section-head"
+          data-block
+          data-keep-with-next
+          {...(forceBreak ? { 'data-block-break': '' } : {})}
+        >
+          <SectionHeader title={data.title} icon={data.icon} showIcons={settings?.showIcons} />
+        </div>
+      );
+      data.items.forEach((item, i) => {
+        blocks.push(
+          <div key={`${sec}-i-${i}`} className="cv-block cv-section-item" data-block>
+            {item}
+          </div>
+        );
+      });
+    });
+    return blocks;
   };
+
+  const bodyBlocks = renderBodyBlocks(order);
+
+  // Production paginator: measures the single-column blocks and distributes them
+  // across real A4 page sheets with proper margins. Disabled for two-column.
+  const { numPages: paginatedPages } = usePaginatedLayout({
+    contentRef: masterRef,
+    enabled: !isTwoColumn,
+    pageHeightPx,
+    pageMargin,
+    pageGap: PAGE_GAP,
+    deps: [cvData, settings, zoom, isTwoColumn]
+  });
+
+  const numPages = isTwoColumn ? 1 : paginatedPages;
 
   const handleNativeExport = async () => {
     try {
@@ -286,81 +279,87 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
   const isElectron = typeof window !== 'undefined' && window.cvmate?.isElectron === true;
 
-  const renderContent = () => {
-    return isTwoColumn ? (
-      <>
-        <aside className="cv-sidebar">
-          {personal.photo && (
-            <div className="cv-photo">
-              <img src={personal.photo} alt="Profile" />
-            </div>
-          )}
-          
+  // Two-column layouts keep a continuous sidebar, so they aren't item-paginated;
+  // they render as a single flowing sheet (paginator disabled for them).
+  const renderTwoColumn = () => (
+    <>
+      <aside className="cv-sidebar">
+        {personal.photo && (
+          <div className="cv-photo">
+            <img src={personal.photo} alt="Profile" />
+          </div>
+        )}
+
+        <div className="cv-section sidebar-section">
+          <h3 className="cv-section-title">Contact</h3>
+          <div className="cv-contact-list">
+            {personal.email && <div>{personal.email}</div>}
+            {personal.phone && <div>{personal.phone}</div>}
+            {personal.linkedin && <div>{personal.linkedin}</div>}
+            {personal.github && <div>{personal.github}</div>}
+            {personal.portfolio && <div>{personal.portfolio}</div>}
+          </div>
+        </div>
+
+        {(Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) && (
           <div className="cv-section sidebar-section">
-            <h3 className="cv-section-title">Contact</h3>
-            <div className="cv-contact-list">
-              {personal.email && <div>{personal.email}</div>}
-              {personal.phone && <div>{personal.phone}</div>}
-              {personal.linkedin && <div>{personal.linkedin}</div>}
-              {personal.github && <div>{personal.github}</div>}
-              {personal.portfolio && <div>{personal.portfolio}</div>}
+            <h3 className="cv-section-title">Skills</h3>
+            <div className={settings?.skillStyle === 'tags' ? "cv-skills-stacked" : "cv-contact-list"}>
+              {skills.filter(s => !s.hidden && s.items).map((skill, idx) => (
+                <React.Fragment key={skill.id || idx}>
+                  {renderSkillBlock(skill.category, skill.items, true)}
+                </React.Fragment>
+              ))}
             </div>
           </div>
+        )}
+      </aside>
 
-          {(Array.isArray(skills) && skills.filter(s => !s.hidden && s.items).length > 0) && (
-            <div className="cv-section sidebar-section">
-              <h3 className="cv-section-title">Skills</h3>
-              <div className={settings?.skillStyle === 'tags' ? "cv-skills-stacked" : "cv-contact-list"}>
-                {skills.filter(s => !s.hidden && s.items).map((skill, idx) => (
-                  <React.Fragment key={skill.id || idx}>
-                    {renderSkillBlock(skill.category, skill.items, true)}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          )}
-        </aside>
-
-        <main className="cv-main-content">
-          <div className="cv-header">
-            <div className="cv-header-content">
-              <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
-              <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
-            </div>
-          </div>
-          
-          {/* Render sections according to order, excluding skills which is in sidebar */}
-          {order.filter(sec => sec !== 'skills').map(sec => renderSection(sec))}
-        </main>
-      </>
-    ) : (
-      <>
-        <div className="cv-header single-col-header">
+      <main className="cv-main-content">
+        <div className="cv-header">
           <div className="cv-header-content">
             <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
             <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
-            
-            <div className="cv-contact-info">
-              {personal.email && <span>{personal.email}</span>}
-              {personal.phone && <span><span className="bullet">&bull;</span> {personal.phone}</span>}
-              {personal.linkedin && <span><span className="bullet">&bull;</span> {personal.linkedin}</span>}
-              {personal.github && <span><span className="bullet">&bull;</span> {personal.github}</span>}
-              {personal.portfolio && <span><span className="bullet">&bull;</span> {personal.portfolio}</span>}
-            </div>
           </div>
-          {personal.photo && (
-            <div className="cv-photo">
-              <img src={personal.photo} alt="Profile" />
+        </div>
+        {order.filter(sec => sec !== 'skills').map(sec => {
+          const data = sectionData[sec];
+          if (!data || data.items.length === 0) return null;
+          return (
+            <div className="cv-section" key={sec}>
+              <SectionHeader title={data.title} icon={data.icon} showIcons={settings?.showIcons} />
+              {data.items}
             </div>
-          )}
-        </div>
+          );
+        })}
+      </main>
+    </>
+  );
 
-        <div className="cv-body">
-          {order.map(sec => renderSection(sec))}
+  // Single-column layouts render a flat list of [data-block] siblings that the
+  // paginator measures and distributes across real page sheets.
+  const headerBlock = (
+    <div className="cv-block" data-block key="header">
+      <div className="cv-header single-col-header">
+        <div className="cv-header-content">
+          <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
+          <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
+          <div className="cv-contact-info">
+            {personal.email && <span>{personal.email}</span>}
+            {personal.phone && <span><span className="bullet">&bull;</span> {personal.phone}</span>}
+            {personal.linkedin && <span><span className="bullet">&bull;</span> {personal.linkedin}</span>}
+            {personal.github && <span><span className="bullet">&bull;</span> {personal.github}</span>}
+            {personal.portfolio && <span><span className="bullet">&bull;</span> {personal.portfolio}</span>}
+          </div>
         </div>
-      </>
-    );
-  };
+        {personal.photo && (
+          <div className="cv-photo">
+            <img src={personal.photo} alt="Profile" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div 
@@ -449,25 +448,8 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
         {/* Hidden Ruler for exact 297mm pixel calculation on user's monitor */}
         <div ref={rulerRef} style={{ height: '297mm', position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
 
-        {/* Page stack: the continuous content sits on top of contiguous A4 page
-            frames. The frames align 1:1 with the content (no offset), and each
-            page boundary is drawn as a clear divider with a shadow + gutter label
-            so the preview reads as discrete pages — while staying honest that the
-            real break is decided by the print engine. */}
-        <div className="page-stack" style={{ position: 'relative' }}>
-          {/* One divider band at each internal page boundary. */}
-          <div className="page-dividers no-print" aria-hidden="true">
-            {Array.from({ length: Math.max(0, numPages - 1) }).map((_, i) => (
-              <div
-                key={i}
-                className="page-divider"
-                style={{ top: `${(i + 1) * pageHeightPx}px` }}
-              >
-                <span className="page-divider-label">Page {i + 2}</span>
-              </div>
-            ))}
-          </div>
-
+        {isTwoColumn ? (
+          // Two-column: single continuous sheet.
           <div
             ref={masterRef}
             className={`cv-preview-container ${layoutClass}`}
@@ -476,15 +458,53 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
               height: 'auto',
               minHeight: '297mm',
               position: 'relative',
-              zIndex: 1,
               backgroundColor: 'white',
               borderRadius: '4px',
               boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
             }}
           >
-            {renderContent()}
+            {renderTwoColumn()}
           </div>
-        </div>
+        ) : (
+          // Single-column: real stacked page sheets behind paginated content.
+          <div
+            className="page-stack"
+            style={{ position: 'relative', width: '210mm', height: `${numPages * pageHeightPx + (numPages - 1) * PAGE_GAP}px` }}
+          >
+            {/* White page sheets with visible gaps between them */}
+            <div className="page-sheets" aria-hidden="true">
+              {Array.from({ length: numPages }).map((_, i) => (
+                <div
+                  key={i}
+                  className="page-sheet"
+                  style={{
+                    top: `${i * (pageHeightPx + PAGE_GAP)}px`,
+                    height: `${pageHeightPx}px`
+                  }}
+                >
+                  <span className="page-sheet-label no-print">Page {i + 1} / {numPages}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Paginated content overlaid on the sheets (transparent, no padding —
+                the paginator supplies per-block margins). */}
+            <div
+              ref={masterRef}
+              className={`cv-preview-container is-paginated ${layoutClass}`}
+              style={{
+                ...previewStyle,
+                position: 'relative',
+                zIndex: 1,
+                background: 'transparent',
+                boxShadow: 'none'
+              }}
+            >
+              {headerBlock}
+              {bodyBlocks}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
