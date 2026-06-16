@@ -32,5 +32,18 @@ dist-electron
 release
 out
 
-# Firebase local cache
+# Firebase local cache (deploy artifacts, not source)
 .firebase
+*.cache
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# npm/yarn lock conflicts
+package-lock.json.bak
+
+# Service account keys (should never be committed)
+*-adminsdk-*.json
+*firebase-adminsdk*.json
