@@ -29,7 +29,11 @@ export default defineConfig({
         // "Download PDF"). Keep it out of the install-time precache so first load
         // stays light; it's fetched from the network when actually needed.
         globIgnores: ['**/html2pdf-*.js'],
-        maximumFileSizeToCacheInBytes: 600 * 1024
+        maximumFileSizeToCacheInBytes: 600 * 1024,
+        // Take over immediately when a new SW is installed so users never get
+        // stuck on a stale cached build after a deploy.
+        skipWaiting: true,
+        clientsClaim: true
       },
       manifest: {
         name: 'CV Mate - CV Generator',

@@ -11,6 +11,7 @@ import SettingsPanel from './components/SettingsPanel';
 const CoverLetterForm = lazy(() => import('./components/CoverLetterForm'));
 const CoverLetterPreview = lazy(() => import('./components/CoverLetterPreview'));
 const ATSAnalyzer = lazy(() => import('./components/ATSAnalyzer'));
+import UpdateToast from './components/UpdateToast';
 import { useProfiles, normalizeProfilesState } from './hooks/useProfiles';
 import { useHistory } from './hooks/useHistory';
 import { downloadPdf } from './utils/pdf';
@@ -354,6 +355,7 @@ function App() {
           )}
         </section>
       </main>
+      <UpdateToast />
     </div>
   );
 }
