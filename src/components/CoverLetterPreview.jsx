@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import './CVPreview.css';
@@ -16,7 +16,7 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         setZoom(prev => {
-          let newZoom = prev - e.deltaY * 0.002;
+          const newZoom = prev - e.deltaY * 0.002;
           return Math.min(Math.max(0.3, newZoom), 2.5);
         });
       }
@@ -28,34 +28,38 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
 
   const renderRichText = (text) => {
     if (!text) return null;
-    const cleanHtml = DOMPurify.sanitize(text);
+    const cleanHtml = DOMPurify.sanitize(text, { ADD_ATTR: ['target'] });
     return <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />;
   };
 
-  const layoutClass = `layout-${settings.layout}`;
-  
+  const layoutClass = `layout-single ${settings?.darkMode ? 'cv-dark-mode' : ''}`;
+
   // Reuse the exact same CSS variables for perfectly matched branding
   const previewStyle = {
     '--theme-color': settings?.themeColor || '#0f172a',
-    fontFamily: settings?.fontFamily || "'Inter', sans-serif",
-    padding: '40px'
+    '--heading-font': settings?.headingFont || "'Inter', sans-serif",
+    '--body-font': settings?.bodyFont || "'Inter', sans-serif",
+    '--spacing-multiplier': settings?.density === 'compact' ? 0.6 : settings?.density === 'spacious' ? 1.5 : 1,
+    fontFamily: settings?.bodyFont || settings?.fontFamily || "'Inter', sans-serif"
   };
+
+  const getHeadingFontName = () => settings?.headingFont ? settings.headingFont.split("'")[1] : 'Inter';
+  const getBodyFontName = () => settings?.bodyFont ? settings.bodyFont.split("'")[1] : 'Inter';
+  const fontLink = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(getHeadingFontName())}:wght@400;500;600;700&family=${encodeURIComponent(getBodyFontName())}:wght@400;500;600;700&display=swap`;
 
   const handleNativeExport = async () => {
     try {
-      const electron = window.require('electron');
-      const { ipcRenderer } = electron;
-      await ipcRenderer.invoke('export-pdf');
-    } catch (e) {
+      await window.cvmate.exportPdf();
+    } catch {
       window.print();
     }
   };
 
-  const isElectron = typeof window !== 'undefined' && window.require;
+  const isElectron = typeof window !== 'undefined' && window.cvmate?.isElectron === true;
 
   return (
-    <div 
-      className="cv-preview-wrapper" 
+    <div
+      className="cv-preview-wrapper"
       ref={containerRef}
       style={{
         width: '100%',
@@ -68,7 +72,10 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
         padding: '20px 0'
       }}
     >
-      <div 
+      {/* Dynamic Google Fonts Injection */}
+      <link href={fontLink} rel="stylesheet" />
+
+      <div
         className="zoom-controls no-print"
         style={{
           position: 'sticky',
@@ -102,7 +109,7 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
       </div>
 
       {isElectron && (
-        <button 
+        <button
           className="no-print"
           onClick={handleNativeExport}
           style={{
@@ -124,7 +131,7 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
         </button>
       )}
 
-      <div 
+      <div
         className="scalable-paper"
         style={{
           transform: `scale(${zoom})`,
@@ -134,43 +141,41 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
           borderRadius: '4px'
         }}
       >
-        <div className={`cv-preview-container print-only ${layoutClass}`} style={previewStyle}>
-          {/* Header (Reused from Resume for perfect match) */}
-          <header className="cv-header">
-            {settings.layout !== 'two-column' && personal.photo && (
-              <div className="cv-photo-top">
+        <div className={`cv-preview-container ${layoutClass}`} style={previewStyle}>
+          {/* Header (matches the single-column resume header for consistent branding) */}
+          <div className="cv-header single-col-header">
+            <div className="cv-header-content">
+              <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
+              <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
+              <div className="cv-contact-info">
+                {personal.email && <span>{personal.email}</span>}
+                {personal.phone && <span><span className="bullet">&bull;</span> {personal.phone}</span>}
+                {personal.linkedin && <span><span className="bullet">&bull;</span> {personal.linkedin}</span>}
+                {personal.portfolio && <span><span className="bullet">&bull;</span> {personal.portfolio}</span>}
+              </div>
+            </div>
+            {personal.photo && (
+              <div className="cv-photo">
                 <img src={personal.photo} alt="Profile" />
               </div>
             )}
-            <div className="cv-header-text">
-              <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
-              <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
-              <div className="cv-contact">
-                {personal.email && <span>{personal.email}</span>}
-                {personal.phone && <span>{personal.phone}</span>}
-                {personal.linkedin && <span>{personal.linkedin}</span>}
-                {personal.portfolio && <span>{personal.portfolio}</span>}
-              </div>
-            </div>
-          </header>
+          </div>
 
           {/* Cover Letter Content */}
-          <div className="cv-main" style={{ marginTop: '40px' }}>
-            <div style={{ marginBottom: '30px', fontSize: '11pt', color: '#333' }}>
+          <div className="cover-letter-body">
+            <div className="cover-letter-meta">
               <div>{coverLetter.date}</div>
-              <br />
-              {coverLetter.recipientName && <div><strong>{coverLetter.recipientName}</strong></div>}
+              {coverLetter.recipientName && <div className="cover-letter-recipient"><strong>{coverLetter.recipientName}</strong></div>}
               {coverLetter.companyName && <div>{coverLetter.companyName}</div>}
             </div>
 
-            <div className="cv-item-description" style={{ fontSize: '11pt', lineHeight: '1.6', color: '#222' }}>
+            <div className="cv-item-description cover-letter-text">
               {renderRichText(coverLetter.body)}
             </div>
-            
-            <div style={{ marginTop: '40px', fontSize: '11pt', color: '#333' }}>
+
+            <div className="cover-letter-signature">
               <div>Sincerely,</div>
-              <br />
-              <div style={{ fontWeight: 'bold' }}>{personal.name || 'Your Name'}</div>
+              <div className="cover-letter-signature-name">{personal.name || 'Your Name'}</div>
             </div>
           </div>
         </div>

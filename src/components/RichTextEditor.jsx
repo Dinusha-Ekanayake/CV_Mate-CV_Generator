@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import './MarkdownToolbar.css'; // We'll reuse the toolbar styles for now
 
 const RichTextEditor = ({ value, onChange, placeholder }) => {

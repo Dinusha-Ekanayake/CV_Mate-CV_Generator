@@ -15,8 +15,12 @@ function createWindow() {
     width: 1280,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      // Secure defaults: no Node in the renderer, isolated context, and a
+      // narrow preload bridge instead.
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
     title: "CV Mate - Elite Edition",
     autoHideMenuBar: true,

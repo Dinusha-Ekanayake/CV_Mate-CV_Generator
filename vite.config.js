@@ -4,6 +4,21 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        // Split large, independent vendor groups into their own chunks so the
+        // initial app payload is smaller and they can be cached separately.
+        // (Rolldown/Vite 8 expects manualChunks as a function.)
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('firebase') || id.includes('@firebase')) return 'firebase';
+            if (id.includes('@dnd-kit')) return 'dnd';
+          }
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({

@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 import { SortableItem } from './SortableItem';
 import RichTextEditor from './RichTextEditor';
+import { safeId } from '../utils/id';
 import './CVForm.css';
 
 const CVForm = ({ cvData, setCvData }) => {
@@ -18,25 +19,27 @@ const CVForm = ({ cvData, setCvData }) => {
     })
   );
 
-  // Ensure all legacy items have an id on mount
+  // Ensure all legacy items have an id (one-time backfill on mount).
+  // Uses a functional update so it never depends on a stale `cvData` snapshot
+  // and cannot clobber concurrent edits or loop on its own state change.
   useEffect(() => {
-    let needsUpdate = false;
-    const newData = { ...cvData };
-    ['education', 'experience', 'projects', 'skills'].forEach(section => {
-      if (Array.isArray(newData[section])) {
-        newData[section] = newData[section].map(item => {
-          if (!item.id) {
-            needsUpdate = true;
-            return { ...item, id: crypto.randomUUID() };
-          }
-          return item;
-        });
-      }
+    setCvData(prev => {
+      let needsUpdate = false;
+      const next = { ...prev };
+      ['education', 'experience', 'projects', 'skills'].forEach(section => {
+        if (Array.isArray(next[section])) {
+          next[section] = next[section].map(item => {
+            if (!item.id) {
+              needsUpdate = true;
+              return { ...item, id: safeId() };
+            }
+            return item;
+          });
+        }
+      });
+      return needsUpdate ? next : prev;
     });
-    if (needsUpdate) {
-      setCvData(newData);
-    }
-  }, [cvData, setCvData]);
+  }, [setCvData]);
 
   const handleChange = (section, field, value) => {
     setCvData(prev => ({ ...prev, [section]: { ...prev[section], [field]: value } }));
@@ -70,7 +73,7 @@ const CVForm = ({ cvData, setCvData }) => {
   const addArrayItem = (section, emptyItem) => {
     setCvData(prev => ({
       ...prev,
-      [section]: [...prev[section], { ...emptyItem, id: crypto.randomUUID(), hidden: false }]
+      [section]: [...prev[section], { ...emptyItem, id: safeId(), hidden: false }]
     }));
   };
 
