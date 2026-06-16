@@ -31,3 +31,6 @@ dist-ssr
 dist-electron
 release
 out
+
+# Firebase local cache
+.firebase

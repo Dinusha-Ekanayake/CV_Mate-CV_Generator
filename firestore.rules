@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// CV Mate Firestore security rules.
+// Each signed-in user may read and write only their own document at
+// users/{uid}. Everything else is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

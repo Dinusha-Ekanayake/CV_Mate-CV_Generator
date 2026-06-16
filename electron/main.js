@@ -39,8 +39,13 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
 
-  // Setup Auto-Updater (Silent OTA updates)
-  autoUpdater.checkForUpdatesAndNotify();
+  // Setup Auto-Updater (Silent OTA updates). Only in packaged/production builds —
+  // there is no update feed during local development, and it logs errors there.
+  if (!isDev) {
+    autoUpdater.checkForUpdatesAndNotify().catch(err =>
+      console.error('Auto-update check failed:', err)
+    );
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

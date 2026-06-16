@@ -40,6 +40,7 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
     '--heading-font': settings?.headingFont || "'Inter', sans-serif",
     '--body-font': settings?.bodyFont || "'Inter', sans-serif",
     '--spacing-multiplier': settings?.density === 'compact' ? 0.6 : settings?.density === 'spacious' ? 1.5 : 1,
+    '--font-scale': Number(settings?.fontScale) || 1,
     fontFamily: settings?.bodyFont || settings?.fontFamily || "'Inter', sans-serif"
   };
 
@@ -164,17 +165,25 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
           {/* Cover Letter Content */}
           <div className="cover-letter-body">
             <div className="cover-letter-meta">
-              <div>{coverLetter.date}</div>
+              {coverLetter.date && <div>{coverLetter.date}</div>}
               {coverLetter.recipientName && <div className="cover-letter-recipient"><strong>{coverLetter.recipientName}</strong></div>}
               {coverLetter.companyName && <div>{coverLetter.companyName}</div>}
             </div>
+
+            {coverLetter.position && (
+              <div className="cover-letter-subject"><strong>Re: Application for {coverLetter.position}</strong></div>
+            )}
+
+            {coverLetter.recipientName && (
+              <div className="cover-letter-greeting">{coverLetter.greeting || 'Dear'} {coverLetter.recipientName},</div>
+            )}
 
             <div className="cv-item-description cover-letter-text">
               {renderRichText(coverLetter.body)}
             </div>
 
             <div className="cover-letter-signature">
-              <div>Sincerely,</div>
+              <div>{coverLetter.closing || 'Sincerely'},</div>
               <div className="cover-letter-signature-name">{personal.name || 'Your Name'}</div>
             </div>
           </div>

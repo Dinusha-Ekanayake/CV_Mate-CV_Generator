@@ -23,6 +23,9 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState('resume');
+  // Gates cloud writes until the initial cloud load for the signed-in user has
+  // finished, so local default state can never overwrite existing cloud data.
+  const [cloudReady, setCloudReady] = useState(false);
 
   const {
     profiles,
@@ -52,6 +55,7 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
+        setCloudReady(false); // block writes until this load completes
         setIsSyncing(true);
         try {
           const docRef = doc(db, 'users', user.uid);
@@ -66,15 +70,19 @@ function App() {
           console.error("Failed to load from cloud:", error);
         }
         setIsSyncing(false);
+        setCloudReady(true); // safe to sync local changes back from here on
+      } else {
+        setCloudReady(false);
       }
     });
     return () => unsubscribe();
   }, [replaceAll]);
 
   // Cloud sync — localStorage is handled inside useProfiles; this debounces a
-  // Firestore write of the entire profiles state whenever it changes.
+  // Firestore write of the entire profiles state whenever it changes. Gated on
+  // cloudReady so the initial local state can't clobber freshly-loaded cloud data.
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !cloudReady) return;
     const timeout = setTimeout(() => {
       setIsSyncing(true);
       // Firestore documents are capped at ~1 MiB. Large base64 photos across many
@@ -98,7 +106,7 @@ function App() {
         });
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [profilesState, currentUser]);
+  }, [profilesState, currentUser, cloudReady]);
 
   // The preview computes the best density for one-page fit and reports it here.
   useEffect(() => {

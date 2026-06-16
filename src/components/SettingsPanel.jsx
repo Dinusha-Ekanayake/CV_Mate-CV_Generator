@@ -138,6 +138,22 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
             ]}
           />
         </div>
+        <div className="setting-field">
+          <label className="setting-label">
+            Font Size
+            <span className="font-size-value">{Math.round((Number(settings.fontScale) || 1) * 100)}%</span>
+          </label>
+          <input
+            type="range"
+            className="font-size-range"
+            min="0.85"
+            max="1.2"
+            step="0.05"
+            value={Number(settings.fontScale) || 1}
+            onChange={e => set({ fontScale: parseFloat(e.target.value) })}
+          />
+          <span className="setting-hint">Line &amp; letter spacing adjust automatically.</span>
+        </div>
       </Group>
 
       {isResume && (

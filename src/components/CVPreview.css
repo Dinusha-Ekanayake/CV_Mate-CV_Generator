@@ -319,12 +319,12 @@
 
 .cv-item-title {
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1.05em;
   color: #0f172a;
 }
 
 .cv-item-date {
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: var(--theme-color);
   font-weight: 600;
 }
@@ -332,7 +332,7 @@
 .cv-item-subheader {
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
+  font-size: 0.95em;
   color: #334155;
   font-weight: 500;
   margin-bottom: 5px;
@@ -340,7 +340,7 @@
 
 .cv-tech-stack {
   font-style: italic;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   color: #64748b;
 }
 
@@ -366,7 +366,7 @@
 }
 
 .cv-item-description {
-  font-size: 0.9rem;
+  font-size: 0.9em;
   color: #4b5563;
 }
 
@@ -380,7 +380,7 @@
 }
 
 .cv-skills {
-  font-size: 0.95rem;
+  font-size: 0.95em;
 }
 
 .cv-skill-row {
@@ -398,7 +398,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: #4b5563;
   word-break: break-word;
 }
@@ -411,13 +411,13 @@
 
 .cv-skill-group strong {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   color: #0f172a;
   margin-bottom: 3px;
 }
 
 .cv-skill-group div {
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: #4b5563;
 }
 

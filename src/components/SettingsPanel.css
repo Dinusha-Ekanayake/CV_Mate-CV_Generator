@@ -82,6 +82,40 @@
 }
 .setting-hint.mono { font-family: ui-monospace, 'SF Mono', monospace; }
 
+.font-size-value {
+  float: right;
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.font-size-range {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+  cursor: pointer;
+}
+.font-size-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.font-size-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid #fff;
+}
+
 .setting-select {
   width: 100%;
   padding: 9px 12px;
