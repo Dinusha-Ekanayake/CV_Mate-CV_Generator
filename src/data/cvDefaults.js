@@ -10,10 +10,14 @@ export const initialData = {
   experience: [],
   projects: [],
   skills: [
-    { id: 'sk-1', category: 'Languages', items: '' },
-    { id: 'sk-2', category: 'Frameworks', items: '' },
-    { id: 'sk-3', category: 'Tools', items: '' }
+    { id: 'sk-1', category: 'Languages', items: '', level: 3 },
+    { id: 'sk-2', category: 'Frameworks', items: '', level: 3 },
+    { id: 'sk-3', category: 'Tools', items: '', level: 3 }
   ],
+  certifications: [],
+  languages: [],
+  awards: [],
+  customSections: [],
   coverLetter: {
     recipientName: 'Hiring Manager',
     companyName: 'Tech Innovators Inc.',
@@ -35,25 +39,38 @@ export const sampleData = {
     { id: 'edu-1', institution: 'University of Moratuwa', degree: 'BSc. (Hons) in Artificial Intelligence', dates: 'Sep 2020 - May 2024', gpa: '3.8 / 4.0' }
   ],
   experience: [
-    { id: 'exp-1', company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
+    { id: 'exp-1', company: 'TechNova Solutions', role: 'Machine Learning Intern', dates: 'Jun 2023 - Aug 2023', location: 'Remote', type: 'Internship', description: '- Engineered a computer vision pipeline using **PyTorch** that improved defect detection accuracy by 18%.\n- Deployed models to AWS SageMaker and created a REST API with FastAPI.' }
   ],
   projects: [
-    { id: 'proj-2', name: 'Resume Builder', tech: 'React, Firebase, Electron', description: '<ul><li>Built a cross-platform desktop & web resume builder.</li><li>Implemented drag-and-drop components and real-time PDF generation.</li></ul>' }
+    { id: 'proj-1', name: 'Neural Network Visualizer', tech: 'Python, D3.js, React', url: 'github.com/alanturing/nn-viz', description: '<ul><li>Built an interactive visualization tool for neural network architectures used by 500+ students.</li><li>Implemented real-time forward-pass animation with WebGL rendering.</li></ul>' },
+    { id: 'proj-2', name: 'Resume Builder', tech: 'React, Firebase, Electron', url: '', description: '<ul><li>Built a cross-platform desktop & web resume builder.</li><li>Implemented drag-and-drop components and real-time PDF generation.</li></ul>' }
   ],
   skills: [
-    { id: 'sk-1', category: 'Languages', items: 'Python, JavaScript, TypeScript, Java, C++' },
-    { id: 'sk-2', category: 'Frameworks', items: 'React, Node.js, PyTorch, TensorFlow, Next.js' },
-    { id: 'sk-3', category: 'Tools', items: 'Git, Docker, AWS, Firebase, MongoDB' }
+    { id: 'sk-1', category: 'Languages', items: 'Python, JavaScript, TypeScript, Java, C++', level: 5 },
+    { id: 'sk-2', category: 'Frameworks', items: 'React, Node.js, PyTorch, TensorFlow, Next.js', level: 4 },
+    { id: 'sk-3', category: 'Tools', items: 'Git, Docker, AWS, Firebase, MongoDB', level: 4 }
   ],
+  certifications: [
+    { id: 'cert-1', name: 'AWS Certified Developer – Associate', issuer: 'Amazon Web Services', date: 'Mar 2024', hidden: false },
+    { id: 'cert-2', name: 'TensorFlow Developer Certificate', issuer: 'Google', date: 'Nov 2023', hidden: false }
+  ],
+  languages: [
+    { id: 'lang-1', language: 'English', proficiency: 'Fluent', hidden: false },
+    { id: 'lang-2', language: 'Sinhala', proficiency: 'Native', hidden: false }
+  ],
+  awards: [
+    { id: 'awd-1', title: 'Dean\'s List — Academic Excellence', issuer: 'University of Moratuwa', year: '2023', hidden: false }
+  ],
+  customSections: [],
   coverLetter: {
     recipientName: 'Sarah Jenkins, Head of Engineering',
     companyName: 'OpenAI',
     date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-    body: 'Dear Sarah,<br><br>I am writing to express my profound interest in the AI Software Engineer position at OpenAI. As a passionate developer with a deep background in machine learning and scalable web infrastructure, I have followed OpenAI’s breakthroughs closely and am inspired by your mission to ensure artificial general intelligence benefits all of humanity.<br><br>During my time at University of Moratuwa and my subsequent internships, I architected neural network visualizers and deployed deep learning models that processed real-time data. My recent project, a React-based application that integrates generative AI, gave me hands-on experience dealing with latency optimizations and complex state management—challenges I know your team tackles daily.<br><br>What excites me most about this role is the opportunity to work at the bleeding edge of AI while ensuring robust, user-centric software design. I bring a blend of rigorous academic research and practical, shipping-focused software engineering.<br><br>I would welcome the opportunity to discuss how my background in both frontend engineering and AI model integration aligns with your engineering goals. Thank you for your time and consideration.<br><br>Best regards,<br>Alan Turing'
+    body: 'Dear Sarah,<br><br>I am writing to express my profound interest in the AI Software Engineer position at OpenAI. As a passionate developer with a deep background in machine learning and scalable web infrastructure, I have followed OpenAI\'s breakthroughs closely and am inspired by your mission to ensure artificial general intelligence benefits all of humanity.<br><br>During my time at University of Moratuwa and my subsequent internships, I architected neural network visualizers and deployed deep learning models that processed real-time data. My recent project, a React-based application that integrates generative AI, gave me hands-on experience dealing with latency optimizations and complex state management—challenges I know your team tackles daily.<br><br>What excites me most about this role is the opportunity to work at the bleeding edge of AI while ensuring robust, user-centric software design. I bring a blend of rigorous academic research and practical, shipping-focused software engineering.<br><br>I would welcome the opportunity to discuss how my background in both frontend engineering and AI model integration aligns with your engineering goals. Thank you for your time and consideration.<br><br>Best regards,<br>Alan Turing'
   }
 };
 
-export const defaultSectionOrder = ['summary', 'education', 'experience', 'projects', 'skills'];
+export const defaultSectionOrder = ['summary', 'education', 'experience', 'projects', 'skills', 'certifications', 'languages', 'awards'];
 
 export const defaultSettings = {
   layout: 'single',
@@ -65,17 +82,29 @@ export const defaultSettings = {
   sectionOrder: defaultSectionOrder,
   skillStyle: 'classic',
   density: 'normal',
-  fontScale: 1, // 0.85 – 1.2, scales the document's base font size
+  fontScale: 1,
   darkMode: false,
   showIcons: false,
-  photoShape: 'circle'
+  photoShape: 'circle',
+  headerAlign: 'left',
+  dividerStyle: 'solid',
 };
 
-export const hydrateSettings = (parsed = {}) => ({
-  ...defaultSettings,
-  ...parsed,
-  sectionOrder: Array.isArray(parsed.sectionOrder) ? parsed.sectionOrder : defaultSectionOrder
-});
+export const hydrateSettings = (parsed = {}) => {
+  // Merge parsed sectionOrder, adding any new default sections that aren't present yet
+  let sectionOrder = Array.isArray(parsed.sectionOrder) ? parsed.sectionOrder : defaultSectionOrder;
+  defaultSectionOrder.forEach(sec => {
+    if (!sectionOrder.includes(sec)) {
+      sectionOrder = [...sectionOrder, sec];
+    }
+  });
+  // Also preserve any custom section IDs that are in the parsed order
+  return {
+    ...defaultSettings,
+    ...parsed,
+    sectionOrder,
+  };
+};
 
 export const hydrateData = (parsed) => {
   if (!parsed) return initialData;
@@ -83,10 +112,13 @@ export const hydrateData = (parsed) => {
   let migratedSkills = parsed.skills || initialData.skills;
   if (!Array.isArray(migratedSkills)) {
     migratedSkills = [
-      { id: 'sk-lang', category: 'Languages', items: migratedSkills.languages || '' },
-      { id: 'sk-fram', category: 'Frameworks', items: migratedSkills.frameworks || '' },
-      { id: 'sk-tool', category: 'Tools', items: migratedSkills.tools || '' }
+      { id: 'sk-lang', category: 'Languages', items: migratedSkills.languages || '', level: 3 },
+      { id: 'sk-fram', category: 'Frameworks', items: migratedSkills.frameworks || '', level: 3 },
+      { id: 'sk-tool', category: 'Tools', items: migratedSkills.tools || '', level: 3 }
     ];
+  } else {
+    // Ensure every skill has a level field
+    migratedSkills = migratedSkills.map(s => ({ level: 3, ...s }));
   }
 
   return {
@@ -94,6 +126,10 @@ export const hydrateData = (parsed) => {
     ...parsed,
     personal: { ...initialData.personal, ...(parsed.personal || {}) },
     skills: migratedSkills,
+    certifications: Array.isArray(parsed.certifications) ? parsed.certifications : [],
+    languages: Array.isArray(parsed.languages) ? parsed.languages : [],
+    awards: Array.isArray(parsed.awards) ? parsed.awards : [],
+    customSections: Array.isArray(parsed.customSections) ? parsed.customSections : [],
     coverLetter: { ...initialData.coverLetter, ...(parsed.coverLetter || {}) }
   };
 };

@@ -752,3 +752,120 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #f1f5f9;
 }
+
+/* ── Divider Styles ────────────────────────────────────── */
+.cv-section-title {
+  border-bottom-style: var(--divider-style, solid);
+}
+.cv-preview-container[style*="--divider-style: none"] .cv-section-title {
+  border-bottom: none;
+}
+
+/* ── Centered Header ────────────────────────────────────── */
+.header-centered {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.cv-contact-info.header-centered {
+  justify-content: center;
+}
+
+.cv-photo-centered {
+  margin: 0 auto 16px auto;
+}
+
+/* ── Project Link ─────────────────────────────────────── */
+.cv-project-link {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.8em;
+  color: var(--theme-color);
+  text-decoration: none;
+  vertical-align: middle;
+  transition: opacity 0.2s;
+}
+.cv-project-link:hover { opacity: 0.7; }
+
+/* ── Experience Location ──────────────────────────────── */
+.cv-item-location {
+  font-weight: 400;
+  color: #94a3b8;
+  font-size: 0.9em;
+}
+
+/* ── Certifications ──────────────────────────────────── */
+.cv-cert-item .cv-item-title {
+  font-weight: 600;
+}
+
+/* ── Languages Grid ──────────────────────────────────── */
+.cv-languages-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(8px * var(--spacing-multiplier)) calc(16px * var(--spacing-multiplier));
+}
+
+.cv-language-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cv-language-name {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #1e293b;
+}
+
+.cv-dark-mode .cv-language-name {
+  color: #f1f5f9;
+}
+
+.cv-language-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ── Awards ──────────────────────────────────────────── */
+.cv-award-item .cv-item-title {
+  font-weight: 600;
+}
+
+/* ── Skill Bars ──────────────────────────────────────── */
+.cv-skill-group.bars-mode {
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+}
+
+.skill-bar-track {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.cv-dark-mode .skill-bar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.skill-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--theme-color);
+  transition: width 0.4s ease;
+}
+
+.cv-sidebar .skill-bar-track {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.cv-sidebar .skill-bar-fill {
+  background: rgba(255, 255, 255, 0.8);
+}
+

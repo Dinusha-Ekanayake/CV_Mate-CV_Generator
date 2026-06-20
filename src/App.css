@@ -264,3 +264,46 @@
 .settings-grid input[type="text"] {
   width: 100%;
 }
+
+/* ── Mobile View Toggle ──────────────────────────────────── */
+.mobile-view-toggle {
+  display: none;
+  background: rgba(15,23,42,0.6);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 8px 16px;
+  gap: 8px;
+}
+
+.mobile-tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.mobile-tab.active {
+  background: rgba(59,130,246,0.2);
+  color: #60a5fa;
+}
+
+@media (max-width: 900px) {
+  .mobile-view-toggle {
+    display: flex;
+  }
+  .mobile-hidden {
+    display: none !important;
+  }
+  .form-section {
+    border-bottom: none;
+  }
+}
+
+/* ── Utility ─────────────────────────────────────────────── */
+.w-100 { width: 100%; }
+

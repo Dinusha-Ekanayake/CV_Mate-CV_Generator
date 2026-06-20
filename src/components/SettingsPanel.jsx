@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Palette, Type, LayoutGrid, ListOrdered, Sun, Moon } from 'lucide-react';
+import { ChevronDown, Palette, Type, LayoutGrid, ListOrdered, Sun, Moon, AlignLeft, AlignCenter, Minus } from 'lucide-react';
 import LayoutPicker from './LayoutPicker';
 import './SettingsPanel.css';
 
@@ -8,33 +8,38 @@ const PALETTES = [
   { id: 'midnight', color: '#fbbf24', bg: '#1e293b', name: 'Midnight Gold' },
   { id: 'forest', color: '#10b981', bg: '#064e3b', name: 'Forest Sage' },
   { id: 'cyberpunk', color: '#06b6d4', bg: '#2e1065', name: 'Cyberpunk Neon' },
-  { id: 'crimson', color: '#e11d48', bg: '#1c1917', name: 'Crimson Ash' }
+  { id: 'crimson', color: '#e11d48', bg: '#1c1917', name: 'Crimson Ash' },
+  { id: 'violet', color: '#8b5cf6', bg: '#1e1b4b', name: 'Deep Violet' },
+  { id: 'rose', color: '#f43f5e', bg: '#4c0519', name: 'Rose Noir' },
 ];
 
 const HEADING_FONTS = [
-  { value: "'Inter', sans-serif", label: 'Modern Sans (Inter)' },
-  { value: "'Playfair Display', serif", label: 'Classic Serif (Playfair)' },
-  { value: "'Space Grotesk', sans-serif", label: 'Tech (Space Grotesk)' },
-  { value: "'Georgia', serif", label: 'Formal Serif (Georgia)' }
+  { value: "'Inter', sans-serif", label: 'Inter (Modern)' },
+  { value: "'Playfair Display', serif", label: 'Playfair Display (Classic)' },
+  { value: "'Space Grotesk', sans-serif", label: 'Space Grotesk (Tech)' },
+  { value: "'Montserrat', sans-serif", label: 'Montserrat (Bold)' },
+  { value: "'Raleway', sans-serif", label: 'Raleway (Elegant)' },
+  { value: "'Georgia', serif", label: 'Georgia (Formal)' },
+  { value: "'Roboto', sans-serif", label: 'Roboto (Clean)' },
+  { value: "'Poppins', sans-serif", label: 'Poppins (Friendly)' },
 ];
 
 const BODY_FONTS = [
-  { value: "'Inter', sans-serif", label: 'Modern Sans (Inter)' },
-  { value: "'Lato', sans-serif", label: 'Clean Sans (Lato)' },
-  { value: "'Merriweather', serif", label: 'Formal Serif (Merriweather)' }
+  { value: "'Inter', sans-serif", label: 'Inter (Modern)' },
+  { value: "'Lato', sans-serif", label: 'Lato (Clean)' },
+  { value: "'Roboto', sans-serif", label: 'Roboto (Clean)' },
+  { value: "'Merriweather', serif", label: 'Merriweather (Formal)' },
+  { value: "'Source Serif 4', serif", label: 'Source Serif (Academic)' },
+  { value: "'Nunito', sans-serif", label: 'Nunito (Rounded)' },
 ];
 
-// Reusable labelled segmented control.
+// Reusable segmented control
 const Segmented = ({ value, onChange, options }) => (
   <div className="seg-control" role="group">
     {options.map(opt => (
-      <button
-        key={opt.value}
-        type="button"
+      <button key={opt.value} type="button"
         className={`seg-btn ${value === opt.value ? 'active' : ''}`}
-        onClick={() => onChange(opt.value)}
-        title={opt.hint || opt.label}
-      >
+        onClick={() => onChange(opt.value)} title={opt.hint || opt.label}>
         {opt.icon}{opt.label}
       </button>
     ))}
@@ -52,6 +57,17 @@ const Group = ({ icon, title, children, defaultOpen = true }) => {
       {open && <div className="settings-group-body">{children}</div>}
     </div>
   );
+};
+
+const SECTION_LABELS = {
+  summary: 'Summary / Profile',
+  education: 'Education',
+  experience: 'Experience',
+  projects: 'Projects',
+  skills: 'Skills',
+  certifications: 'Certifications',
+  languages: 'Languages',
+  awards: 'Awards & Honors',
 };
 
 const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveSection, onTogglePageBreak }) => {
@@ -77,24 +93,18 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
           <label className="setting-label">Color Palette</label>
           <div className="palette-row">
             {PALETTES.map(pal => (
-              <button
-                key={pal.id}
+              <button key={pal.id}
                 className={`palette-swatch ${settings.palette === pal.id ? 'selected' : ''}`}
                 onClick={() => set({ palette: pal.id, themeColor: pal.color })}
                 title={pal.name}
-                style={{
-                  background: `linear-gradient(135deg, ${pal.bg} 50%, ${pal.color} 50%)`,
-                  '--swatch-ring': pal.color
-                }}
+                style={{ background: `linear-gradient(135deg, ${pal.bg} 50%, ${pal.color} 50%)`, '--swatch-ring': pal.color }}
               />
             ))}
-            <label className={`palette-swatch palette-custom ${settings.palette === 'custom' ? 'selected' : ''}`} title="Custom color" style={{ '--swatch-ring': settings.themeColor }}>
+            <label className={`palette-swatch palette-custom ${settings.palette === 'custom' ? 'selected' : ''}`}
+              title="Custom color" style={{ '--swatch-ring': settings.themeColor }}>
               <span style={{ background: settings.themeColor }} />
-              <input
-                type="color"
-                value={settings.themeColor}
-                onChange={e => set({ palette: 'custom', themeColor: e.target.value })}
-              />
+              <input type="color" value={settings.themeColor}
+                onChange={e => set({ palette: 'custom', themeColor: e.target.value })} />
             </label>
           </div>
           <span className="setting-hint mono">{settings.themeColor.toUpperCase()}</span>
@@ -143,15 +153,9 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
             Font Size
             <span className="font-size-value">{Math.round((Number(settings.fontScale) || 1) * 100)}%</span>
           </label>
-          <input
-            type="range"
-            className="font-size-range"
-            min="0.85"
-            max="1.2"
-            step="0.05"
+          <input type="range" className="font-size-range" min="0.85" max="1.2" step="0.05"
             value={Number(settings.fontScale) || 1}
-            onChange={e => set({ fontScale: parseFloat(e.target.value) })}
-          />
+            onChange={e => set({ fontScale: parseFloat(e.target.value) })} />
           <span className="setting-hint">Line &amp; letter spacing adjust automatically.</span>
         </div>
       </Group>
@@ -165,7 +169,31 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
               onChange={(skillStyle) => set({ skillStyle })}
               options={[
                 { value: 'classic', label: 'Classic' },
-                { value: 'tags', label: 'Tags' }
+                { value: 'tags', label: 'Tags' },
+                { value: 'bars', label: 'Bars' }
+              ]}
+            />
+          </div>
+          <div className="setting-field">
+            <label className="setting-label">Header Alignment</label>
+            <Segmented
+              value={settings.headerAlign || 'left'}
+              onChange={(headerAlign) => set({ headerAlign })}
+              options={[
+                { value: 'left', label: 'Left', icon: <AlignLeft size={13} /> },
+                { value: 'center', label: 'Center', icon: <AlignCenter size={13} /> }
+              ]}
+            />
+          </div>
+          <div className="setting-field">
+            <label className="setting-label">Section Dividers</label>
+            <Segmented
+              value={settings.dividerStyle || 'solid'}
+              onChange={(dividerStyle) => set({ dividerStyle })}
+              options={[
+                { value: 'solid', label: 'Solid', icon: <Minus size={13} /> },
+                { value: 'dashed', label: 'Dashed' },
+                { value: 'none', label: 'None' }
               ]}
             />
           </div>
@@ -184,12 +212,8 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
           <div className="setting-field setting-field-row">
             <label className="setting-label" htmlFor="showIcons">Section Icons</label>
             <label className="switch">
-              <input
-                id="showIcons"
-                type="checkbox"
-                checked={settings.showIcons}
-                onChange={e => set({ showIcons: e.target.checked })}
-              />
+              <input id="showIcons" type="checkbox" checked={settings.showIcons}
+                onChange={e => set({ showIcons: e.target.checked })} />
               <span className="switch-slider" />
             </label>
           </div>
@@ -201,17 +225,14 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
           <div className="section-order-list">
             {sectionOrder.map((sec, i) => {
               const hasBreak = Array.isArray(settings.pageBreaks) && settings.pageBreaks.includes(sec);
+              const label = SECTION_LABELS[sec] || sec;
               return (
                 <div key={sec} className="section-order-item">
-                  <span className="section-order-name">{sec}</span>
+                  <span className="section-order-name">{label}</span>
                   <div className="section-order-actions">
-                    <button
-                      className={`page-break-chip ${hasBreak ? 'active' : ''}`}
+                    <button className={`page-break-chip ${hasBreak ? 'active' : ''}`}
                       onClick={() => onTogglePageBreak(sec)}
-                      title={hasBreak ? 'Remove page break before this section' : 'Start this section on a new page'}
-                    >
-                      ⤓ Break
-                    </button>
+                      title={hasBreak ? 'Remove page break' : 'Start on new page'}>⤓ Break</button>
                     <button className="order-arrow" disabled={i === 0} onClick={() => onMoveSection(i, 'up')} title="Move up">↑</button>
                     <button className="order-arrow" disabled={i === sectionOrder.length - 1} onClick={() => onMoveSection(i, 'down')} title="Move down">↓</button>
                   </div>
