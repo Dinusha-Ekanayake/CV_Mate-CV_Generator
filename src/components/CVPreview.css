@@ -864,8 +864,89 @@
 .cv-sidebar .skill-bar-track {
   background: rgba(255, 255, 255, 0.15);
 }
-
 .cv-sidebar .skill-bar-fill {
   background: rgba(255, 255, 255, 0.8);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — CV Preview Wrapper & Paper Scaling
+   ═══════════════════════════════════════════════════════════ */
+
+/* Zoom controls: compact on small screens */
+.zoom-controls {
+  transition: opacity 0.2s;
+  user-select: none;
+}
+
+/* Wrapper: always fills its parent */
+.cv-preview-wrapper {
+  min-width: 0;
+}
+
+/* A4 paper at zoom=1 is 210mm wide (~794px on screen).
+   On tablet/mobile we let the user scroll horizontally,
+   but add a min-width so the page is always readable. */
+@media (max-width: 767px) {
+  .cv-preview-wrapper {
+    padding: 8px 0 !important;
+    align-items: flex-start !important;
+  }
+
+  /* Zoom controls: make full-width, centred */
+  .zoom-controls {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    margin: 0 auto 12px !important;
+    width: fit-content;
+  }
+
+  /* The page-stack should be scrollable at its natural width;
+     wrap it in a horizontal-scrolling container via the preview-section in App.css */
+  .scalable-paper {
+    /* Override any lingering zoom; let the user scroll on mobile instead */
+    transform: none !important;
+    width: max-content;
+  }
+
+  /* Page-sheet labels: hide on very small screens */
+  .page-sheet-label {
+    display: none !important;
+  }
+
+  /* CV item header: allow wrapping so date doesn't overflow */
+  .cv-item-header {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .cv-item-date {
+    flex-shrink: 0;
+  }
+
+  /* Contact info: allow tighter wrapping */
+  .cv-contact-info {
+    gap: 4px 8px;
+    font-size: 0.8em;
+  }
+
+  /* Single-column header: stack on tiny screens inside the paper */
+  .single-col-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* Phone-width preview: automatically scale down to fit without scrolling */
+@media (max-width: 480px) {
+  .scalable-paper {
+    /* Scale A4 (794px) to fit within ~380px viewport → ~0.48 */
+    transform: scale(0.48) !important;
+    transform-origin: top left !important;
+    margin-bottom: calc(-297mm * 0.52) !important; /* collapse dead space */
+  }
+
+  .cv-preview-wrapper {
+    overflow-x: hidden !important;
+  }
+}

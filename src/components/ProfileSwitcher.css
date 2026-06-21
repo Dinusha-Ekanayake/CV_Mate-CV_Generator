@@ -200,3 +200,23 @@
 .profile-add:hover {
   background: rgba(59, 130, 246, 0.1);
 }
+
+/* ── Mobile ─────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .profile-trigger {
+    max-width: 160px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .profile-menu {
+    width: calc(100vw - 24px);
+    left: 0;
+    right: auto;
+    max-height: 60vh;
+  }
+
+  .profile-list {
+    max-height: 200px;
+  }
+}

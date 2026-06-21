@@ -232,3 +232,25 @@
   border-top: 1px solid rgba(255,255,255,0.05);
   padding-top: 10px;
 }
+
+/* ── Mobile ── */
+@media (max-width: 767px) {
+  .ats-analyzer {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .ats-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ats-stats {
+    width: 100%;
+  }
+
+  .ats-gauge-container {
+    align-self: center;
+  }
+}

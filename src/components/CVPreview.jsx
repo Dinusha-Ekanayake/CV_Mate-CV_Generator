@@ -352,7 +352,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
   return (
     <div className="cv-preview-wrapper" ref={containerRef}
-      style={{ width: '100%', height: '100%', overflow: 'auto', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 0' }}>
+      style={{ width: '100%', height: '100%', overflow: 'auto', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0' }}>
 
       <link href={fontLink} rel="stylesheet" />
 

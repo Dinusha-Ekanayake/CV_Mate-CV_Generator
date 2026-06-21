@@ -19,11 +19,20 @@
 
 .form-row {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .form-row .form-group {
   flex: 1;
+  min-width: 0;
+}
+
+/* Stack form rows on narrow screens */
+@media (max-width: 480px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
 }
 
 .dynamic-item {
@@ -239,4 +248,41 @@
 
 .w-100 {
   width: 100%;
+}
+
+/* ── Mobile touch targets ──────────────────────────────────── */
+@media (max-width: 767px) {
+  .btn-move, .btn-remove, .btn-toggle, .btn-duplicate {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  .dynamic-item {
+    padding: 1rem 0.75rem;
+  }
+
+  .array-controls {
+    top: -14px;
+    right: -8px;
+    gap: 6px;
+  }
+
+  .drag-handle {
+    position: static;
+    align-self: center;
+    margin-right: 4px;
+    font-size: 1rem;
+    padding: 4px;
+  }
+
+  .photo-upload-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .photo-preview {
+    width: 72px;
+    height: 72px;
+  }
 }
