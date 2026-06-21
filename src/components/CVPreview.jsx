@@ -398,7 +398,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
           {isTwoColumn ? (
             <div className={`cv-preview-container is-paginated is-two-col ${layoutClass}`}
               style={{ ...previewStyle, position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}>
-              <aside className="cv-sidebar cv-sidebar-content" style={{ height: `${pageHeightPx}px` }}>
+              <aside className="cv-sidebar cv-sidebar-content" style={{ height: `${pageHeightPx}px`, paddingTop: `${pageMargin}px` }}>
                 {personal.photo && <div className="cv-photo"><img src={personal.photo} alt="Profile" /></div>}
                 <div className="cv-section sidebar-section">
                   <h3 className="cv-section-title">Contact</h3>

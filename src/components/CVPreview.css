@@ -25,12 +25,11 @@
   min-height: 297mm;
   background-color: white;
   color: #111827;
-  /* Base font size scales with the user's font-size control; line-height stays a
-     unitless multiplier so it auto-tracks the font size, and letter-spacing is
-     derived from the scale for balanced spacing at any size. */
-  font-size: calc(16px * var(--font-scale, 1));
-  line-height: calc(1.5 * var(--spacing-multiplier));
-  letter-spacing: calc((var(--font-scale, 1) - 1) * 0.15px);
+  /* Base font size scales with the user's font-size control; line-height scales
+     gently around 1.6, and letter-spacing is derived from the scale for balanced spacing. */
+  font-size: calc(15px * var(--font-scale, 1));
+  line-height: calc(1.2 + (0.4 * var(--spacing-multiplier)));
+  letter-spacing: calc((var(--font-scale, 1) - 1) * 0.5px);
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
@@ -91,8 +90,9 @@
 }
 
 .cv-preview-container.is-paginated .cv-block {
-  padding-left: calc(20mm * var(--spacing-multiplier));
-  padding-right: calc(20mm * var(--spacing-multiplier));
+  padding-left: 20mm;
+  padding-right: 20mm;
+  display: flow-root; /* strict margin containment for pagination math */
 }
 
 .cv-preview-container.is-paginated .cv-section-head {
@@ -145,7 +145,7 @@
   z-index: 2;
   background: transparent;
   border-right: none;
-  padding: calc(18mm * var(--spacing-multiplier)) 10mm;
+  padding: 0 10mm; /* paddingTop set inline via React for sync with main column */
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -160,8 +160,8 @@
 
 /* In two-column, block side padding is relative to the main column, not the page. */
 .is-paginated.is-two-col .cv-block {
-  padding-left: calc(12mm * var(--spacing-multiplier));
-  padding-right: calc(12mm * var(--spacing-multiplier));
+  padding-left: 14mm;
+  padding-right: 14mm;
 }
 
 .is-paginated.is-two-col .single-col-header {
@@ -209,7 +209,7 @@
 
 /* Layouts */
 .layout-single {
-  padding: calc(20mm * var(--spacing-multiplier));
+  padding: 20mm;
 }
 
 .layout-two-column {
@@ -221,14 +221,14 @@
 .cv-sidebar {
   width: 65mm;
   flex-shrink: 0;
-  padding: calc(20mm * var(--spacing-multiplier)) 10mm;
+  padding: 20mm 10mm;
   border-right: 1px solid #e2e8f0;
   background: transparent !important;
 }
 
 .cv-main-content {
   flex: 1;
-  padding: calc(20mm * var(--spacing-multiplier));
+  padding: 20mm;
 }
 
 /* Typography & Theming */
