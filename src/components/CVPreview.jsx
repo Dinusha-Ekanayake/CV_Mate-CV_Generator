@@ -418,7 +418,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
       <div className="scalable-paper" style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', transition: 'transform 0.1s ease-out' }}>
         <div ref={rulerRef} style={{ height: '297mm', position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
 
-        <div className="page-stack" style={{ position: 'relative', width: '210mm', height: `${numPages * pageHeightPx + (numPages - 1) * PAGE_GAP}px` }}>
+        <div className="page-stack" style={{ ...previewStyle, position: 'relative', width: '210mm', height: `${numPages * pageHeightPx + (numPages - 1) * PAGE_GAP}px` }}>
 
           {/* Watermark */}
           {settings?.watermark && settings.watermark !== 'none' && (
@@ -429,8 +429,8 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
           <div className="page-sheets" aria-hidden="true">
             {Array.from({ length: numPages }).map((_, i) => (
-              <div key={i} className="page-sheet" style={{ top: `${i * (pageHeightPx + PAGE_GAP)}px`, height: `${pageHeightPx}px` }}>
-                {isTwoColumn && <span className="page-sheet-sidebar" />}
+              <div key={i} className={`page-sheet ${settings?.darkMode ? 'is-dark' : ''}`} style={{ top: `${i * (pageHeightPx + PAGE_GAP)}px`, height: `${pageHeightPx}px` }}>
+                {isTwoColumn && <span className={`page-sheet-sidebar ${settings?.darkMode ? 'is-dark' : ''} ${settings?.layout === 'creative' ? 'is-creative' : ''}`} />}
                 <span className="page-sheet-label no-print">Page {i + 1} / {numPages}</span>
                 {/* Page footer */}
                 {settings?.pageFooter && settings.pageFooter !== 'none' && (
@@ -446,7 +446,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
           {isTwoColumn ? (
             <div className={`${containerClasses} is-two-col`}
-              style={{ ...previewStyle, position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}>
+              style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}>
               <aside className="cv-sidebar cv-sidebar-content" style={{ height: `${pageHeightPx}px`, paddingTop: `${pageMargin}px` }}>
                 {personal.photo && <div className="cv-photo"><img src={personal.photo} alt="Profile" /></div>}
                 <div className="cv-section sidebar-section">
@@ -479,7 +479,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
             </div>
           ) : (
             <div ref={masterRef} className={containerClasses}
-              style={{ ...previewStyle, position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none', paddingTop: `${pageMargin}px` }}>
+              style={{ position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none', paddingTop: `${pageMargin}px` }}>
               {headerBlock}
               {bodyBlocks}
             </div>

@@ -4,8 +4,8 @@ import './AIPanel.css';
 
 // ── OpenRouter configuration ────────────────────────────────────────
 const OR_BASE = 'https://openrouter.ai/api/v1/chat/completions';
-const OR_MODEL    = 'google/gemini-3.5-flash';      // fast flagship Gemini on OpenRouter
-const OR_FALLBACK = 'google/gemini-3.1-flash-lite'; // lighter fallback
+const OR_MODEL    = 'google/gemini-2.5-flash';      // fast flagship Gemini on OpenRouter
+const OR_FALLBACK = 'google/gemini-1.5-flash'; // lighter fallback
 
 const getApiKey = () => import.meta.env.VITE_OPENROUTER_API_KEY || '';
 

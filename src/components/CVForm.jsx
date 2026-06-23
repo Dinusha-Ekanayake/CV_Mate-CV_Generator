@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, Sparkles } from 'lucide-react';
 import { SortableItem } from './SortableItem';
 import RichTextEditor from './RichTextEditor';
 import { safeId } from '../utils/id';
+import { AISummaryButton, AIBulletButton } from './AIPanel';
 import './CVForm.css';
 
 // ------------------------------------------------------------------
@@ -239,12 +240,7 @@ const CVForm = ({ cvData, setCvData, onAIRequest }) => {
       {/* ---- Professional Summary ---- */}
       <CollapsibleSection id="summary" title="Professional Summary" openSections={openSections} toggleSection={toggleSection}>
         <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
-          {onAIRequest && (
-            <button type="button" className="btn-ai" onClick={() => onAIRequest('summary')}
-              title="Generate summary with AI">
-              <Sparkles size={14} /> Generate with AI
-            </button>
-          )}
+          <AISummaryButton cvData={cvData} onResult={(val) => handleSimpleChange('summary', val)} />
           <RichTextEditor
             value={cvData.summary}
             onChange={(val) => handleSimpleChange('summary', val)}
@@ -335,13 +331,7 @@ const CVForm = ({ cvData, setCvData, onAIRequest }) => {
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <label>Description</label>
-                    {onAIRequest && (
-                      <button type="button" className="btn-ai btn-ai-sm"
-                        onClick={() => onAIRequest('bullet', exp.id, exp.description)}
-                        title="Enhance bullet points with AI">
-                        <Sparkles size={12} /> Enhance
-                      </button>
-                    )}
+                    <AIBulletButton text={exp.description} onResult={(val) => handleArrayChange('experience', exp.id, 'description', val)} />
                   </div>
                   <RichTextEditor
                     value={exp.description || ''}
@@ -389,13 +379,7 @@ const CVForm = ({ cvData, setCvData, onAIRequest }) => {
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <label>Description</label>
-                    {onAIRequest && (
-                      <button type="button" className="btn-ai btn-ai-sm"
-                        onClick={() => onAIRequest('bullet', proj.id, proj.description)}
-                        title="Enhance with AI">
-                        <Sparkles size={12} /> Enhance
-                      </button>
-                    )}
+                    <AIBulletButton text={proj.description} onResult={(val) => handleArrayChange('projects', proj.id, 'description', val)} />
                   </div>
                   <RichTextEditor
                     value={proj.description || ''}

@@ -118,11 +118,11 @@
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
 }
-.layout-creative .page-sheet-sidebar {
+.page-sheet-sidebar.is-creative {
   background: var(--theme-color);
   border-right: none;
 }
-.cv-dark-mode .page-sheet-sidebar {
+.page-sheet-sidebar.is-dark {
   background: #1e293b;
   border-right-color: #334155;
 }
@@ -182,7 +182,7 @@
   color: #fff;
 }
 
-.cv-dark-mode .page-sheet {
+.page-sheet.is-dark {
   background: #0f172a;
 }
 
@@ -1058,12 +1058,35 @@
 /* Explicit text color overrides */
 .header-text-white .single-col-header .cv-name,
 .header-text-white .single-col-header .cv-title,
-.header-text-white .single-col-header .cv-contact-info span {
+.header-text-white .single-col-header .cv-contact-info span,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-section-title,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-contact-list,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group strong,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group div {
+  color: #fff !important;
+  border-bottom-color: rgba(255, 255, 255, 0.4) !important;
+}
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .skill-tag {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
   color: #fff !important;
 }
+
 .header-text-dark .single-col-header .cv-name,
 .header-text-dark .single-col-header .cv-title,
-.header-text-dark .single-col-header .cv-contact-info span {
+.header-text-dark .single-col-header .cv-contact-info span,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-section-title,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-contact-list,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group strong,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group div {
+  color: #0f172a !important;
+  border-bottom-color: rgba(15, 23, 42, 0.3) !important;
+}
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .skill-tag {
+  background: rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
   color: #0f172a !important;
 }
 
