@@ -1,19 +1,77 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { Sparkles, X, Loader, AlertCircle, Search } from 'lucide-react';
 import './AIPanel.css';
 
-// Safely get the API key from env
-const getApiKey = () => import.meta.env.VITE_GEMINI_API_KEY || '';
+// ── OpenRouter configuration ────────────────────────────────────────
+const OR_BASE = 'https://openrouter.ai/api/v1/chat/completions';
+const OR_MODEL    = 'google/gemini-3.5-flash';      // fast flagship Gemini on OpenRouter
+const OR_FALLBACK = 'google/gemini-3.1-flash-lite'; // lighter fallback
 
-const callGemini = async (prompt) => {
+const getApiKey = () => import.meta.env.VITE_OPENROUTER_API_KEY || '';
+
+/**
+ * Call OpenRouter with automatic model fallback.
+ * Throws named errors: 'NO_KEY' | 'QUOTA' | 'AUTH' | 'UNAVAILABLE'
+ */
+const callAI = async (prompt) => {
   const apiKey = getApiKey();
   if (!apiKey) throw new Error('NO_KEY');
 
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  const models = [OR_MODEL, OR_FALLBACK];
+
+  for (const model of models) {
+    const res = await fetch(OR_BASE, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://cvmate.app',  // OpenRouter attribution
+        'X-Title': 'CV Mate'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 1024
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content;
+      if (!text) throw new Error('Empty response from AI');
+      return text;
+    }
+
+    // Handle specific HTTP errors
+    if (res.status === 401) throw new Error('AUTH');
+    if (res.status === 402) throw new Error('CREDITS');
+    if (res.status === 429) {
+      // Rate limited on this model — try next
+      if (model === OR_FALLBACK) throw new Error('QUOTA');
+      continue;
+    }
+    if (res.status >= 500) {
+      if (model === OR_FALLBACK) throw new Error('UNAVAILABLE');
+      continue;
+    }
+
+    // Any other error: read body and throw
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || `HTTP ${res.status}`);
+  }
+};
+
+/** Human-readable error from named error codes */
+const friendlyError = (e) => {
+  switch (e.message) {
+    case 'NO_KEY':       return 'Set VITE_OPENROUTER_API_KEY in your .env file to enable AI.';
+    case 'AUTH':         return 'Invalid API key. Check VITE_OPENROUTER_API_KEY in .env.';
+    case 'CREDITS':      return 'OpenRouter credits exhausted. Top up at openrouter.ai.';
+    case 'QUOTA':        return 'Rate limit reached. Please wait a moment and try again.';
+    case 'UNAVAILABLE':  return 'AI service temporarily unavailable. Retry shortly.';
+    default:             return `AI error: ${e.message?.substring(0, 100) || 'Unknown'}`;
+  }
 };
 
 // ── Summary Generator ──────────────────────────────────────────────
@@ -39,10 +97,10 @@ Requirements:
 - End with what they bring to an employer
 - Do NOT use bullet points, just flowing prose
 - Do NOT include any markdown formatting, just plain text`;
-      const text = await callGemini(prompt);
+      const text = await callAI(prompt);
       onResult(text.trim());
     } catch (e) {
-      setError(e.message === 'NO_KEY' ? 'Set VITE_GEMINI_API_KEY in your .env file to use AI features.' : 'AI request failed. Please try again.');
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
@@ -50,7 +108,7 @@ Requirements:
 
   return (
     <div>
-      <button className="btn-ai" onClick={generate} disabled={loading} title="Generate professional summary with Gemini AI">
+      <button className="btn-ai" onClick={generate} disabled={loading} title="Generate professional summary with AI">
         {loading ? <Loader size={14} className="spin" /> : <Sparkles size={14} />}
         {loading ? 'Generating…' : 'Generate with AI'}
       </button>
@@ -79,12 +137,12 @@ Rules:
 
 Original text:
 ${text.replace(/<[^>]+>/g, ' ')}`;
-      const result = await callGemini(prompt);
+      const result = await callAI(prompt);
       // Extract just the HTML
       const match = result.match(/<ul[\s\S]*<\/ul>/i);
       onResult(match ? match[0] : result.trim());
     } catch (e) {
-      setError(e.message === 'NO_KEY' ? 'Set VITE_GEMINI_API_KEY in .env.' : 'AI request failed.');
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
@@ -129,19 +187,19 @@ ${jd.slice(0, 3000)}
 CV Text (summarized):
 ${cvText.slice(0, 2000)}
 
-Respond in this exact JSON format:
+Respond in this exact JSON format (no markdown, no extra text):
 {
   "matchScore": <number 0-100>,
   "matchedKeywords": ["keyword1", "keyword2"],
   "missingKeywords": ["keyword3", "keyword4"],
   "topTips": ["tip1", "tip2", "tip3"]
 }`;
-      const text = await callGemini(prompt);
+      const text = await callAI(prompt);
       const json = text.match(/\{[\s\S]*\}/)?.[0];
       if (!json) throw new Error('Invalid response');
       setResult(JSON.parse(json));
     } catch (e) {
-      setError(e.message === 'NO_KEY' ? 'Set VITE_GEMINI_API_KEY in .env.' : 'Analysis failed. Try again.');
+      setError(e.message === 'Invalid response' ? 'Unexpected AI response format. Try again.' : friendlyError(e));
     } finally {
       setLoading(false);
     }

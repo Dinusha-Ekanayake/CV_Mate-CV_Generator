@@ -950,3 +950,265 @@
     overflow-x: hidden !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW CUSTOMIZATION RULES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Group C: Name case & typography ───────────────────────── */
+.cv-name {
+  text-transform: var(--name-text-transform, none);
+  font-variant: var(--name-font-variant, normal);
+  letter-spacing: var(--letter-spacing, 0em);
+}
+
+.cv-preview-container {
+  line-height: var(--line-height-body, 1.5);
+  letter-spacing: var(--letter-spacing, 0em);
+}
+
+/* Only apply custom letter-spacing to body text, not the name */
+.cv-title, .cv-summary-text, .cv-item, .cv-contact-info {
+  letter-spacing: var(--letter-spacing, 0em);
+}
+
+/* ── Group E: Section title font size ──────────────────────── */
+.cv-section-title {
+  font-size: var(--section-title-size, 0.88em);
+}
+
+/* ── Group A: Accent line weight ───────────────────────────── */
+.single-col-header {
+  border-bottom-width: var(--accent-line-weight, 3px);
+}
+.cv-section-title {
+  border-bottom-width: var(--accent-line-weight, 1px);
+}
+
+/* ── Group A: Accent line position — Left bar ──────────────── */
+.accent-left .cv-section-title,
+.accent-both .cv-section-title {
+  border-bottom: none;
+  border-left: var(--accent-line-weight, 3px) solid var(--theme-color);
+  padding-left: 10px;
+  padding-bottom: 0;
+  margin-bottom: calc(8px * var(--spacing-multiplier));
+}
+
+/* The "both" variant keeps a thin bottom line AND left bar */
+.accent-both .cv-section-title {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: calc(4px * var(--spacing-multiplier));
+}
+
+/* ── Group A: Header Background ────────────────────────────── */
+
+/* Solid band */
+.header-bg-solid .single-col-header {
+  background: var(--theme-color);
+  padding: 18px 20px;
+  margin: -20px -20px 20px -20px; /* bleed into layout padding */
+  border-bottom: none;
+}
+.header-bg-solid .cv-name,
+.header-bg-solid .cv-title {
+  color: #fff;
+}
+.header-bg-solid .cv-contact-info,
+.header-bg-solid .cv-contact-info span {
+  color: rgba(255,255,255,0.85);
+}
+.header-bg-solid .bullet { color: rgba(255,255,255,0.5); }
+
+/* Gradient band */
+.header-bg-gradient .single-col-header {
+  background: linear-gradient(135deg, var(--theme-color), rgba(0,0,0,0.6));
+  padding: 18px 20px;
+  margin: -20px -20px 20px -20px;
+  border-bottom: none;
+}
+.header-bg-gradient .cv-name,
+.header-bg-gradient .cv-title {
+  color: #fff;
+}
+.header-bg-gradient .cv-contact-info,
+.header-bg-gradient .cv-contact-info span {
+  color: rgba(255,255,255,0.85);
+}
+.header-bg-gradient .bullet { color: rgba(255,255,255,0.5); }
+
+/* Full-bleed: extends to paper edges (no side padding) */
+.header-bg-full-bleed .single-col-header {
+  background: var(--theme-color);
+  padding: 22px 20mm;
+  margin: -20mm -20mm 20mm -20mm;
+  border-bottom: none;
+  border-radius: 0;
+}
+.header-bg-full-bleed .cv-name,
+.header-bg-full-bleed .cv-title {
+  color: #fff;
+}
+.header-bg-full-bleed .cv-contact-info,
+.header-bg-full-bleed .cv-contact-info span {
+  color: rgba(255,255,255,0.85);
+}
+.header-bg-full-bleed .bullet { color: rgba(255,255,255,0.5); }
+
+/* Explicit text color overrides */
+.header-text-white .single-col-header .cv-name,
+.header-text-white .single-col-header .cv-title,
+.header-text-white .single-col-header .cv-contact-info span {
+  color: #fff !important;
+}
+.header-text-dark .single-col-header .cv-name,
+.header-text-dark .single-col-header .cv-title,
+.header-text-dark .single-col-header .cv-contact-info span {
+  color: #0f172a !important;
+}
+
+/* ── Group B: Item Card Styles ─────────────────────────────── */
+
+/* Border card */
+.item-card-border .cv-item {
+  border: 1px solid #e2e8f0;
+  border-radius: var(--corner-radius, 4px);
+  padding: calc(10px * var(--spacing-multiplier)) calc(12px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+}
+.cv-dark-mode.item-card-border .cv-item {
+  border-color: #334155;
+}
+
+/* Shadow card */
+.item-card-shadow .cv-item {
+  border-radius: var(--corner-radius, 4px);
+  padding: calc(10px * var(--spacing-multiplier)) calc(12px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+}
+.cv-dark-mode.item-card-shadow .cv-item {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* Pill card */
+.item-card-pill .cv-item {
+  border: 2px solid var(--theme-color);
+  border-radius: 12px;
+  padding: calc(10px * var(--spacing-multiplier)) calc(16px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+}
+
+/* ── Group D: Date Style ───────────────────────────────────── */
+
+/* Pill date */
+.date-style-pill .cv-item-date {
+  background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+  color: var(--theme-color);
+  border: 1px solid color-mix(in srgb, var(--theme-color) 30%, transparent);
+  padding: 1px 9px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Icon date (📅 prefix) */
+.date-style-icon .cv-item-date::before {
+  content: '📅 ';
+  font-size: 0.85em;
+}
+
+/* ── Group D: Contact Layout ───────────────────────────────── */
+
+/* Stacked (each item on its own line) */
+.contact-stacked .cv-contact-info {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.contact-stacked .cv-contact-info .bullet { display: none; }
+
+/* Grid (two-column contact grid) */
+.contact-grid .cv-contact-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 12px;
+}
+.contact-grid .cv-contact-info .bullet { display: none; }
+
+/* ── Group E: Section Title Style ──────────────────────────── */
+
+/* Line above (border moves to top) */
+.section-title-line-above .cv-section-title {
+  border-bottom: none;
+  border-top: var(--accent-line-weight, 2px) solid var(--theme-color);
+  padding-top: calc(5px * var(--spacing-multiplier));
+  padding-bottom: 0;
+  margin-top: 2px;
+}
+
+/* Filled band */
+.section-title-filled .cv-section-title {
+  background: color-mix(in srgb, var(--theme-color) 10%, transparent);
+  color: var(--theme-color);
+  border-bottom: none;
+  border-left: 4px solid var(--theme-color);
+  padding: calc(5px * var(--spacing-multiplier)) 10px;
+  border-radius: 0 var(--corner-radius, 4px) var(--corner-radius, 4px) 0;
+  margin-left: -10px;
+}
+.cv-dark-mode .section-title-filled .cv-section-title {
+  background: color-mix(in srgb, var(--theme-color) 20%, transparent);
+}
+
+/* All-caps label style */
+.section-title-allcaps .cv-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: calc(var(--section-title-size, 0.88em) * 0.95);
+  font-weight: 700;
+  color: var(--theme-color);
+  border-bottom-style: dashed;
+}
+
+/* ── Group F: Watermark ────────────────────────────────────── */
+.cv-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transform: rotate(-35deg);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.06;
+  color: #0f172a;
+  user-select: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.cv-watermark-draft    { color: #ef4444; opacity: 0.07; }
+.cv-watermark-confidential { color: #f59e0b; opacity: 0.07; font-size: 46px; }
+
+/* ── Group F: Page Footer ──────────────────────────────────── */
+.cv-page-footer {
+  position: absolute;
+  bottom: 8mm;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.72em;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cv-dark-mode .cv-page-footer {
+  color: #475569;
+}

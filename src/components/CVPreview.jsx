@@ -100,24 +100,57 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
   const layoutClass = `layout-${layoutStyleName} ${settings?.darkMode ? 'cv-dark-mode' : ''}`;
   const order = settings?.sectionOrder || ['summary', 'education', 'experience', 'projects', 'skills', 'certifications', 'languages', 'awards'];
 
-  const fontScale = Number(settings?.fontScale) || 1;
-  const headerAlign = settings?.headerAlign || 'left';
-  const dividerStyle = settings?.dividerStyle || 'solid';
+  const fontScale     = Number(settings?.fontScale) || 1;
+  const headerAlign   = settings?.headerAlign || 'left';
+  const dividerStyle  = settings?.dividerStyle || 'solid';
+
+  // Map enum values → CSS values
+  const cornerRadiusMap = { sharp: '0px', soft: '4px', rounded: '10px' };
+  const accentLineMap   = { none: '0px', thin: '1px', medium: '3px', thick: '6px' };
+  const letterSpaceMap  = { tight: '-0.02em', normal: '0em', wide: '0.04em', wider: '0.1em' };
+  const lineHeightMap   = { compact: '1.3', normal: '1.5', relaxed: '1.7' };
+  const titleSizeMap    = { small: '0.75em', normal: '0.88em', large: '1.05em' };
 
   const previewStyle = {
-    '--theme-color': settings?.themeColor || '#0f172a',
-    '--heading-font': settings?.headingFont || "'Inter', sans-serif",
-    '--body-font': settings?.bodyFont || "'Inter', sans-serif",
-    '--spacing-multiplier': settings?.density === 'compact' ? 0.6 : settings?.density === 'spacious' ? 1.5 : 1,
-    '--font-scale': fontScale,
-    '--photo-radius': settings?.photoShape === 'square' ? '4px' : settings?.photoShape === 'rounded' ? '24px' : '50%',
-    '--divider-style': dividerStyle === 'dashed' ? 'dashed' : dividerStyle === 'none' ? 'none' : 'solid',
+    '--theme-color':         settings?.themeColor || '#0f172a',
+    '--heading-font':        settings?.headingFont || "'Inter', sans-serif",
+    '--body-font':           settings?.bodyFont || "'Inter', sans-serif",
+    '--spacing-multiplier':  settings?.density === 'compact' ? 0.6 : settings?.density === 'spacious' ? 1.5 : 1,
+    '--font-scale':          fontScale,
+    '--photo-radius':        settings?.photoShape === 'square' ? '4px' : settings?.photoShape === 'rounded' ? '24px' : '50%',
+    '--divider-style':       dividerStyle === 'dashed' ? 'dashed' : dividerStyle === 'none' ? 'none' : 'solid',
+    // New Group B
+    '--corner-radius':       cornerRadiusMap[settings?.cornerRadius] || '4px',
+    // New Group A
+    '--accent-line-weight':  accentLineMap[settings?.accentLineWeight] || '3px',
+    // New Group C
+    '--letter-spacing':      letterSpaceMap[settings?.letterSpacing] || '0em',
+    '--line-height-body':    lineHeightMap[settings?.lineHeight] || '1.5',
+    '--name-text-transform': settings?.nameCase === 'uppercase' ? 'uppercase'
+                           : settings?.nameCase === 'capitalize' ? 'capitalize' : 'none',
+    '--name-font-variant':   settings?.nameCase === 'small-caps' ? 'small-caps' : 'normal',
+    // New Group E
+    '--section-title-size':  titleSizeMap[settings?.sectionTitleSize] || '0.88em',
     fontFamily: settings?.bodyFont || settings?.fontFamily || "'Inter', sans-serif"
   };
 
+  // Derive compound class string for container
+  const containerClasses = [
+    'cv-preview-container is-paginated',
+    layoutClass,
+    settings?.headerBg && settings.headerBg !== 'none' ? `header-bg-${settings.headerBg}` : '',
+    settings?.itemCardStyle && settings.itemCardStyle !== 'flat' ? `item-card-${settings.itemCardStyle}` : '',
+    settings?.sectionTitleStyle ? `section-title-${settings.sectionTitleStyle}` : 'section-title-line-below',
+    settings?.accentLinePos === 'left' ? 'accent-left' : settings?.accentLinePos === 'both' ? 'accent-both' : '',
+    settings?.contactLayout ? `contact-${settings.contactLayout}` : 'contact-inline',
+    settings?.dateStyle && settings.dateStyle !== 'default' ? `date-style-${settings.dateStyle}` : '',
+    settings?.headerTextColor && settings.headerTextColor !== 'auto' ? `header-text-${settings.headerTextColor}` : '',
+  ].filter(Boolean).join(' ');
+
   const getHeadingFontName = () => settings?.headingFont ? settings.headingFont.split("'")[1] : 'Inter';
-  const getBodyFontName = () => settings?.bodyFont ? settings.bodyFont.split("'")[1] : 'Inter';
+  const getBodyFontName    = () => settings?.bodyFont     ? settings.bodyFont.split("'")[1]    : 'Inter';
   const fontLink = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(getHeadingFontName())}:wght@400;500;600;700&family=${encodeURIComponent(getBodyFontName())}:wght@400;500;600;700&display=swap`;
+
 
   const renderSkillBlock = (label, skillString, level, isSidebar = false) => {
     if (!skillString) return null;
@@ -386,17 +419,33 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
         <div ref={rulerRef} style={{ height: '297mm', position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
 
         <div className="page-stack" style={{ position: 'relative', width: '210mm', height: `${numPages * pageHeightPx + (numPages - 1) * PAGE_GAP}px` }}>
+
+          {/* Watermark */}
+          {settings?.watermark && settings.watermark !== 'none' && (
+            <div className={`cv-watermark cv-watermark-${settings.watermark}`} aria-hidden="true">
+              {settings.watermark === 'draft' ? 'DRAFT' : 'CONFIDENTIAL'}
+            </div>
+          )}
+
           <div className="page-sheets" aria-hidden="true">
             {Array.from({ length: numPages }).map((_, i) => (
               <div key={i} className="page-sheet" style={{ top: `${i * (pageHeightPx + PAGE_GAP)}px`, height: `${pageHeightPx}px` }}>
                 {isTwoColumn && <span className="page-sheet-sidebar" />}
                 <span className="page-sheet-label no-print">Page {i + 1} / {numPages}</span>
+                {/* Page footer */}
+                {settings?.pageFooter && settings.pageFooter !== 'none' && (
+                  <div className="cv-page-footer">
+                    {settings.pageFooter === 'page-numbers'
+                      ? `${i + 1} / ${numPages}`
+                      : (personal?.name || '')}
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
           {isTwoColumn ? (
-            <div className={`cv-preview-container is-paginated is-two-col ${layoutClass}`}
+            <div className={`${containerClasses} is-two-col`}
               style={{ ...previewStyle, position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none' }}>
               <aside className="cv-sidebar cv-sidebar-content" style={{ height: `${pageHeightPx}px`, paddingTop: `${pageMargin}px` }}>
                 {personal.photo && <div className="cv-photo"><img src={personal.photo} alt="Profile" /></div>}
@@ -429,7 +478,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
               </div>
             </div>
           ) : (
-            <div ref={masterRef} className={`cv-preview-container is-paginated ${layoutClass}`}
+            <div ref={masterRef} className={containerClasses}
               style={{ ...previewStyle, position: 'relative', zIndex: 1, background: 'transparent', boxShadow: 'none', paddingTop: `${pageMargin}px` }}>
               {headerBlock}
               {bodyBlocks}

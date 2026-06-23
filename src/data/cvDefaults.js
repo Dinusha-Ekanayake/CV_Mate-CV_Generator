@@ -88,7 +88,35 @@ export const defaultSettings = {
   photoShape: 'circle',
   headerAlign: 'left',
   dividerStyle: 'solid',
+
+  // ── Group A: Header Decoration ───────────────────────────
+  headerBg: 'none',           // 'none' | 'solid' | 'gradient' | 'full-bleed'
+  headerTextColor: 'auto',    // 'auto' | 'white' | 'dark'
+  accentLineWeight: 'medium', // 'none' | 'thin' | 'medium' | 'thick'
+  accentLinePos: 'below',     // 'below' | 'left' | 'both'
+
+  // ── Group B: Cards & Borders ─────────────────────────────
+  itemCardStyle: 'flat',      // 'flat' | 'border' | 'shadow' | 'pill'
+  cornerRadius: 'soft',       // 'sharp' | 'soft' | 'rounded'
+
+  // ── Group C: Typography Fine-tuning ──────────────────────
+  nameCase: 'normal',         // 'normal' | 'uppercase' | 'capitalize' | 'small-caps'
+  letterSpacing: 'normal',    // 'tight' | 'normal' | 'wide' | 'wider'
+  lineHeight: 'normal',       // 'compact' | 'normal' | 'relaxed'
+
+  // ── Group D: Date & Contact Format ───────────────────────
+  dateStyle: 'default',       // 'default' | 'pill' | 'icon'
+  contactLayout: 'inline',    // 'inline' | 'stacked' | 'grid'
+
+  // ── Group E: Section Title Style ─────────────────────────
+  sectionTitleStyle: 'line-below', // 'line-below' | 'line-above' | 'filled' | 'allcaps'
+  sectionTitleSize: 'normal',      // 'small' | 'normal' | 'large'
+
+  // ── Group F: Extras ──────────────────────────────────────
+  watermark: 'none',          // 'none' | 'draft' | 'confidential'
+  pageFooter: 'none',         // 'none' | 'page-numbers' | 'name'
 };
+
 
 export const hydrateSettings = (parsed = {}) => {
   // Merge parsed sectionOrder, adding any new default sections that aren't present yet

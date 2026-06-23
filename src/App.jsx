@@ -33,6 +33,8 @@ function App() {
   const [cloudReady, setCloudReady] = useState(false);
   const [showJDMatcher, setShowJDMatcher] = useState(false);
   const [mobileView, setMobileView] = useState('form'); // 'form' | 'preview'
+  const [formWidth, setFormWidth] = useState(420);
+  const [isResizing, setIsResizing] = useState(false);
 
   const {
     profiles, activeProfileId, cvData, settings,
@@ -99,6 +101,28 @@ function App() {
     window.addEventListener('cv-set-density', apply);
     return () => window.removeEventListener('cv-set-density', apply);
   }, [setSettings]);
+
+  // Resizer logic
+  useEffect(() => {
+    if (!isResizing) return;
+    const handleMouseMove = (e) => {
+      // Constrain width between 320px and 60% of viewport width
+      const newWidth = Math.max(320, Math.min(e.clientX, window.innerWidth * 0.6));
+      setFormWidth(newWidth);
+    };
+    const handleMouseUp = () => setIsResizing(false);
+    
+    // Prevent text selection while dragging
+    document.body.style.userSelect = 'none';
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
 
   const handlePrint = () => window.print();
 
@@ -382,7 +406,10 @@ function App() {
         </div>
 
         <main className="main-content">
-          <section className={`form-section no-print ${mobileView === 'preview' ? 'mobile-hidden' : ''}`}>
+          <section 
+            className={`form-section no-print ${mobileView === 'preview' ? 'mobile-hidden' : ''}`}
+            style={{ width: `${formWidth}px` }}
+          >
             {/* Doc Type Toggle */}
             <div className="doc-toggle" style={{ display: 'flex', gap: '10px', marginBottom: '12px', background: 'rgba(15,23,42,0.4)', padding: '6px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
               <button className="action-btn" onClick={() => setActiveTab('resume')}
@@ -422,6 +449,11 @@ function App() {
               <span style={{ marginLeft: '10px', color: '#475569', fontSize: '0.72rem' }}>Press ? for shortcuts</span>
             </footer>
           </section>
+
+          <div 
+            className={`resizer no-print ${mobileView !== 'form' && mobileView !== 'preview' ? '' : 'mobile-hidden'} ${isResizing ? 'active' : ''}`}
+            onMouseDown={() => setIsResizing(true)}
+          />
 
           <section className={`preview-section ${mobileView === 'form' ? 'mobile-hidden' : ''}`}>
             {activeTab === 'resume' ? (

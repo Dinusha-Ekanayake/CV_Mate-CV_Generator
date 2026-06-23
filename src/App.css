@@ -153,15 +153,28 @@
 }
 
 .form-section {
-  width: 420px;
-  min-width: 360px;
-  max-width: 520px;
+  min-width: 320px;
+  /* width is managed by inline style from state */
   flex-shrink: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 1.25rem 1.25rem 2rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(10, 15, 30, 0.5);
+  /* Optional: a subtle border if no resizer is active, but we can keep it clean */
+}
+
+/* ── Resizer ────────────────────────────────────────────── */
+.resizer {
+  width: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: col-resize;
+  transition: background 0.2s, width 0.2s;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.resizer:hover, .resizer.active {
+  background: var(--accent-primary, #3b82f6);
+  width: 6px; /* Slightly thicker on hover for easier grabbing */
 }
 
 .preview-section {
@@ -413,7 +426,7 @@
 
   /* Form pane: full-width, natural scroll */
   .form-section {
-    width: 100%;
+    width: 100% !important;
     min-width: 0;
     max-width: 100%;
     border-right: none;
