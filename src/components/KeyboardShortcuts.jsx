@@ -6,13 +6,12 @@ const SHORTCUTS = [
   { keys: ['Ctrl', 'Shift', 'Z'], action: 'Redo' },
   { keys: ['Ctrl', 'P'], action: 'Print / PDF' },
   { keys: ['Ctrl', 'E'], action: 'Export JSON' },
-  { keys: ['Ctrl', 'D'], action: 'Download PDF' },
   { keys: ['Ctrl', 'W'], action: 'Export DOCX' },
   { keys: ['?'], action: 'Show shortcuts' },
   { keys: ['Escape'], action: 'Close modal' },
 ];
 
-const KeyboardShortcuts = ({ onUndo, onRedo, onPrint, onExport, onDownloadPdf, onDocx }) => {
+const KeyboardShortcuts = ({ onUndo, onRedo, onPrint, onExport, onDocx }) => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -29,13 +28,12 @@ const KeyboardShortcuts = ({ onUndo, onRedo, onPrint, onExport, onDownloadPdf, o
         if ((e.key === 'z' && e.shiftKey) || e.key === 'y') { e.preventDefault(); onRedo?.(); return; }
         if (e.key === 'p') { e.preventDefault(); onPrint?.(); return; }
         if (e.key === 'e' && !e.shiftKey) { e.preventDefault(); onExport?.(); return; }
-        if (e.key === 'd') { e.preventDefault(); onDownloadPdf?.(); return; }
         if (e.key === 'w') { e.preventDefault(); onDocx?.(); return; }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onUndo, onRedo, onPrint, onExport, onDownloadPdf, onDocx]);
+  }, [onUndo, onRedo, onPrint, onExport, onDocx]);
 
   if (!showModal) return null;
 

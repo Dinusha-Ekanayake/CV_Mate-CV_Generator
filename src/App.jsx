@@ -20,7 +20,6 @@ const JDMatcherModal = lazy(() => import('./components/AIPanel').then(m => ({ de
 import UpdateToast from './components/UpdateToast';
 import { useProfiles, normalizeProfilesState } from './hooks/useProfiles';
 import { useHistory } from './hooks/useHistory';
-import { downloadPdf } from './utils/pdf';
 import { sampleData, hydrateData } from './data/cvDefaults';
 import { auth, provider, db } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
@@ -126,19 +125,7 @@ function App() {
 
   const handlePrint = () => window.print();
 
-  const [isDownloading, setIsDownloading] = useState(false);
-  const handleDownloadPdf = async () => {
-    setIsDownloading(true);
-    try {
-      const base = (cvData.personal?.name || 'My_CV').trim().replace(/\s+/g, '_');
-      await downloadPdf({ fileName: `${base}.pdf` });
-    } catch (e) {
-      console.error('PDF download failed:', e);
-      alert('Could not generate the PDF. Try the Print / PDF button instead.');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
+
 
   const loadSample = () => setCvData(sampleData);
   const clearForm = () => {
@@ -389,9 +376,7 @@ function App() {
                   <FileDown size={14} /> Fit 1 Page
                 </button>
               )}
-              <button onClick={handleDownloadPdf} disabled={isDownloading} className="btn btn-secondary btn-sm" title="Download PDF (Ctrl+D)">
-                <Download size={15} /> {isDownloading ? 'Saving…' : 'PDF'}
-              </button>
+
               <button onClick={handlePrint} className="btn btn-primary btn-sm print-btn" title="Print / PDF (Ctrl+P)">
                 <Printer size={16} /> Print / PDF
               </button>
@@ -477,7 +462,7 @@ function App() {
         <KeyboardShortcuts
           onUndo={undo} onRedo={redo}
           onPrint={handlePrint} onExport={handleExport}
-          onDownloadPdf={handleDownloadPdf} onDocx={handleExportDocx}
+          onDocx={handleExportDocx}
         />
 
         <UpdateToast />
