@@ -306,15 +306,15 @@ function App() {
     <OnboardingGate>
       <div className="app-container">
         <header className="app-header no-print">
-          <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/logo.png" alt="CV Mate Logo" style={{ width: '32px', height: '32px', borderRadius: '6px' }} />
-            <div>
-              <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>CV <span className="accent">Mate</span></span>
-              <span className="app-subtitle" style={{ display: 'block', fontSize: '0.8rem', color: '#10b981', marginTop: '-4px' }}>Elite Edition</span>
+          <div className="logo-container">
+            <img src="/logo.png" alt="CV Mate Logo" className="logo-img" />
+            <div className="logo-text-wrapper">
+              <span className="logo-text">CV <span className="accent">Mate</span></span>
+              <span className="app-subtitle">Elite Edition</span>
             </div>
           </div>
 
-          <div className="app-controls" style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="app-controls">
             <ProfileSwitcher
               profiles={profiles} activeProfileId={activeProfileId}
               onSelect={selectProfile} onAdd={addProfile}
@@ -322,77 +322,77 @@ function App() {
             />
 
             {/* Auth Group */}
-            <div className="auth-group" style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(15,23,42,0.4)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
+            <div className="auth-group glass-pill">
               {currentUser ? (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="auth-user-info">
                     {isSyncing ? <Cloud size={14} className="sync-pulse" color="#06b6d4" /> : <Cloud size={14} color="#10b981" />}
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500 }}>
+                    <span className="auth-email">
                       {(currentUser.email || currentUser.displayName || 'Account').split('@')[0]}
                     </span>
                   </div>
                   <AutosaveIndicator profilesState={profilesState} />
-                  <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.1)' }} />
-                  <button onClick={() => signOut(auth)} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '0.75rem', background: 'transparent', border: 'none', color: '#ef4444' }}>Sign Out</button>
+                  <div className="divider-vertical" />
+                  <button onClick={() => signOut(auth)} className="btn-signout">Sign Out</button>
                 </>
               ) : (
-                <button onClick={() => signInWithPopup(auth, provider)} className="btn btn-secondary" style={{ padding: '4px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none' }}>
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style={{ width: '14px' }} />
+                <button onClick={() => signInWithPopup(auth, provider)} className="btn-signin">
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" className="google-icon" />
                   Sign in
                 </button>
               )}
             </div>
 
             {/* Actions group */}
-            <div className="actions-group" style={{ display: 'flex', background: 'rgba(15,23,42,0.4)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', backdropFilter: 'blur(10px)' }}>
-              <button onClick={loadSample} className="action-btn" title="Load Sample Data (shows all features)" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}>
-                <Wand2 size={14} color="#a855f7" /> Sample
+            <div className="actions-group glass-panel-sm">
+              <button onClick={loadSample} className="action-btn" title="Load Sample Data (shows all features)">
+                <Wand2 size={14} color="#a855f7" className="btn-icon" /> <span>Sample</span>
               </button>
-              <button onClick={() => fileInputRef.current.click()} className="action-btn" title="Import JSON" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}>
-                <Upload size={14} color="#3b82f6" /> Import
+              <button onClick={() => fileInputRef.current.click()} className="action-btn" title="Import JSON">
+                <Upload size={14} color="#3b82f6" className="btn-icon" /> <span>Import</span>
               </button>
               <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
-              <button onClick={handleExport} className="action-btn" title="Export JSON (Ctrl+E)" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}>
-                <Download size={14} color="#3b82f6" /> Export
+              <button onClick={handleExport} className="action-btn" title="Export JSON (Ctrl+E)">
+                <Download size={14} color="#3b82f6" className="btn-icon" /> <span>Export</span>
               </button>
-              <button onClick={handleExportDocx} className="action-btn" title="Export as Word DOCX (Ctrl+W)" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}>
-                <FileText size={14} color="#06b6d4" /> DOCX
+              <button onClick={handleExportDocx} className="action-btn" title="Export as Word DOCX (Ctrl+W)">
+                <FileText size={14} color="#06b6d4" className="btn-icon" /> <span>DOCX</span>
               </button>
-              <button onClick={handleExportZip} className="action-btn" title="Export all profiles as ZIP" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#f8fafc', fontSize: '0.85rem', borderRight: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}>
-                <Archive size={14} color="#f59e0b" /> ZIP
+              <button onClick={handleExportZip} className="action-btn" title="Export all profiles as ZIP">
+                <Archive size={14} color="#f59e0b" className="btn-icon" /> <span>ZIP</span>
               </button>
-              <button onClick={clearForm} className="action-btn" title="Clear All Data" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer' }}>
-                <Trash2 size={14} /> Clear
+              <button onClick={clearForm} className="action-btn action-btn-danger" title="Clear All Data">
+                <Trash2 size={14} className="btn-icon" /> <span>Clear</span>
               </button>
             </div>
 
             {/* Primary group */}
-            <div className="primary-group" style={{ display: 'flex', gap: '8px' }}>
-              <div className="undo-redo-group" style={{ display: 'flex', background: 'rgba(15,23,42,0.4)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', backdropFilter: 'blur(10px)' }}>
-                <button onClick={undo} disabled={!canUndo} className="action-btn" title="Undo (Ctrl+Z)" style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', background: 'transparent', border: 'none', borderRight: '1px solid rgba(255,255,255,0.08)', color: canUndo ? '#f8fafc' : '#475569', cursor: canUndo ? 'pointer' : 'not-allowed' }}>
+            <div className="primary-group">
+              <div className="undo-redo-group glass-panel-sm">
+                <button onClick={undo} disabled={!canUndo} className="action-btn icon-only" title="Undo (Ctrl+Z)">
                   <Undo2 size={15} />
                 </button>
-                <button onClick={redo} disabled={!canRedo} className="action-btn" title="Redo (Ctrl+Shift+Z)" style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', background: 'transparent', border: 'none', color: canRedo ? '#f8fafc' : '#475569', cursor: canRedo ? 'pointer' : 'not-allowed' }}>
+                <button onClick={redo} disabled={!canRedo} className="action-btn icon-only" title="Redo (Ctrl+Shift+Z)">
                   <Redo2 size={15} />
                 </button>
               </div>
               {activeTab === 'resume' && (
-                <button onClick={() => setShowJDMatcher(true)} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.85rem' }} title="Job Description Matcher (AI)">
+                <button onClick={() => setShowJDMatcher(true)} className="btn btn-secondary btn-sm" title="Job Description Matcher (AI)">
                   <Search size={14} /> JD Match
                 </button>
               )}
-              <button onClick={handleAutoFit} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.85rem' }}>
+              <button onClick={handleAutoFit} className="btn btn-secondary btn-sm">
                 <Maximize size={14} /> Auto-Fit
               </button>
               {activeTab === 'resume' && (
-                <button onClick={handleFitOnePage} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.85rem' }} title="Auto-adjust density to fit one A4 page">
+                <button onClick={handleFitOnePage} className="btn btn-secondary btn-sm" title="Auto-adjust density to fit one A4 page">
                   <FileDown size={14} /> Fit 1 Page
                 </button>
               )}
-              <button onClick={handleDownloadPdf} disabled={isDownloading} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.85rem' }} title="Download PDF (Ctrl+D)">
+              <button onClick={handleDownloadPdf} disabled={isDownloading} className="btn btn-secondary btn-sm" title="Download PDF (Ctrl+D)">
                 <Download size={15} /> {isDownloading ? 'Saving…' : 'PDF'}
               </button>
-              <button onClick={handlePrint} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px', fontSize: '0.85rem' }} title="Print / PDF (Ctrl+P)">
+              <button onClick={handlePrint} className="btn btn-primary btn-sm print-btn" title="Print / PDF (Ctrl+P)">
                 <Printer size={16} /> Print / PDF
               </button>
             </div>
