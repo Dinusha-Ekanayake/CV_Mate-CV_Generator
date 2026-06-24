@@ -1,50 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export default function UpdateToast() {
-  const [visible, setVisible] = useState(false);
+  const reloading = useRef(false);
 
   const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW({
     onRegistered(r) {
-      // Poll every 60 s so users on long sessions still get updates promptly.
-      if (r) setInterval(() => r.update(), 60_000);
+      // Poll every 30 s so long-lived tabs catch new deploys quickly.
+      if (r) setInterval(() => r.update(), 30_000);
     }
   });
 
   useEffect(() => {
-    if (needRefresh) setVisible(true);
+    // Path 1: vite-plugin-pwa detected a waiting SW → activate + reload.
+    if (needRefresh && !reloading.current) {
+      reloading.current = true;
+      updateServiceWorker(true);
+    }
   }, [needRefresh]);
 
-  if (!visible) return null;
+  useEffect(() => {
+    // Path 2: SW already activated (skipWaiting fired) and claimed this client.
+    // The controllerchange event fires on the new SW taking over — reload to
+    // serve the fresh precached assets instead of the in-memory stale bundle.
+    const onControllerChange = () => {
+      if (!reloading.current) {
+        reloading.current = true;
+        window.location.reload();
+      }
+    };
+    navigator.serviceWorker?.addEventListener('controllerchange', onControllerChange);
+    return () => navigator.serviceWorker?.removeEventListener('controllerchange', onControllerChange);
+  }, []);
 
-  return (
-    <div style={{
-      position: 'fixed', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)',
-      background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
-      padding: '0.85rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)', zIndex: 9999, color: '#f1f5f9',
-      fontSize: '0.9rem', whiteSpace: 'nowrap'
-    }}>
-      <span>A new version of CV Mate is available.</span>
-      <button
-        onClick={() => updateServiceWorker(true)}
-        style={{
-          background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px',
-          padding: '0.4rem 0.9rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem'
-        }}
-      >
-        Update now
-      </button>
-      <button
-        onClick={() => setVisible(false)}
-        style={{
-          background: 'transparent', color: '#64748b', border: 'none',
-          cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, padding: '0 4px'
-        }}
-        aria-label="Dismiss"
-      >
-        ✕
-      </button>
-    </div>
-  );
+  return null;
 }

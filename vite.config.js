@@ -30,10 +30,13 @@ export default defineConfig({
         // stays light; it's fetched from the network when actually needed.
         globIgnores: ['**/html2pdf-*.js'],
         maximumFileSizeToCacheInBytes: 600 * 1024,
-        // Take over immediately when a new SW is installed so users never get
-        // stuck on a stale cached build after a deploy.
+        // New SW activates immediately on install without waiting for old tabs
+        // to close, then claims all clients so the reload serves fresh assets.
         skipWaiting: true,
-        clientsClaim: true
+        clientsClaim: true,
+        // Broadcast a message to all tabs when the SW activates so UpdateToast
+        // can trigger a reload even if the page didn't detect needRefresh.
+        runtimeCaching: [],
       },
       manifest: {
         name: 'CV Mate - CV Generator',
