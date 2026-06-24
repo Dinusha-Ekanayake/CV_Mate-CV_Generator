@@ -159,6 +159,132 @@ ${text.replace(/<[^>]+>/g, ' ')}`;
   );
 };
 
+// ── Cover Letter Generator ─────────────────────────────────────────
+export const AICoverLetterButton = ({ cvData, onResult }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [jd, setJd] = useState('');
+  const [showJd, setShowJd] = useState(false);
+
+  const generate = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { personal, summary, experience, projects, skills, coverLetter } = cvData;
+
+      const expLines = (experience || [])
+        .filter(e => !e.hidden)
+        .slice(0, 4)
+        .map(e => `- ${e.role} at ${e.company}${e.dates ? ` (${e.dates})` : ''}${e.description ? ': ' + e.description.replace(/<[^>]+>/g, ' ').slice(0, 120) : ''}`)
+        .join('\n');
+
+      const projLines = (projects || [])
+        .filter(p => !p.hidden)
+        .slice(0, 3)
+        .map(p => `- ${p.name}${p.tech ? ` [${p.tech}]` : ''}${p.description ? ': ' + p.description.replace(/<[^>]+>/g, ' ').slice(0, 100) : ''}`)
+        .join('\n');
+
+      const skillList = (Array.isArray(skills) ? skills : [])
+        .filter(s => !s.hidden && s.items)
+        .map(s => `${s.category}: ${s.items}`)
+        .join('; ');
+
+      const summaryClean = (summary || '').replace(/<[^>]+>/g, ' ').slice(0, 300);
+
+      const prompt = `You are an expert career coach. Write a professional, compelling cover letter body for the following applicant.
+
+APPLICANT DETAILS:
+Name: ${personal.name || 'Applicant'}
+Title: ${personal.title || 'Professional'}
+${summaryClean ? `Profile Summary: ${summaryClean}` : ''}
+
+EXPERIENCE:
+${expLines || 'Not provided'}
+
+NOTABLE PROJECTS:
+${projLines || 'Not provided'}
+
+SKILLS: ${skillList || 'Not provided'}
+
+LETTER CONTEXT:
+Company: ${coverLetter?.companyName || 'the company'}
+Position: ${coverLetter?.position || 'the role'}
+Recipient: ${coverLetter?.recipientName || 'Hiring Manager'}
+${jd.trim() ? `\nJOB DESCRIPTION (tailor the letter to this):\n${jd.slice(0, 2500)}` : ''}
+
+REQUIREMENTS:
+- Write ONLY the body paragraphs (no greeting, no sign-off, no date — those are added separately)
+- 3 paragraphs: (1) strong opening with role interest and top value proposition, (2) evidence from experience/projects matching the role, (3) forward-looking close with call to action
+- Be specific — reference real experience and skills from the CV, not generic phrases
+- Tone: confident, professional, human — not robotic or overly formal
+- Length: 200–280 words total
+- Output as plain HTML paragraphs: <p>...</p><p>...</p><p>...</p>
+- Do NOT include <ul>, <h1–6>, markdown, or any text outside the <p> tags`;
+
+      const text = await callAI(prompt);
+      // Extract only <p> tags from response
+      const pTags = text.match(/<p[\s\S]*?<\/p>/gi);
+      const html = pTags ? pTags.join('\n') : `<p>${text.replace(/<[^>]+>/g, ' ').trim()}</p>`;
+      onResult(html);
+    } catch (e) {
+      setError(friendlyError(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="ai-cl-generator">
+      <div className="ai-cl-header">
+        <button
+          className="btn-ai"
+          onClick={generate}
+          disabled={loading}
+          title="Generate cover letter body with AI"
+        >
+          {loading ? <Loader size={14} className="spin" /> : <Sparkles size={14} />}
+          {loading ? 'Generating cover letter…' : 'Generate with AI'}
+        </button>
+        <button
+          className={`ai-cl-jd-toggle ${showJd ? 'active' : ''}`}
+          onClick={() => setShowJd(v => !v)}
+          title="Paste a job description to tailor the letter"
+          type="button"
+        >
+          {showJd ? 'Hide JD' : '+ Job Description'}
+        </button>
+      </div>
+
+      {showJd && (
+        <div className="ai-cl-jd-area">
+          <label className="ai-cl-jd-label">
+            Job Description <span className="ai-cl-jd-hint">(optional — makes the letter more targeted)</span>
+          </label>
+          <textarea
+            className="ai-jd-textarea"
+            placeholder="Paste the job description here…"
+            value={jd}
+            onChange={e => setJd(e.target.value)}
+            rows={6}
+          />
+        </div>
+      )}
+
+      {error && (
+        <div className="ai-error" style={{ marginTop: '6px' }}>
+          <AlertCircle size={12} /> {error}
+        </div>
+      )}
+
+      {!loading && (
+        <p className="ai-cl-disclaimer">
+          AI generates a draft — review and personalise before sending.
+        </p>
+      )}
+    </div>
+  );
+};
+
 // ── Job Description Matcher Modal ──────────────────────────────────
 export const JDMatcherModal = ({ cvData, onClose }) => {
   const [jd, setJd] = useState('');

@@ -1,4 +1,5 @@
 import RichTextEditor from './RichTextEditor';
+import { AICoverLetterButton } from './AIPanel';
 
 const CoverLetterForm = ({ cvData, setCvData }) => {
   const { coverLetter } = cvData;
@@ -121,11 +122,15 @@ const CoverLetterForm = ({ cvData, setCvData }) => {
 
         <div className="form-group" style={{ display: 'flex', flexDirection: 'column', marginTop: '10px' }}>
           <label>Letter Body</label>
+          <AICoverLetterButton
+            cvData={cvData}
+            onResult={(html) => handleChange('body', html)}
+          />
           <div style={{ minHeight: '300px' }}>
             <RichTextEditor
               value={coverLetter.body}
               onChange={(val) => handleChange('body', val)}
-              placeholder="Write your cover letter here…"
+              placeholder="Write your cover letter here, or click Generate with AI above…"
             />
           </div>
         </div>
