@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Plus, Copy, Pencil, Trash2, Check, FileText } from 'lucide-react';
+import { ChevronDown, Plus, Copy, Pencil, Trash2, Check, FileText, X } from 'lucide-react';
 import './ProfileSwitcher.css';
 
 const ProfileSwitcher = ({
@@ -14,7 +14,10 @@ const ProfileSwitcher = ({
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState('');
+  const [addingNew, setAddingNew] = useState(false);
+  const [newProfileName, setNewProfileName] = useState('');
   const rootRef = useRef(null);
+  const newInputRef = useRef(null);
 
   const active = profiles.find(p => p.id === activeProfileId) || profiles[0];
 
@@ -25,16 +28,35 @@ const ProfileSwitcher = ({
       if (rootRef.current && !rootRef.current.contains(e.target)) {
         setOpen(false);
         setEditingId(null);
+        setAddingNew(false);
+        setNewProfileName('');
       }
     };
-    const onKey = (e) => { if (e.key === 'Escape') { setOpen(false); setEditingId(null); } };
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        if (addingNew) { setAddingNew(false); setNewProfileName(''); }
+        else { setOpen(false); setEditingId(null); }
+      }
+    };
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('mousedown', onDocClick);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, addingNew]);
+
+  // Focus the new-profile input when it appears
+  useEffect(() => {
+    if (addingNew && newInputRef.current) newInputRef.current.focus();
+  }, [addingNew]);
+
+  const commitNewProfile = () => {
+    const name = newProfileName.trim();
+    if (name) { onAdd(name); setOpen(false); }
+    setAddingNew(false);
+    setNewProfileName('');
+  };
 
   const startEditing = (profile) => {
     setEditingId(profile.id);
@@ -112,15 +134,31 @@ const ProfileSwitcher = ({
             ))}
           </div>
 
-          <button
-            className="profile-add"
-            onClick={() => {
-              const name = window.prompt('Name for the new profile:', 'New CV');
-              if (name && name.trim()) { onAdd(name.trim()); setOpen(false); }
-            }}
-          >
-            <Plus size={14} /> New profile
-          </button>
+          {addingNew ? (
+            <div className="profile-add-row">
+              <input
+                ref={newInputRef}
+                className="profile-rename-input profile-new-input"
+                placeholder="Profile name…"
+                value={newProfileName}
+                onChange={e => setNewProfileName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') commitNewProfile();
+                  if (e.key === 'Escape') { setAddingNew(false); setNewProfileName(''); }
+                }}
+              />
+              <button className="profile-add-confirm" onClick={commitNewProfile} title="Create profile">
+                <Check size={14} />
+              </button>
+              <button className="profile-add-cancel" onClick={() => { setAddingNew(false); setNewProfileName(''); }} title="Cancel">
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <button className="profile-add" onClick={() => setAddingNew(true)}>
+              <Plus size={14} /> New profile
+            </button>
+          )}
         </div>
       )}
     </div>

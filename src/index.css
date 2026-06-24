@@ -15,10 +15,22 @@
   --font-heading: 'Outfit', sans-serif;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Visible focus ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Suppress focus ring on mouse/touch interactions */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 body {
@@ -66,6 +78,16 @@ input:focus, textarea:focus, select:focus {
   background: rgba(255, 255, 255, 0.08);
 }
 
+select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
 select option {
   background-color: #0f172a;
   color: #f8fafc;
@@ -74,6 +96,7 @@ select option {
 textarea {
   resize: vertical;
   min-height: 100px;
+  line-height: 1.6;
 }
 
 label {
@@ -86,6 +109,15 @@ label {
 
 .form-group {
   margin-bottom: 1.25rem;
+}
+
+/* Global button cursor — never show text cursor on buttons */
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+button:disabled {
+  cursor: not-allowed;
 }
 
 /* Buttons */

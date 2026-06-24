@@ -499,9 +499,9 @@
     padding: 1rem;
   }
 
-  /* Hide text labels on action buttons, show only icons */
-  .actions-group .action-btn span:not(.icon-only),
-  .primary-group .btn span:not(.icon-only) {
+  /* Hide text labels on action buttons at tablet width — keep icons */
+  .actions-group .action-btn span:not([class]),
+  .actions-group .action-btn > span {
     display: none;
   }
 }
@@ -570,6 +570,11 @@
     position: sticky;
     top: 0; /* sticks below the header — but header is itself sticky so it stacks */
     z-index: 150;
+  }
+
+  /* Hide the drag resizer — not usable on mobile */
+  .resizer {
+    display: none !important;
   }
 
   /* Main: stacked instead of side-by-side */

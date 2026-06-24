@@ -233,6 +233,21 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
             </SettingField>
           </Group>
 
+          {/* ── Skills Display ───────────────────────── */}
+          <Group icon={<Sparkles size={15} />} title="Skills Display" defaultOpen={false}>
+            <SettingField label="Skill Style" hint="How skills appear on the CV">
+              <Segmented
+                value={settings.skillStyle || 'classic'}
+                onChange={(skillStyle) => set({ skillStyle })}
+                options={[
+                  { value: 'classic', label: 'Classic' },
+                  { value: 'tags',    label: 'Tags' },
+                  { value: 'bars',    label: 'Bars' }
+                ]}
+              />
+            </SettingField>
+          </Group>
+
           {/* ── Group B: Cards & Borders ─────────────── */}
           <Group icon={<Square size={15} />} title="Cards & Borders" defaultOpen={false}>
             <SettingField label="Item Card Style" hint="Applied to experience, education & project items">
@@ -326,18 +341,7 @@ const SettingsPanel = ({ settings, setSettings, activeTab, sectionOrder, onMoveS
           </Group>
 
           {/* ── Group E: Section Title Style ─────────── */}
-          <Group icon={<Heading size={15} />} title="Section Titles" defaultOpen={false}>
-            <SettingField label="Skill Style">
-              <Segmented
-                value={settings.skillStyle}
-                onChange={(skillStyle) => set({ skillStyle })}
-                options={[
-                  { value: 'classic', label: 'Classic' },
-                  { value: 'tags',    label: 'Tags' },
-                  { value: 'bars',    label: 'Bars' }
-                ]}
-              />
-            </SettingField>
+          <Group icon={<Heading size={15} />} title="Section Titles & Header" defaultOpen={false}>
             <SettingField label="Title Style">
               <Segmented
                 value={settings.sectionTitleStyle || 'line-below'}

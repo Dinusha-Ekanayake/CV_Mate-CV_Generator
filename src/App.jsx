@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, Undo2, Redo2, FileDown, FileText, Archive, BrainCircuit, Search } from 'lucide-react';
+import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, Undo2, Redo2, FileDown, FileText, Archive, Search } from 'lucide-react';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import './App.css';
+import './components/OnboardingWizard.css';
+import './components/AIPanel.css';
 import CVForm from './components/CVForm';
 import CVPreview from './components/CVPreview';
 import ProfileSwitcher from './components/ProfileSwitcher';
@@ -8,22 +12,19 @@ import SettingsPanel from './components/SettingsPanel';
 import CompletionBar from './components/CompletionBar';
 import AutosaveIndicator from './components/AutosaveIndicator';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
-import { OnboardingGate } from './components/OnboardingWizard';
-import './components/OnboardingWizard.css';
-import './components/AIPanel.css';
-
-const CoverLetterForm = lazy(() => import('./components/CoverLetterForm'));
-const CoverLetterPreview = lazy(() => import('./components/CoverLetterPreview'));
-const ATSAnalyzer = lazy(() => import('./components/ATSAnalyzer'));
-const JDMatcherModal = lazy(() => import('./components/AIPanel').then(m => ({ default: m.JDMatcherModal })));
-
 import UpdateToast from './components/UpdateToast';
+import { OnboardingGate } from './components/OnboardingWizard';
 import { useProfiles, normalizeProfilesState } from './hooks/useProfiles';
 import { useHistory } from './hooks/useHistory';
 import { sampleData, hydrateData } from './data/cvDefaults';
 import { auth, provider, db } from './firebase';
-import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+
+const CoverLetterForm = lazy(() => import('./components/CoverLetterForm'));
+const CoverLetterPreview = lazy(() => import('./components/CoverLetterPreview'));
+const ATSAnalyzer = lazy(() => import('./components/ATSAnalyzer'));
+// AIPanel is already statically imported by CVForm, so import it directly here
+// rather than lazy-loading (which would be ineffective anyway).
+import { JDMatcherModal } from './components/AIPanel';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -274,20 +275,9 @@ function App() {
   };
   const handleFitOnePage = () => window.dispatchEvent(new CustomEvent('cv-fit-one-page'));
 
-  // AI request handler from CVForm
-  const handleAIRequest = async (type, itemId, currentText) => {
-    if (type === 'summary') {
-      try {
-        const { AISummaryButton } = await import('./components/AIPanel');
-        // Trigger via DOM event since AISummaryButton is self-contained
-      } catch (e) { /* handled by button */ }
-    }
-    if (type === 'bullet' && itemId && currentText) {
-      try {
-        const { AIBulletButton } = await import('./components/AIPanel');
-      } catch (e) { /* handled */ }
-    }
-  };
+  // AI request handler — AI buttons are self-contained in CVForm/AIPanel; this
+  // hook point is kept for future orchestration (e.g. opening a modal with context).
+  const handleAIRequest = (_type, _itemId, _currentText) => {};
 
   return (
     <OnboardingGate>
@@ -453,9 +443,7 @@ function App() {
 
         {/* JD Matcher Modal */}
         {showJDMatcher && (
-          <Suspense fallback={null}>
-            <JDMatcherModal cvData={cvData} onClose={() => setShowJDMatcher(false)} />
-          </Suspense>
+          <JDMatcherModal cvData={cvData} onClose={() => setShowJDMatcher(false)} />
         )}
 
         {/* Keyboard Shortcuts */}

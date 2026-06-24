@@ -699,7 +699,7 @@
   border-bottom: none;
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-size: 0.95rem;
+  font-size: 0.88em;
   color: var(--theme-color);
 }
 .layout-minimal .cv-item-date {
@@ -753,6 +753,14 @@
   color: #f1f5f9;
 }
 
+.cv-dark-mode .cv-tech-stack {
+  color: #94a3b8;
+}
+
+.cv-dark-mode .cv-item-location {
+  color: #64748b;
+}
+
 /* ── Divider Styles ────────────────────────────────────── */
 .cv-section-title {
   border-bottom-style: var(--divider-style, solid);
@@ -774,6 +782,22 @@
 
 .cv-photo-centered {
   margin: 0 auto 16px auto;
+}
+
+/* ── Contact Links ────────────────────────────────────── */
+.cv-contact-link {
+  color: inherit;
+  text-decoration: none;
+}
+.cv-contact-link:hover {
+  text-decoration: underline;
+  color: var(--theme-color);
+}
+.cv-dark-mode .cv-contact-link {
+  color: #cbd5e1;
+}
+.cv-dark-mode .cv-contact-link:hover {
+  color: var(--theme-color);
 }
 
 /* ── Project Link ─────────────────────────────────────── */
@@ -1177,9 +1201,8 @@
   color: var(--theme-color);
   border-bottom: none;
   border-left: 4px solid var(--theme-color);
-  padding: calc(5px * var(--spacing-multiplier)) 10px;
+  padding: calc(5px * var(--spacing-multiplier)) 10px calc(5px * var(--spacing-multiplier)) 8px;
   border-radius: 0 var(--corner-radius, 4px) var(--corner-radius, 4px) 0;
-  margin-left: -10px;
 }
 .cv-dark-mode .section-title-filled .cv-section-title {
   background: color-mix(in srgb, var(--theme-color) 20%, transparent);
@@ -1208,7 +1231,7 @@
   text-transform: uppercase;
   transform: rotate(-35deg);
   pointer-events: none;
-  z-index: 5;
+  z-index: 10;
   opacity: 0.06;
   color: #0f172a;
   user-select: none;

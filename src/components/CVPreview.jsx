@@ -7,8 +7,8 @@ import './CVPreview.css';
 
 // Hoisted out of render so it isn't recreated each render.
 const SectionHeader = ({ title, icon: Icon, showIcons }) => (
-  <h3 className="cv-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-    {showIcons && Icon && <Icon size={20} className="section-icon" color="var(--theme-color)" />}
+  <h3 className="cv-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+    {showIcons && Icon && <Icon size={14} className="section-icon" color="var(--theme-color)" style={{ flexShrink: 0 }} />}
     {title}
   </h3>
 );
@@ -243,7 +243,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
           </div>
           {proj.tech && (
             <div className="cv-item-subheader">
-              <span className="cv-tech-stack">Stack: {proj.tech}</span>
+              <span className="cv-tech-stack">{proj.tech}</span>
             </div>
           )}
           <div className="cv-item-description">{renderRichText(proj.description)}</div>
@@ -366,11 +366,11 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
           <h1 className="cv-name">{personal.name || 'Your Name'}</h1>
           <h2 className="cv-title">{personal.title || 'Professional Title'}</h2>
           <div className={`cv-contact-info ${headerAlignClass}`}>
-            {personal.email && <span>{personal.email}</span>}
-            {personal.phone && <span><span className="bullet">&bull;</span> {personal.phone}</span>}
-            {personal.linkedin && <span><span className="bullet">&bull;</span> {personal.linkedin}</span>}
-            {personal.github && <span><span className="bullet">&bull;</span> {personal.github}</span>}
-            {personal.portfolio && <span><span className="bullet">&bull;</span> {personal.portfolio}</span>}
+            {personal.email && <span><a href={`mailto:${personal.email}`} className="cv-contact-link">{personal.email}</a></span>}
+            {personal.phone && <span><span className="bullet" aria-hidden="true">&bull;</span> {personal.phone}</span>}
+            {personal.linkedin && <span><span className="bullet" aria-hidden="true">&bull;</span> <a href={personal.linkedin.startsWith('http') ? personal.linkedin : `https://${personal.linkedin}`} className="cv-contact-link" target="_blank" rel="noopener noreferrer">{personal.linkedin}</a></span>}
+            {personal.github && <span><span className="bullet" aria-hidden="true">&bull;</span> <a href={personal.github.startsWith('http') ? personal.github : `https://${personal.github}`} className="cv-contact-link" target="_blank" rel="noopener noreferrer">{personal.github}</a></span>}
+            {personal.portfolio && <span><span className="bullet" aria-hidden="true">&bull;</span> <a href={personal.portfolio.startsWith('http') ? personal.portfolio : `https://${personal.portfolio}`} className="cv-contact-link" target="_blank" rel="noopener noreferrer">{personal.portfolio}</a></span>}
           </div>
         </div>
         {personal.photo && !headerAlignClass && (
