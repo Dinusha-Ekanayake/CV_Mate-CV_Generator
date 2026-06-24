@@ -15,6 +15,7 @@ import KeyboardShortcuts from './components/KeyboardShortcuts';
 import UpdateToast from './components/UpdateToast';
 import CVImportModal from './components/CVImportModal';
 import InterviewPrepModal from './components/InterviewPrepModal';
+import AIPageFitModal from './components/AIPageFitModal';
 import { OnboardingGate } from './components/OnboardingWizard';
 import { useProfiles, normalizeProfilesState } from './hooks/useProfiles';
 import { useHistory } from './hooks/useHistory';
@@ -36,6 +37,7 @@ function App() {
   const [showJDMatcher, setShowJDMatcher] = useState(false);
   const [showCVImport, setShowCVImport] = useState(false);
   const [showInterviewPrep, setShowInterviewPrep] = useState(false);
+  const [showPageFit, setShowPageFit] = useState(false);
   const [mobileView, setMobileView] = useState('form'); // 'form' | 'preview'
   const [formWidth, setFormWidth] = useState(420);
   const [isResizing, setIsResizing] = useState(false);
@@ -378,6 +380,11 @@ function App() {
                   <FileDown size={14} /> Fit 1 Page
                 </button>
               )}
+              {activeTab === 'resume' && (
+                <button onClick={() => setShowPageFit(true)} className="btn btn-secondary btn-sm" title="AI rewrites content to hit an exact page count">
+                  <FileText size={14} /> AI Page Fit
+                </button>
+              )}
 
               <button onClick={handlePrint} className="btn btn-primary btn-sm print-btn" title="Print / PDF (Ctrl+P)">
                 <Printer size={16} /> Print / PDF
@@ -469,6 +476,15 @@ function App() {
         {/* Interview Question Predictor */}
         {showInterviewPrep && (
           <InterviewPrepModal cvData={cvData} onClose={() => setShowInterviewPrep(false)} />
+        )}
+
+        {/* AI Page Fit */}
+        {showPageFit && (
+          <AIPageFitModal
+            cvData={cvData}
+            onClose={() => setShowPageFit(false)}
+            onApply={(newData) => setCvData(newData)}
+          />
         )}
 
         {/* Keyboard Shortcuts */}
