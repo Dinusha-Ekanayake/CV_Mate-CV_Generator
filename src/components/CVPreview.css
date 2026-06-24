@@ -571,9 +571,10 @@
   }
 }
 
-/* Layout: Executive */
-.layout-executive {
-  padding: 15mm 20mm;
+/* Layout: Executive — tighter side margins than classic */
+.is-paginated.layout-executive .cv-block {
+  padding-left: 18mm;
+  padding-right: 18mm;
 }
 .layout-executive .cv-name {
   text-transform: uppercase;
@@ -582,15 +583,24 @@
   padding-bottom: 10px;
   margin-bottom: 10px;
 }
+.layout-executive .single-col-header {
+  border-bottom: none;
+}
 .layout-executive .cv-section-title {
   text-transform: uppercase;
-  border-bottom: 1px solid #cbd5e1;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid #cbd5e1 !important;
   padding-bottom: 5px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  color: #0f172a;
 }
 .layout-executive .cv-item-header {
   border-left: 3px solid var(--theme-color);
   padding-left: 10px;
+}
+.cv-dark-mode.layout-executive .cv-section-title {
+  border-bottom-color: #334155 !important;
+  color: #f1f5f9;
 }
 
 /* Layout: Creative */
@@ -626,48 +636,60 @@
 }
 
 /* --- Cover Letter --- */
+/*
+  Line-height and paragraph spacing use max() so they never collapse below a
+  readable floor regardless of density setting (compact = multiplier 0.6 would
+  otherwise shrink line-height below 1.0).
+*/
 .cover-letter-body {
-  margin-top: calc(40px * var(--spacing-multiplier));
+  margin-top: max(20px, calc(40px * var(--spacing-multiplier)));
   font-size: 11pt;
-  line-height: calc(1.6 * var(--spacing-multiplier));
+  line-height: max(1.55, calc(1.7 * var(--spacing-multiplier)));
   color: #222;
   font-family: var(--body-font, inherit);
 }
 
 .cover-letter-meta {
-  margin-bottom: calc(30px * var(--spacing-multiplier));
+  margin-bottom: max(16px, calc(30px * var(--spacing-multiplier)));
   color: #333;
+  line-height: 1.6;
 }
 
 .cover-letter-recipient {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .cover-letter-subject {
-  margin-bottom: calc(18px * var(--spacing-multiplier));
+  margin-top: max(12px, calc(18px * var(--spacing-multiplier)));
+  margin-bottom: max(12px, calc(18px * var(--spacing-multiplier)));
 }
 
 .cover-letter-greeting {
-  margin-bottom: calc(14px * var(--spacing-multiplier));
+  margin-bottom: max(12px, calc(16px * var(--spacing-multiplier)));
 }
 
 .cover-letter-text {
   font-size: 11pt;
-  line-height: calc(1.6 * var(--spacing-multiplier));
+  line-height: max(1.55, calc(1.7 * var(--spacing-multiplier)));
   color: #222;
 }
 
 .cover-letter-text p {
-  margin-bottom: calc(12px * var(--spacing-multiplier));
+  margin: 0 0 max(10px, calc(14px * var(--spacing-multiplier)));
+}
+
+.cover-letter-text p:last-child {
+  margin-bottom: 0;
 }
 
 .cover-letter-signature {
-  margin-top: calc(40px * var(--spacing-multiplier));
+  margin-top: max(24px, calc(40px * var(--spacing-multiplier)));
   color: #333;
+  line-height: 1.6;
 }
 
 .cover-letter-signature-name {
-  margin-top: 24px;
+  margin-top: 22px;
   font-weight: bold;
 }
 
@@ -682,9 +704,10 @@
   color: #f8fafc;
 }
 
-/* Layout: Minimal — clean, understated, generous whitespace */
-.layout-minimal {
-  padding: calc(22mm * var(--spacing-multiplier)) calc(22mm * var(--spacing-multiplier));
+/* Layout: Minimal — extra generous whitespace side margins */
+.is-paginated.layout-minimal .cv-block {
+  padding-left: 24mm;
+  padding-right: 24mm;
 }
 .layout-minimal .single-col-header {
   border-bottom: none;
@@ -696,7 +719,7 @@
   letter-spacing: -0.5px;
 }
 .layout-minimal .cv-section-title {
-  border-bottom: none;
+  border-bottom: none !important;
   text-transform: uppercase;
   letter-spacing: 2px;
   font-size: 0.88em;
@@ -704,6 +727,333 @@
 }
 .layout-minimal .cv-item-date {
   font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Layout: Timeline
+   Coloured section titles with underline, left accent rail +
+   dots on every experience / project entry.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tighter side margins */
+.is-paginated.layout-timeline .cv-block {
+  padding-left: 16mm;
+  padding-right: 16mm;
+}
+
+.layout-timeline .single-col-header {
+  border-bottom: 2.5px solid var(--theme-color);
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+
+.layout-timeline .cv-name {
+  font-size: calc(2em * var(--font-scale));
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+/* Coloured section titles with full underline — beats the cascade */
+.layout-timeline .cv-section-title {
+  color: var(--theme-color) !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1.5px solid var(--theme-color) !important;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+/* Tighter item block gap */
+.is-paginated.layout-timeline .cv-section-item {
+  margin-bottom: calc(4px * var(--spacing-multiplier));
+}
+
+/* Timeline rail: left border on .cv-item, which sits inside the block padding */
+.layout-timeline .cv-item {
+  position: relative;
+  margin-left: 14px;
+  padding-left: 16px;
+  border-left: 2px solid color-mix(in srgb, var(--theme-color) 25%, #e2e8f0);
+  margin-bottom: calc(12px * var(--spacing-multiplier));
+}
+
+/* Dot on the rail — positioned on .cv-item's left edge */
+.layout-timeline .cv-item::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--theme-color);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--theme-color);
+}
+
+.layout-timeline .cv-item-date {
+  font-size: 0.82em;
+  color: var(--theme-color);
+  font-weight: 600;
+}
+
+.layout-timeline .cv-item-title {
+  font-weight: 700;
+}
+
+.layout-timeline .cv-item-subheader {
+  font-style: italic;
+  color: #64748b;
+  font-size: 0.88em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Layout: Compact Pro
+   Bold letter-spaced uppercase section headers, tight rows,
+   item separators — dense information-maximised layout.
+   ═══════════════════════════════════════════════════════════════ */
+
+.is-paginated.layout-compact-pro .cv-block {
+  padding-left: 16mm;
+  padding-right: 16mm;
+}
+
+/* Shrink item block gap for denser layout */
+.is-paginated.layout-compact-pro .cv-section-item {
+  margin-bottom: calc(6px * var(--spacing-multiplier));
+}
+
+.layout-compact-pro .cv-preview-container {
+  font-size: 0.92em;
+}
+
+.layout-compact-pro .single-col-header {
+  border-bottom: 2px solid #1e293b;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+
+.layout-compact-pro .cv-name {
+  font-size: calc(1.9em * var(--font-scale));
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #0f172a;
+}
+
+.layout-compact-pro .cv-title {
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--theme-color);
+  margin-top: 3px;
+}
+
+.layout-compact-pro .cv-contact-info {
+  font-size: 0.82em;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+/* Wide letter-spacing, coloured title, thin rule underneath */
+.layout-compact-pro .cv-section-title {
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.18em !important;
+  color: var(--theme-color) !important;
+  border-bottom: 1.5px solid #e2e8f0 !important;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.layout-compact-pro .cv-item {
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+  padding-bottom: calc(8px * var(--spacing-multiplier));
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.layout-compact-pro .cv-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.layout-compact-pro .cv-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.layout-compact-pro .cv-item-title {
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+.layout-compact-pro .cv-item-subheader {
+  font-size: 0.82em;
+  color: #475569;
+}
+
+.layout-compact-pro .cv-item-date {
+  font-size: 0.78em;
+  white-space: nowrap;
+  color: #475569;
+  font-weight: 500;
+}
+
+.layout-compact-pro .rich-text-content,
+.layout-compact-pro .cv-item-description {
+  font-size: 0.84em;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.layout-compact-pro .rich-text-content ul,
+.layout-compact-pro .cv-item-description ul {
+  margin: 2px 0;
+  padding-left: 16px;
+}
+
+.layout-compact-pro .rich-text-content li,
+.layout-compact-pro .cv-item-description li {
+  margin-bottom: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Layout: Modern
+   Large bold name, coloured section titles with full-width
+   accent underline, clean inline contact row.
+   ═══════════════════════════════════════════════════════════════ */
+
+.is-paginated.layout-modern .cv-block {
+  padding-left: 18mm;
+  padding-right: 18mm;
+}
+
+.layout-modern .single-col-header {
+  border-bottom: none;
+  margin-bottom: 4px;
+  padding-bottom: 0;
+}
+
+.layout-modern .cv-name {
+  font-size: calc(2.2em * var(--font-scale));
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+  line-height: 1.05;
+}
+
+.layout-modern .cv-title {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--theme-color);
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+}
+
+.layout-modern .cv-contact-info {
+  margin-top: 8px;
+  font-size: 0.82em;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #475569;
+}
+
+.layout-modern .cv-contact-link {
+  color: var(--theme-color) !important;
+}
+
+/* Coloured title + coloured full underline — beats the cascade */
+.layout-modern .cv-section-title {
+  color: var(--theme-color) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--theme-color) !important;
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+}
+
+.layout-modern .cv-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.layout-modern .cv-item-title {
+  font-size: 0.92em;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.layout-modern .cv-item-subheader {
+  font-style: italic;
+  color: #475569;
+  font-size: 0.86em;
+}
+
+.layout-modern .cv-item-date {
+  font-size: 0.82em;
+  color: var(--theme-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.layout-modern .cv-item {
+  margin-bottom: calc(14px * var(--spacing-multiplier));
+}
+
+.layout-modern .rich-text-content,
+.layout-modern .cv-item-description {
+  font-size: 0.88em;
+  line-height: 1.55;
+  margin-top: 4px;
+  color: #334155;
+}
+
+/* ─── Dark mode adaptations for new layouts ─────────────────── */
+.cv-dark-mode.layout-timeline .cv-item::before {
+  border-color: #0f172a;
+}
+.cv-dark-mode.layout-timeline .cv-item {
+  border-left-color: rgba(255, 255, 255, 0.12);
+}
+
+.cv-dark-mode.layout-compact-pro .single-col-header {
+  border-bottom-color: #e2e8f0;
+}
+.cv-dark-mode.layout-compact-pro .cv-name {
+  color: #f8fafc;
+}
+.cv-dark-mode.layout-compact-pro .cv-section-title {
+  border-bottom-color: #334155 !important;
+}
+.cv-dark-mode.layout-compact-pro .cv-item {
+  border-bottom-color: #1e293b;
+}
+.cv-dark-mode.layout-compact-pro .cv-item-subheader,
+.cv-dark-mode.layout-compact-pro .cv-item-date {
+  color: #94a3b8;
+}
+
+.cv-dark-mode.layout-modern .cv-name {
+  color: #f8fafc;
+}
+.cv-dark-mode.layout-modern .cv-item-title {
+  color: #e2e8f0;
+}
+.cv-dark-mode.layout-modern .cv-item-subheader,
+.cv-dark-mode.layout-modern .cv-contact-info {
+  color: #94a3b8;
+}
+.cv-dark-mode.layout-modern .rich-text-content,
+.cv-dark-mode.layout-modern .cv-item-description {
+  color: #cbd5e1;
 }
 
 /* --- OPTION 3: DARK MODE RESUME --- */

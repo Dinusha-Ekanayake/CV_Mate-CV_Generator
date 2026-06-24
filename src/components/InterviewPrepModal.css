@@ -15,15 +15,20 @@
   background: linear-gradient(145deg, #0d1526, #1a2440);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
-  padding: 26px 28px 22px;
+  padding: 24px 26px 20px;
   width: min(720px, 100%);
-  height: min(840px, 92vh);
+  height: min(860px, 92vh);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
   color: #e2e8f0;
   overflow: hidden;
+}
+
+/* Tighter gap once results are visible so scroll area gets maximum height */
+.iq-modal--results {
+  gap: 8px;
 }
 
 /* Header */

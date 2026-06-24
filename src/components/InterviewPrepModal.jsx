@@ -254,7 +254,7 @@ export default function InterviewPrepModal({ cvData, onClose }) {
 
   return (
     <div className="iq-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="iq-modal" role="dialog" aria-modal="true" aria-label="Interview Question Predictor">
+      <div className={`iq-modal${result ? ' iq-modal--results' : ''}`} role="dialog" aria-modal="true" aria-label="Interview Question Predictor">
 
         {/* Header */}
         <div className="iq-header">
@@ -268,19 +268,21 @@ export default function InterviewPrepModal({ cvData, onClose }) {
           <button className="iq-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </div>
 
-        {/* JD toggle */}
-        <div className="iq-jd-row">
-          <button
-            className={`iq-jd-toggle ${showJd ? 'active' : ''}`}
-            onClick={() => setShowJd(v => !v)}
-            type="button"
-          >
-            {showJd ? '− Hide Job Description' : '+ Add Job Description'}
-            <span className="iq-jd-badge">More accurate</span>
-          </button>
-        </div>
+        {/* JD toggle — hidden once results are shown to free space */}
+        {!result && (
+          <div className="iq-jd-row">
+            <button
+              className={`iq-jd-toggle ${showJd ? 'active' : ''}`}
+              onClick={() => setShowJd(v => !v)}
+              type="button"
+            >
+              {showJd ? '− Hide Job Description' : '+ Add Job Description'}
+              <span className="iq-jd-badge">More accurate</span>
+            </button>
+          </div>
+        )}
 
-        {showJd && (
+        {showJd && !result && (
           <div className="iq-jd-area">
             <label className="iq-jd-label">
               Job Description

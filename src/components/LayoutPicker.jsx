@@ -69,17 +69,86 @@ const Thumb = ({ variant, accent }) => {
           {bar(8, 56, 44, 2, g)}
         </svg>
       );
+    case 'timeline':
+      return (
+        /* Timeline: coloured name, underline section titles, timeline dots */
+        <svg viewBox="0 0 60 80" className="layout-thumb-svg">
+          <rect width="60" height="80" fill="#fff" />
+          {bar(8, 8, 30, 4, accent)}
+          {bar(8, 15, 18, 2, d)}
+          <rect x="8" y="21" width="44" height="1.5" fill={accent} />
+          {/* Section title with underline */}
+          {bar(8, 27, 22, 2, accent)}
+          <rect x="8" y="31" width="44" height="1" fill={`${accent}55`} />
+          {/* Timeline rail + dots */}
+          <rect x="12" y="35" width="1.5" height="36" fill={`${accent}33`} />
+          <circle cx="12.75" cy="38" r="2.2" fill={accent} />
+          {bar(18, 36, 26, 2, d)}{bar(18, 40, 20, 1.5, g)}{bar(18, 43, 22, 1.5, g)}
+          <circle cx="12.75" cy="52" r="2.2" fill={accent} />
+          {bar(18, 50, 26, 2, d)}{bar(18, 54, 18, 1.5, g)}{bar(18, 57, 20, 1.5, g)}
+          <circle cx="12.75" cy="66" r="2.2" fill={accent} />
+          {bar(18, 64, 26, 2, d)}{bar(18, 68, 16, 1.5, g)}
+        </svg>
+      );
+    case 'compact-pro':
+      return (
+        /* Compact: letter-spaced section headers, underline rule, dense rows */
+        <svg viewBox="0 0 60 80" className="layout-thumb-svg">
+          <rect width="60" height="80" fill="#fff" />
+          {/* Bold name + subtitle */}
+          {bar(8, 8, 28, 4, '#0f172a')}
+          {bar(8, 15, 20, 2, accent)}
+          <rect x="8" y="20" width="44" height="1.5" fill="#0f172a" />
+          {/* Spaced section title */}
+          {bar(8, 26, 30, 2, accent)}
+          <rect x="8" y="30" width="44" height="0.75" fill="#e2e8f0" />
+          {/* Item rows: title right date */}
+          {bar(8, 34, 24, 2, '#0f172a')}{bar(40, 34, 12, 2, d)}
+          {bar(8, 38, 40, 1.5, g)}{bar(8, 41, 36, 1.5, g)}
+          <rect x="8" y="46" width="44" height="0.5" fill="#f1f5f9" />
+          {bar(8, 50, 30, 2, accent)}
+          <rect x="8" y="54" width="44" height="0.75" fill="#e2e8f0" />
+          {bar(8, 58, 24, 2, '#0f172a')}{bar(40, 58, 12, 2, d)}
+          {bar(8, 62, 40, 1.5, g)}{bar(8, 65, 34, 1.5, g)}
+        </svg>
+      );
+    case 'modern':
+      return (
+        /* Modern: big name, coloured underline section titles, accent dates */
+        <svg viewBox="0 0 60 80" className="layout-thumb-svg">
+          <rect width="60" height="80" fill="#fff" />
+          {/* Large name */}
+          {bar(8, 7, 36, 5, '#0f172a')}
+          {bar(8, 15, 20, 2, accent)}
+          {/* Inline contact row */}
+          {bar(8, 21, 10, 1.5, d)}{bar(22, 21, 10, 1.5, d)}{bar(36, 21, 10, 1.5, d)}
+          {/* Coloured section title + full underline */}
+          {bar(8, 28, 22, 2, accent)}
+          <rect x="8" y="32" width="44" height="1.5" fill={accent} />
+          {/* Work entries with accent date */}
+          {bar(8, 36, 26, 2, '#0f172a')}{bar(42, 36, 10, 2, accent)}
+          {bar(8, 40, 18, 1.5, d)}
+          {bar(8, 44, 38, 1.5, g)}{bar(8, 47, 34, 1.5, g)}
+          {bar(8, 54, 22, 2, accent)}
+          <rect x="8" y="58" width="44" height="1.5" fill={accent} />
+          {bar(8, 62, 26, 2, '#0f172a')}{bar(42, 62, 10, 2, accent)}
+          {bar(8, 66, 38, 1.5, g)}{bar(8, 69, 30, 1.5, g)}
+        </svg>
+      );
     default:
       return null;
   }
 };
 
 const LAYOUTS = [
-  { id: 'single', name: 'Single Column' },
-  { id: 'two-column', name: 'Two Column' },
-  { id: 'executive', name: 'Executive' },
-  { id: 'creative', name: 'Creative' },
-  { id: 'minimal', name: 'Minimal' }
+  { id: 'single',      name: 'Classic' },
+  { id: 'two-column',  name: 'Sidebar' },
+  { id: 'executive',   name: 'Executive' },
+  { id: 'creative',    name: 'Creative' },
+  { id: 'minimal',     name: 'Minimal' },
+  { id: 'timeline',    name: 'Timeline' },
+  { id: 'compact-pro', name: 'Compact' },
+  { id: 'modern',      name: 'Modern' },
 ];
 
 const LayoutPicker = ({ value, accent, onChange }) => (

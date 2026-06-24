@@ -219,7 +219,7 @@ export default function AIPageFitModal({ cvData, onClose, onApply }) {
 
   return (
     <div className="pgf-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="pgf-modal" role="dialog" aria-modal="true" aria-label="AI Page Fit">
+      <div className={`pgf-modal${rewrite ? ' pgf-modal--results' : ''}`} role="dialog" aria-modal="true" aria-label="AI Page Fit">
 
         {/* Header */}
         <div className="pgf-header">
@@ -235,46 +235,60 @@ export default function AIPageFitModal({ cvData, onClose, onApply }) {
           <button className="pgf-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </div>
 
-        {/* Page selector */}
-        <div className="pgf-selector-section">
-          <p className="pgf-selector-label">Target page count</p>
-          <div className="pgf-page-options">
-            {PAGE_OPTIONS.map(n => (
-              <button
-                key={n}
-                className={`pgf-page-btn ${targetPages === n ? 'active' : ''}`}
-                onClick={() => { setTargetPages(n); setRewrite(null); setNewCvData(null); setError(''); }}
-              >
-                <span className="pgf-page-num">{n}</span>
-                <span className="pgf-page-label">{n === 1 ? 'page' : 'pages'}</span>
-                {n === 1 && <span className="pgf-page-tag compact">Compact</span>}
-                {n === 2 && <span className="pgf-page-tag standard">Standard</span>}
-                {n === 3 && <span className="pgf-page-tag senior">Senior</span>}
-                {n === 4 && <span className="pgf-page-tag detailed">Detailed</span>}
-              </button>
-            ))}
+        {/* Page selector — full picker before results, compact pill after */}
+        {!rewrite ? (
+          <div className="pgf-selector-section">
+            <p className="pgf-selector-label">Target page count</p>
+            <div className="pgf-page-options">
+              {PAGE_OPTIONS.map(n => (
+                <button
+                  key={n}
+                  className={`pgf-page-btn ${targetPages === n ? 'active' : ''}`}
+                  onClick={() => { setTargetPages(n); setError(''); }}
+                >
+                  <span className="pgf-page-num">{n}</span>
+                  <span className="pgf-page-label">{n === 1 ? 'page' : 'pages'}</span>
+                  {n === 1 && <span className="pgf-page-tag compact">Compact</span>}
+                  {n === 2 && <span className="pgf-page-tag standard">Standard</span>}
+                  {n === 3 && <span className="pgf-page-tag senior">Senior</span>}
+                  {n === 4 && <span className="pgf-page-tag detailed">Detailed</span>}
+                </button>
+              ))}
+            </div>
+            <div className="pgf-context-row">
+              <div className="pgf-context-item">
+                <span className="pgf-context-key">Current content</span>
+                <span className="pgf-context-val">~{currentWords} words</span>
+              </div>
+              <div className="pgf-context-item">
+                <span className="pgf-context-key">Strategy</span>
+                <span className="pgf-context-val">
+                  {targetPages === 1 ? 'Condense aggressively — strongest points only'
+                    : targetPages === 2 ? 'Condense moderately — keep key achievements'
+                    : targetPages === 3 ? 'Balance depth and brevity'
+                    : 'Expand with richer context and detail'}
+                </span>
+              </div>
+              <div className="pgf-context-item">
+                <span className="pgf-context-key">Fields rewritten</span>
+                <span className="pgf-context-val">Summary, experience bullets, project descriptions</span>
+              </div>
+            </div>
           </div>
-
-          <div className="pgf-context-row">
-            <div className="pgf-context-item">
-              <span className="pgf-context-key">Current content</span>
-              <span className="pgf-context-val">~{currentWords} words</span>
-            </div>
-            <div className="pgf-context-item">
-              <span className="pgf-context-key">Strategy</span>
-              <span className="pgf-context-val">
-                {targetPages === 1 ? 'Condense aggressively — strongest points only'
-                  : targetPages === 2 ? 'Condense moderately — keep key achievements'
-                  : targetPages === 3 ? 'Balance depth and brevity'
-                  : 'Expand with richer context and detail'}
-              </span>
-            </div>
-            <div className="pgf-context-item">
-              <span className="pgf-context-key">Fields rewritten</span>
-              <span className="pgf-context-val">Summary, experience bullets, project descriptions</span>
-            </div>
+        ) : (
+          /* Compact target reminder when results are visible */
+          <div className="pgf-target-pill">
+            <span className="pgf-target-pill-label">Target</span>
+            <span className="pgf-target-pill-val">{targetPages} {targetPages === 1 ? 'page' : 'pages'}</span>
+            <span className="pgf-target-pill-dot">·</span>
+            <span className="pgf-target-pill-strategy">
+              {targetPages === 1 ? 'Condensed aggressively'
+                : targetPages === 2 ? 'Condensed moderately'
+                : targetPages === 3 ? 'Balanced'
+                : 'Expanded with detail'}
+            </span>
           </div>
-        </div>
+        )}
 
         {/* Generate button */}
         {!rewrite && !loading && (

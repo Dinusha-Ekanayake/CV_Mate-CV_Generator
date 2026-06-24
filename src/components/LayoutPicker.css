@@ -1,48 +1,61 @@
+/* 4-column grid — all 8 cards visible without heavy scrolling in the 280px panel */
 .layout-picker {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
 }
 
 .layout-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
+  gap: 4px;
+  padding: 5px 4px 6px;
   background: rgba(255, 255, 255, 0.03);
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  min-width: 0;
 }
 
 .layout-card:hover {
-  border-color: rgba(96, 165, 250, 0.5);
-  transform: translateY(-2px);
+  border-color: rgba(96, 165, 250, 0.45);
   background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
 }
 
 .layout-card.selected {
   border-color: #3b82f6;
   background: rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .layout-thumb-svg {
   width: 100%;
   height: auto;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
   display: block;
 }
 
 .layout-card-name {
-  font-size: 0.7rem;
-  color: #94a3b8;
-  font-weight: 500;
+  font-size: 0.6rem;
+  color: #64748b;
+  font-weight: 600;
   text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .layout-card.selected .layout-card-name {
   color: #60a5fa;
+}
+
+.layout-card:hover .layout-card-name {
+  color: #94a3b8;
 }
