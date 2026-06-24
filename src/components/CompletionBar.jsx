@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-const CompletionBar = ({ cvData }) => {
+const CompletionBar = ({ cvData, compact = false }) => {
   const { pct, label } = useMemo(() => {
     const checks = [
       { done: !!cvData.personal?.name, weight: 2 },
@@ -24,11 +24,13 @@ const CompletionBar = ({ cvData }) => {
   const color = pct < 40 ? '#ef4444' : pct < 70 ? '#f59e0b' : pct < 90 ? '#3b82f6' : '#10b981';
 
   return (
-    <div className="completion-bar-wrap no-print">
-      <div className="completion-bar-header">
-        <span className="completion-label">{label}</span>
-        <span className="completion-pct" style={{ color }}>{pct}%</span>
-      </div>
+    <div className={`completion-bar-wrap no-print${compact ? ' compact' : ''}`} title={`${label} — ${pct}%`}>
+      {!compact && (
+        <div className="completion-bar-header">
+          <span className="completion-label">{label}</span>
+          <span className="completion-pct" style={{ color }}>{pct}%</span>
+        </div>
+      )}
       <div className="completion-track">
         <div className="completion-fill" style={{ width: `${pct}%`, background: color }} />
       </div>

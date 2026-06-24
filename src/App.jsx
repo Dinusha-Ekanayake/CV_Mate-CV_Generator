@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, Undo2, Redo2, FileDown, FileText, Archive, Search, Sparkles } from 'lucide-react';
+import {
+  Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud,
+  Undo2, Redo2, FileDown, FileText, Archive, Search, Sparkles,
+  Pencil, Palette, Bot, FolderDown, ChevronLeft, ChevronRight,
+  FileInput, Zap, BrainCircuit, ScanSearch, FileStack,
+  LogOut, LogIn
+} from 'lucide-react';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import './App.css';
@@ -285,38 +291,67 @@ function App() {
   // hook point is kept for future orchestration (e.g. opening a modal with context).
   const handleAIRequest = (_type, _itemId, _currentText) => {};
 
+  // Sidebar panel state: null | 'style' | 'ai' | 'export'
+  const [sidePanel, setSidePanel] = useState(null);
+  const togglePanel = (name) => setSidePanel(p => p === name ? null : name);
+
   return (
     <OnboardingGate>
       <div className="app-container">
+
+        {/* ── Top Bar ─────────────────────────────────────────── */}
         <header className="app-header no-print">
-          <div className="logo-container">
-            <img src="/logo.png" alt="CV Mate Logo" className="logo-img" />
-            <div className="logo-text-wrapper">
-              <span className="logo-text">CV <span className="accent">Mate</span></span>
-              <span className="app-subtitle">Elite Edition</span>
+          <div className="header-left">
+            <div className="logo-container">
+              <img src="/logo.png" alt="CV Mate Logo" className="logo-img" />
+              <div className="logo-text-wrapper">
+                <span className="logo-text">CV <span className="accent">Mate</span></span>
+              </div>
+            </div>
+
+            {/* Doc type toggle — always visible in header */}
+            <div className="doc-type-toggle">
+              <button
+                className={`doc-tab ${activeTab === 'resume' ? 'active' : ''}`}
+                onClick={() => setActiveTab('resume')}
+              >
+                <FileText size={13} /> Resume
+              </button>
+              <button
+                className={`doc-tab ${activeTab === 'cover-letter' ? 'active' : ''}`}
+                onClick={() => setActiveTab('cover-letter')}
+              >
+                <FileStack size={13} /> Cover Letter
+              </button>
             </div>
           </div>
 
-          <div className="app-controls">
+          <div className="header-center">
             <ProfileSwitcher
               profiles={profiles} activeProfileId={activeProfileId}
               onSelect={selectProfile} onAdd={addProfile}
               onRename={renameProfile} onDuplicate={duplicateProfile} onDelete={deleteProfile}
             />
+          </div>
 
-            {/* Auth Group */}
+          <div className="header-right">
+            {/* Cloud / auth */}
             <div className="auth-group glass-pill">
               {currentUser ? (
                 <>
                   <div className="auth-user-info">
-                    {isSyncing ? <Cloud size={14} className="sync-pulse" color="#06b6d4" /> : <Cloud size={14} color="#10b981" />}
+                    {isSyncing
+                      ? <Cloud size={13} className="sync-pulse" color="#06b6d4" />
+                      : <Cloud size={13} color="#10b981" />}
                     <span className="auth-email">
                       {(currentUser.email || currentUser.displayName || 'Account').split('@')[0]}
                     </span>
                   </div>
                   <AutosaveIndicator profilesState={profilesState} />
                   <div className="divider-vertical" />
-                  <button onClick={() => signOut(auth)} className="btn-signout">Sign Out</button>
+                  <button onClick={() => signOut(auth)} className="btn-signout" title="Sign out">
+                    <LogOut size={13} />
+                  </button>
                 </>
               ) : (
                 <button onClick={() => signInWithPopup(auth, provider)} className="btn-signin">
@@ -326,159 +361,255 @@ function App() {
               )}
             </div>
 
-            {/* Actions group */}
-            <div className="actions-group glass-panel-sm">
-              <button onClick={loadSample} className="action-btn" title="Load Sample Data (shows all features)">
-                <Wand2 size={14} color="#a855f7" className="btn-icon" /> <span>Sample</span>
+            {/* Undo / Redo */}
+            <div className="undo-redo-group glass-panel-sm">
+              <button onClick={undo} disabled={!canUndo} className="hdr-icon-btn" title="Undo (Ctrl+Z)">
+                <Undo2 size={15} />
               </button>
-              <button onClick={() => fileInputRef.current.click()} className="action-btn" title="Import JSON backup">
-                <Upload size={14} color="#3b82f6" className="btn-icon" /> <span>Import</span>
-              </button>
-              <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
-              <button onClick={() => setShowCVImport(true)} className="action-btn" title="Import CV from PDF or LinkedIn text using AI">
-                <Sparkles size={14} color="#a855f7" className="btn-icon" /> <span>AI Import</span>
-              </button>
-              <button onClick={handleExport} className="action-btn" title="Export JSON (Ctrl+E)">
-                <Download size={14} color="#3b82f6" className="btn-icon" /> <span>Export</span>
-              </button>
-              <button onClick={handleExportDocx} className="action-btn" title="Export as Word DOCX (Ctrl+W)">
-                <FileText size={14} color="#06b6d4" className="btn-icon" /> <span>DOCX</span>
-              </button>
-              <button onClick={handleExportZip} className="action-btn" title="Export all profiles as ZIP">
-                <Archive size={14} color="#f59e0b" className="btn-icon" /> <span>ZIP</span>
-              </button>
-              <button onClick={clearForm} className="action-btn action-btn-danger" title="Clear All Data">
-                <Trash2 size={14} className="btn-icon" /> <span>Clear</span>
+              <button onClick={redo} disabled={!canRedo} className="hdr-icon-btn" title="Redo (Ctrl+Shift+Z)">
+                <Redo2 size={15} />
               </button>
             </div>
 
-            {/* Primary group */}
-            <div className="primary-group">
-              <div className="undo-redo-group glass-panel-sm">
-                <button onClick={undo} disabled={!canUndo} className="action-btn icon-only" title="Undo (Ctrl+Z)">
-                  <Undo2 size={15} />
-                </button>
-                <button onClick={redo} disabled={!canRedo} className="action-btn icon-only" title="Redo (Ctrl+Shift+Z)">
-                  <Redo2 size={15} />
-                </button>
-              </div>
-              {activeTab === 'resume' && (
-                <button onClick={() => setShowJDMatcher(true)} className="btn btn-secondary btn-sm" title="Job Description Matcher (AI)">
-                  <Search size={14} /> JD Match
-                </button>
-              )}
-              {activeTab === 'resume' && (
-                <button onClick={() => setShowInterviewPrep(true)} className="btn btn-secondary btn-sm" title="Predict likely interview questions (AI)">
-                  <Sparkles size={14} /> Interview Prep
-                </button>
-              )}
-              <button onClick={handleAutoFit} className="btn btn-secondary btn-sm">
-                <Maximize size={14} /> Auto-Fit
-              </button>
-              {activeTab === 'resume' && (
-                <button onClick={handleFitOnePage} className="btn btn-secondary btn-sm" title="Auto-adjust density to fit one A4 page">
-                  <FileDown size={14} /> Fit 1 Page
-                </button>
-              )}
-              {activeTab === 'resume' && (
-                <button onClick={() => setShowPageFit(true)} className="btn btn-secondary btn-sm" title="AI rewrites content to hit an exact page count">
-                  <FileText size={14} /> AI Page Fit
-                </button>
-              )}
+            {/* Auto-fit zoom */}
+            <button onClick={handleAutoFit} className="hdr-icon-btn glass-panel-sm" title="Auto-fit zoom">
+              <Maximize size={15} />
+            </button>
 
-              <button onClick={handlePrint} className="btn btn-primary btn-sm print-btn" title="Print / PDF (Ctrl+P)">
-                <Printer size={16} /> Print / PDF
-              </button>
-            </div>
+            {/* Print — always prominent */}
+            <button onClick={handlePrint} className="btn-print" title="Print / Save as PDF (Ctrl+P)">
+              <Printer size={15} /> Print / PDF
+            </button>
           </div>
         </header>
 
-        {/* Mobile View Switcher */}
+        {/* ── Mobile tab switcher ──────────────────────────────── */}
         <div className="mobile-view-toggle no-print">
-          <button className={`mobile-tab ${mobileView === 'form' ? 'active' : ''}`} onClick={() => setMobileView('form')}>✏️ Edit</button>
-          <button className={`mobile-tab ${mobileView === 'preview' ? 'active' : ''}`} onClick={() => setMobileView('preview')}>👁️ Preview</button>
+          <button className={`mobile-tab ${mobileView === 'form' ? 'active' : ''}`} onClick={() => setMobileView('form')}>Edit</button>
+          <button className={`mobile-tab ${mobileView === 'preview' ? 'active' : ''}`} onClick={() => setMobileView('preview')}>Preview</button>
         </div>
 
-        <main className="main-content">
-          <section 
-            className={`form-section no-print ${mobileView === 'preview' ? 'mobile-hidden' : ''}`}
-            style={{ width: `${formWidth}px` }}
-          >
-            {/* Doc Type Toggle */}
-            <div className="doc-toggle" style={{ display: 'flex', gap: '10px', marginBottom: '12px', background: 'rgba(15,23,42,0.4)', padding: '6px', borderRadius: '12px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <button className="action-btn" onClick={() => setActiveTab('resume')}
-                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: activeTab === 'resume' ? 'rgba(59,130,246,0.2)' : 'transparent', color: activeTab === 'resume' ? '#60a5fa' : '#94a3b8', fontWeight: activeTab === 'resume' ? 600 : 400, cursor: 'pointer', transition: 'all 0.2s' }}>
-                📄 Resume / CV
+        {/* ── Body: sidebar + form + preview ──────────────────── */}
+        <div className="app-body">
+
+          {/* ── Left sidebar icon rail ─────────────────────────── */}
+          <nav className="sidebar-rail no-print" aria-label="Tools">
+            <div className="rail-top">
+              <button
+                className={`rail-btn ${sidePanel === 'style' ? 'active' : ''}`}
+                onClick={() => togglePanel('style')}
+                title="Appearance"
+              >
+                <Palette size={18} />
+                <span>Style</span>
               </button>
-              <button className="action-btn" onClick={() => setActiveTab('cover-letter')}
-                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: activeTab === 'cover-letter' ? 'rgba(59,130,246,0.2)' : 'transparent', color: activeTab === 'cover-letter' ? '#60a5fa' : '#94a3b8', fontWeight: activeTab === 'cover-letter' ? 600 : 400, cursor: 'pointer', transition: 'all 0.2s' }}>
-                💌 Cover Letter
+              <button
+                className={`rail-btn ${sidePanel === 'ai' ? 'active' : ''}`}
+                onClick={() => togglePanel('ai')}
+                title="AI Tools"
+              >
+                <Bot size={18} />
+                <span>AI</span>
+              </button>
+              <button
+                className={`rail-btn ${sidePanel === 'export' ? 'active' : ''}`}
+                onClick={() => togglePanel('export')}
+                title="Export & Data"
+              >
+                <FolderDown size={18} />
+                <span>Export</span>
               </button>
             </div>
+            <div className="rail-bottom">
+              <CompletionBar cvData={cvData} compact />
+            </div>
+          </nav>
 
-            {activeTab === 'resume' && <CompletionBar cvData={cvData} />}
+          {/* ── Slide-out panels ──────────────────────────────── */}
+          {sidePanel && (
+            <aside className="side-panel no-print" aria-label={sidePanel}>
+              <div className="side-panel-header">
+                <span className="side-panel-title">
+                  {sidePanel === 'style'  && <><Palette size={14} /> Appearance</>}
+                  {sidePanel === 'ai'     && <><Bot size={14} /> AI Tools</>}
+                  {sidePanel === 'export' && <><FolderDown size={14} /> Export & Data</>}
+                </span>
+                <button className="side-panel-close" onClick={() => setSidePanel(null)} aria-label="Close panel">
+                  <ChevronLeft size={16} />
+                </button>
+              </div>
 
-            {activeTab === 'resume' && (
-              <Suspense fallback={null}>
-                <ATSAnalyzer cvData={cvData} />
-              </Suspense>
-            )}
+              <div className="side-panel-body">
 
-            <SettingsPanel
-              settings={settings} setSettings={setSettings}
-              activeTab={activeTab} sectionOrder={settings.sectionOrder}
-              onMoveSection={moveSection} onTogglePageBreak={togglePageBreak}
+                {/* ── Style panel ───────────────────────────────── */}
+                {sidePanel === 'style' && (
+                  <SettingsPanel
+                    settings={settings} setSettings={setSettings}
+                    activeTab={activeTab} sectionOrder={settings.sectionOrder}
+                    onMoveSection={moveSection} onTogglePageBreak={togglePageBreak}
+                  />
+                )}
+
+                {/* ── AI panel ──────────────────────────────────── */}
+                {sidePanel === 'ai' && activeTab === 'resume' && (
+                  <div className="ai-tools-panel">
+                    <p className="ai-tools-intro">
+                      AI-powered tools that read your CV and help you get more interviews.
+                    </p>
+
+                    <div className="ai-tool-card" onClick={() => { setShowJDMatcher(true); setSidePanel(null); }}>
+                      <span className="ai-tool-icon" style={{ background: 'rgba(59,130,246,0.12)', color: '#60a5fa' }}><ScanSearch size={18} /></span>
+                      <div>
+                        <div className="ai-tool-name">JD Matcher</div>
+                        <div className="ai-tool-desc">Score your CV against a job description and find keyword gaps</div>
+                      </div>
+                      <ChevronRight size={15} className="ai-tool-arrow" />
+                    </div>
+
+                    <div className="ai-tool-card" onClick={() => { setShowInterviewPrep(true); setSidePanel(null); }}>
+                      <span className="ai-tool-icon" style={{ background: 'rgba(168,85,247,0.12)', color: '#c084fc' }}><BrainCircuit size={18} /></span>
+                      <div>
+                        <div className="ai-tool-name">Interview Prep</div>
+                        <div className="ai-tool-desc">Predict likely interview questions grouped by type with hints</div>
+                      </div>
+                      <ChevronRight size={15} className="ai-tool-arrow" />
+                    </div>
+
+                    <div className="ai-tool-card" onClick={() => { setShowPageFit(true); setSidePanel(null); }}>
+                      <span className="ai-tool-icon" style={{ background: 'rgba(6,182,212,0.12)', color: '#22d3ee' }}><FileStack size={18} /></span>
+                      <div>
+                        <div className="ai-tool-name">Page Fit</div>
+                        <div className="ai-tool-desc">Rewrite content to hit an exact page count (1–4 pages)</div>
+                      </div>
+                      <ChevronRight size={15} className="ai-tool-arrow" />
+                    </div>
+
+                    <div className="ai-tool-card" onClick={() => { setShowCVImport(true); setSidePanel(null); }}>
+                      <span className="ai-tool-icon" style={{ background: 'rgba(16,185,129,0.12)', color: '#34d399' }}><FileInput size={18} /></span>
+                      <div>
+                        <div className="ai-tool-name">CV Import</div>
+                        <div className="ai-tool-desc">Paste LinkedIn text or upload a PDF — AI fills all fields</div>
+                      </div>
+                      <ChevronRight size={15} className="ai-tool-arrow" />
+                    </div>
+
+                    <div className="ai-panel-divider" />
+
+                    <p className="ai-tools-section-label">Inline CV analysis</p>
+                    <Suspense fallback={<div className="lazy-fallback" style={{ padding: '16px 0' }}>Loading…</div>}>
+                      <ATSAnalyzer cvData={cvData} />
+                    </Suspense>
+                  </div>
+                )}
+
+                {sidePanel === 'ai' && activeTab === 'cover-letter' && (
+                  <div className="ai-tools-panel">
+                    <p className="ai-tools-intro">AI tools for your cover letter are inside the Cover Letter editor — look for the Generate with AI button.</p>
+                  </div>
+                )}
+
+                {/* ── Export panel ───────────────────────────────── */}
+                {sidePanel === 'export' && (
+                  <div className="export-panel">
+                    <p className="export-section-label">Import</p>
+                    <button className="export-row-btn" onClick={() => { setShowCVImport(true); setSidePanel(null); }}>
+                      <Sparkles size={15} color="#a855f7" />
+                      <div><div className="erb-name">AI Import</div><div className="erb-desc">From PDF or LinkedIn text</div></div>
+                    </button>
+                    <button className="export-row-btn" onClick={() => fileInputRef.current.click()}>
+                      <Upload size={15} color="#3b82f6" />
+                      <div><div className="erb-name">Import JSON</div><div className="erb-desc">Restore a previous backup</div></div>
+                    </button>
+                    <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
+
+                    <p className="export-section-label">Export</p>
+                    <button className="export-row-btn" onClick={handleExport}>
+                      <Download size={15} color="#3b82f6" />
+                      <div><div className="erb-name">Export JSON</div><div className="erb-desc">Backup all CV data</div></div>
+                    </button>
+                    <button className="export-row-btn" onClick={handleExportDocx}>
+                      <FileText size={15} color="#06b6d4" />
+                      <div><div className="erb-name">Export DOCX</div><div className="erb-desc">Word document format</div></div>
+                    </button>
+                    <button className="export-row-btn" onClick={handleExportZip}>
+                      <Archive size={15} color="#f59e0b" />
+                      <div><div className="erb-name">Export ZIP</div><div className="erb-desc">All profiles as a bundle</div></div>
+                    </button>
+
+                    <p className="export-section-label">Data</p>
+                    <button className="export-row-btn" onClick={() => { loadSample(); setSidePanel(null); }}>
+                      <Wand2 size={15} color="#a855f7" />
+                      <div><div className="erb-name">Load Sample</div><div className="erb-desc">Demo all features with sample data</div></div>
+                    </button>
+                    <button className="export-row-btn export-row-danger" onClick={clearForm}>
+                      <Trash2 size={15} />
+                      <div><div className="erb-name">Clear Profile</div><div className="erb-desc">Wipe all data in this profile</div></div>
+                    </button>
+
+                    <p className="export-section-label">View</p>
+                    <button className="export-row-btn" onClick={handleFitOnePage}>
+                      <FileDown size={15} color="#10b981" />
+                      <div><div className="erb-name">Fit 1 Page</div><div className="erb-desc">Auto-adjust density to one page</div></div>
+                    </button>
+
+                    <div className="export-footer">
+                      <span>Press <kbd>?</kbd> for all keyboard shortcuts</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </aside>
+          )}
+
+          {/* ── Form pane ────────────────────────────────────────── */}
+          <main className="main-content">
+            <section
+              className={`form-section no-print ${mobileView === 'preview' ? 'mobile-hidden' : ''}`}
+              style={{ width: `${formWidth}px` }}
+            >
+              {activeTab === 'resume' ? (
+                <CVForm cvData={cvData} setCvData={setCvData} onAIRequest={handleAIRequest} />
+              ) : (
+                <Suspense fallback={<div className="lazy-fallback">Loading…</div>}>
+                  <CoverLetterForm cvData={cvData} setCvData={setCvData} />
+                </Suspense>
+              )}
+
+              <footer className="app-credit no-print">
+                © Dinusha Ekanayake
+              </footer>
+            </section>
+
+            <div
+              className={`resizer no-print ${isResizing ? 'active' : ''}`}
+              onMouseDown={() => setIsResizing(true)}
             />
 
-            {activeTab === 'resume' ? (
-              <CVForm cvData={cvData} setCvData={setCvData} onAIRequest={handleAIRequest} />
-            ) : (
-              <Suspense fallback={<div className="lazy-fallback">Loading…</div>}>
-                <CoverLetterForm cvData={cvData} setCvData={setCvData} />
-              </Suspense>
-            )}
+            <section className={`preview-section ${mobileView === 'form' ? 'mobile-hidden' : ''}`}>
+              {activeTab === 'resume' ? (
+                <CVPreview cvData={cvData} settings={settings} />
+              ) : (
+                <Suspense fallback={<div className="lazy-fallback">Loading…</div>}>
+                  <CoverLetterPreview cvData={cvData} settings={settings} />
+                </Suspense>
+              )}
+            </section>
+          </main>
+        </div>
 
-            <footer className="app-credit no-print">
-              Developed by <span className="app-credit-name">© Dinusha Ekanayake</span>
-              <span style={{ marginLeft: '10px', color: '#475569', fontSize: '0.72rem' }}>Press ? for shortcuts</span>
-            </footer>
-          </section>
-
-          <div 
-            className={`resizer no-print ${mobileView !== 'form' && mobileView !== 'preview' ? '' : 'mobile-hidden'} ${isResizing ? 'active' : ''}`}
-            onMouseDown={() => setIsResizing(true)}
-          />
-
-          <section className={`preview-section ${mobileView === 'form' ? 'mobile-hidden' : ''}`}>
-            {activeTab === 'resume' ? (
-              <CVPreview cvData={cvData} settings={settings} />
-            ) : (
-              <Suspense fallback={<div className="lazy-fallback">Loading…</div>}>
-                <CoverLetterPreview cvData={cvData} settings={settings} />
-              </Suspense>
-            )}
-          </section>
-        </main>
-
-        {/* JD Matcher Modal */}
+        {/* ── Modals ───────────────────────────────────────────── */}
         {showJDMatcher && (
           <JDMatcherModal cvData={cvData} onClose={() => setShowJDMatcher(false)} />
         )}
-
-        {/* AI CV Import Modal */}
         {showCVImport && (
           <CVImportModal
             onClose={() => setShowCVImport(false)}
             onImport={(data) => { setCvData(data); setShowCVImport(false); }}
           />
         )}
-
-        {/* Interview Question Predictor */}
         {showInterviewPrep && (
           <InterviewPrepModal cvData={cvData} onClose={() => setShowInterviewPrep(false)} />
         )}
-
-        {/* AI Page Fit */}
         {showPageFit && (
           <AIPageFitModal
             cvData={cvData}
@@ -487,13 +618,11 @@ function App() {
           />
         )}
 
-        {/* Keyboard Shortcuts */}
         <KeyboardShortcuts
           onUndo={undo} onRedo={redo}
           onPrint={handlePrint} onExport={handleExport}
           onDocx={handleExportDocx}
         />
-
         <UpdateToast />
       </div>
     </OnboardingGate>
