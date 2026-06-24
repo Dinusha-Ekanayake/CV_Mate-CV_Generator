@@ -306,3 +306,46 @@
 }
 .order-arrow:hover:not(:disabled) { background: #475569; }
 .order-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Mobile ─────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .settings-panel-v2 {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .settings-group-body {
+    gap: 12px;
+    padding: 4px 10px 12px;
+  }
+
+  /* Segmented controls: let buttons wrap */
+  .seg-control {
+    flex-wrap: wrap;
+  }
+
+  .seg-btn {
+    font-size: 0.75rem;
+    padding: 6px;
+    min-width: 0;
+  }
+
+  /* Palette: slightly smaller swatches */
+  .palette-swatch {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Section order: tighter */
+  .section-order-item {
+    padding: 6px 8px;
+  }
+
+  .section-order-name {
+    font-size: 0.8rem;
+  }
+
+  .page-break-chip {
+    display: none; /* hide page-break chip on mobile to save space */
+  }
+}

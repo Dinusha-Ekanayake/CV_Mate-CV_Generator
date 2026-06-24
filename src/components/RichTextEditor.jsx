@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
 import { legacyToHtml } from '../utils/richText';
 import './MarkdownToolbar.css'; // We'll reuse the toolbar styles for now
 
@@ -44,6 +45,13 @@ const RichTextEditor = ({ value, onChange, placeholder }) => {
         <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'italic')} title="Italic (Ctrl+I)" style={{fontStyle: 'italic'}}>I</button>
         <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'underline')} title="Underline (Ctrl+U)" style={{textDecoration: 'underline'}}>U</button>
         
+        <div className="md-divider"></div>
+        
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'justifyLeft')} title="Align Left"><AlignLeft size={14} /></button>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'justifyCenter')} title="Align Center"><AlignCenter size={14} /></button>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'justifyRight')} title="Align Right"><AlignRight size={14} /></button>
+        <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'justifyFull')} title="Justify"><AlignJustify size={14} /></button>
+
         <div className="md-divider"></div>
         
         <button type="button" className="md-btn" onMouseDown={(e) => handleAction(e, 'insertUnorderedList')} title="Bullet List">• List</button>

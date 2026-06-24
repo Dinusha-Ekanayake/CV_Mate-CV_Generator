@@ -25,12 +25,11 @@
   min-height: 297mm;
   background-color: white;
   color: #111827;
-  /* Base font size scales with the user's font-size control; line-height stays a
-     unitless multiplier so it auto-tracks the font size, and letter-spacing is
-     derived from the scale for balanced spacing at any size. */
-  font-size: calc(16px * var(--font-scale, 1));
-  line-height: calc(1.5 * var(--spacing-multiplier));
-  letter-spacing: calc((var(--font-scale, 1) - 1) * 0.15px);
+  /* Base font size scales with the user's font-size control; line-height scales
+     gently around 1.6, and letter-spacing is derived from the scale for balanced spacing. */
+  font-size: calc(15px * var(--font-scale, 1));
+  line-height: calc(1.2 + (0.4 * var(--spacing-multiplier)));
+  letter-spacing: calc((var(--font-scale, 1) - 1) * 0.5px);
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
@@ -91,8 +90,9 @@
 }
 
 .cv-preview-container.is-paginated .cv-block {
-  padding-left: calc(20mm * var(--spacing-multiplier));
-  padding-right: calc(20mm * var(--spacing-multiplier));
+  padding-left: 20mm;
+  padding-right: 20mm;
+  display: flow-root; /* strict margin containment for pagination math */
 }
 
 .cv-preview-container.is-paginated .cv-section-head {
@@ -118,11 +118,11 @@
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
 }
-.layout-creative .page-sheet-sidebar {
+.page-sheet-sidebar.is-creative {
   background: var(--theme-color);
   border-right: none;
 }
-.cv-dark-mode .page-sheet-sidebar {
+.page-sheet-sidebar.is-dark {
   background: #1e293b;
   border-right-color: #334155;
 }
@@ -145,7 +145,7 @@
   z-index: 2;
   background: transparent;
   border-right: none;
-  padding: calc(18mm * var(--spacing-multiplier)) 10mm;
+  padding: 0 10mm; /* paddingTop set inline via React for sync with main column */
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -160,8 +160,8 @@
 
 /* In two-column, block side padding is relative to the main column, not the page. */
 .is-paginated.is-two-col .cv-block {
-  padding-left: calc(12mm * var(--spacing-multiplier));
-  padding-right: calc(12mm * var(--spacing-multiplier));
+  padding-left: 14mm;
+  padding-right: 14mm;
 }
 
 .is-paginated.is-two-col .single-col-header {
@@ -182,7 +182,7 @@
   color: #fff;
 }
 
-.cv-dark-mode .page-sheet {
+.page-sheet.is-dark {
   background: #0f172a;
 }
 
@@ -209,7 +209,7 @@
 
 /* Layouts */
 .layout-single {
-  padding: calc(20mm * var(--spacing-multiplier));
+  padding: 20mm;
 }
 
 .layout-two-column {
@@ -221,14 +221,14 @@
 .cv-sidebar {
   width: 65mm;
   flex-shrink: 0;
-  padding: calc(20mm * var(--spacing-multiplier)) 10mm;
+  padding: 20mm 10mm;
   border-right: 1px solid #e2e8f0;
   background: transparent !important;
 }
 
 .cv-main-content {
   flex: 1;
-  padding: calc(20mm * var(--spacing-multiplier));
+  padding: 20mm;
 }
 
 /* Typography & Theming */
@@ -699,7 +699,7 @@
   border-bottom: none;
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-size: 0.95rem;
+  font-size: 0.88em;
   color: var(--theme-color);
 }
 .layout-minimal .cv-item-date {
@@ -751,4 +751,510 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #f1f5f9;
+}
+
+.cv-dark-mode .cv-tech-stack {
+  color: #94a3b8;
+}
+
+.cv-dark-mode .cv-item-location {
+  color: #64748b;
+}
+
+/* ── Divider Styles ────────────────────────────────────── */
+.cv-section-title {
+  border-bottom-style: var(--divider-style, solid);
+}
+.cv-preview-container[style*="--divider-style: none"] .cv-section-title {
+  border-bottom: none;
+}
+
+/* ── Centered Header ────────────────────────────────────── */
+.header-centered {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.cv-contact-info.header-centered {
+  justify-content: center;
+}
+
+.cv-photo-centered {
+  margin: 0 auto 16px auto;
+}
+
+/* ── Contact Links ────────────────────────────────────── */
+.cv-contact-link {
+  color: inherit;
+  text-decoration: none;
+}
+.cv-contact-link:hover {
+  text-decoration: underline;
+  color: var(--theme-color);
+}
+.cv-dark-mode .cv-contact-link {
+  color: #cbd5e1;
+}
+.cv-dark-mode .cv-contact-link:hover {
+  color: var(--theme-color);
+}
+
+/* ── Project Link ─────────────────────────────────────── */
+.cv-project-link {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.8em;
+  color: var(--theme-color);
+  text-decoration: none;
+  vertical-align: middle;
+  transition: opacity 0.2s;
+}
+.cv-project-link:hover { opacity: 0.7; }
+
+/* ── Experience Location ──────────────────────────────── */
+.cv-item-location {
+  font-weight: 400;
+  color: #94a3b8;
+  font-size: 0.9em;
+}
+
+/* ── Certifications ──────────────────────────────────── */
+.cv-cert-item .cv-item-title {
+  font-weight: 600;
+}
+
+/* ── Languages Grid ──────────────────────────────────── */
+.cv-languages-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(8px * var(--spacing-multiplier)) calc(16px * var(--spacing-multiplier));
+}
+
+.cv-language-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cv-language-name {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #1e293b;
+}
+
+.cv-dark-mode .cv-language-name {
+  color: #f1f5f9;
+}
+
+.cv-language-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ── Awards ──────────────────────────────────────────── */
+.cv-award-item .cv-item-title {
+  font-weight: 600;
+}
+
+/* ── Skill Bars ──────────────────────────────────────── */
+.cv-skill-group.bars-mode {
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+}
+
+.skill-bar-track {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.cv-dark-mode .skill-bar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.skill-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--theme-color);
+  transition: width 0.4s ease;
+}
+
+.cv-sidebar .skill-bar-track {
+  background: rgba(255, 255, 255, 0.15);
+}
+.cv-sidebar .skill-bar-fill {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — CV Preview Wrapper & Paper Scaling
+   ═══════════════════════════════════════════════════════════ */
+
+/* Zoom controls: compact on small screens */
+.zoom-controls {
+  transition: opacity 0.2s;
+  user-select: none;
+}
+
+/* Wrapper: always fills its parent */
+.cv-preview-wrapper {
+  min-width: 0;
+}
+
+/* A4 paper at zoom=1 is 210mm wide (~794px on screen).
+   On tablet/mobile we let the user scroll horizontally,
+   but add a min-width so the page is always readable. */
+@media (max-width: 767px) {
+  .cv-preview-wrapper {
+    padding: 8px 0 !important;
+    align-items: flex-start !important;
+  }
+
+  /* Zoom controls: make full-width, centred */
+  .zoom-controls {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    margin: 0 auto 12px !important;
+    width: fit-content;
+  }
+
+  /* The page-stack should be scrollable at its natural width;
+     wrap it in a horizontal-scrolling container via the preview-section in App.css */
+  .scalable-paper {
+    /* Override any lingering zoom; let the user scroll on mobile instead */
+    transform: none !important;
+    width: max-content;
+  }
+
+  /* Page-sheet labels: hide on very small screens */
+  .page-sheet-label {
+    display: none !important;
+  }
+
+  /* CV item header: allow wrapping so date doesn't overflow */
+  .cv-item-header {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .cv-item-date {
+    flex-shrink: 0;
+  }
+
+  /* Contact info: allow tighter wrapping */
+  .cv-contact-info {
+    gap: 4px 8px;
+    font-size: 0.8em;
+  }
+
+  /* Single-column header: stack on tiny screens inside the paper */
+  .single-col-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* Phone-width preview: automatically scale down to fit without scrolling */
+@media (max-width: 480px) {
+  .scalable-paper {
+    /* Scale A4 (794px) to fit within ~380px viewport → ~0.48 */
+    transform: scale(0.48) !important;
+    transform-origin: top left !important;
+    margin-bottom: calc(-297mm * 0.52) !important; /* collapse dead space */
+  }
+
+  .cv-preview-wrapper {
+    overflow-x: hidden !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW CUSTOMIZATION RULES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Group C: Name case & typography ───────────────────────── */
+.cv-name {
+  text-transform: var(--name-text-transform, none);
+  font-variant: var(--name-font-variant, normal);
+  letter-spacing: var(--letter-spacing, 0em);
+}
+
+.cv-preview-container {
+  line-height: var(--line-height-body, 1.5);
+  letter-spacing: var(--letter-spacing, 0em);
+}
+
+/* Only apply custom letter-spacing to body text, not the name */
+.cv-title, .cv-summary-text, .cv-item, .cv-contact-info {
+  letter-spacing: var(--letter-spacing, 0em);
+}
+
+/* ── Group E: Section title font size ──────────────────────── */
+.cv-section-title {
+  font-size: var(--section-title-size, 0.88em);
+}
+
+/* ── Group A: Accent line weight ───────────────────────────── */
+.single-col-header {
+  border-bottom-width: var(--accent-line-weight, 3px);
+}
+.cv-section-title {
+  border-bottom-width: var(--accent-line-weight, 1px);
+}
+
+/* ── Group A: Accent line position — Left bar ──────────────── */
+.accent-left .cv-section-title,
+.accent-both .cv-section-title {
+  border-bottom: none;
+  border-left: var(--accent-line-weight, 3px) solid var(--theme-color);
+  padding-left: 10px;
+  padding-bottom: 0;
+  margin-bottom: calc(8px * var(--spacing-multiplier));
+}
+
+/* The "both" variant keeps a thin bottom line AND left bar */
+.accent-both .cv-section-title {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: calc(4px * var(--spacing-multiplier));
+}
+
+/* ── Group A: Header Background ────────────────────────────── */
+
+/* Solid band */
+.header-bg-solid .single-col-header {
+  background: var(--theme-color);
+  padding: 18px 20px;
+  margin: -20px -20px 20px -20px; /* bleed into layout padding */
+  border-bottom: none;
+}
+.header-bg-solid .cv-name,
+.header-bg-solid .cv-title {
+  color: #fff;
+}
+.header-bg-solid .cv-contact-info,
+.header-bg-solid .cv-contact-info span {
+  color: rgba(255,255,255,0.85);
+}
+.header-bg-solid .bullet { color: rgba(255,255,255,0.5); }
+
+/* Gradient band */
+.header-bg-gradient .single-col-header {
+  background: linear-gradient(135deg, var(--theme-color), rgba(0,0,0,0.6));
+  padding: 18px 20px;
+  margin: -20px -20px 20px -20px;
+  border-bottom: none;
+}
+.header-bg-gradient .cv-name,
+.header-bg-gradient .cv-title {
+  color: #fff;
+}
+.header-bg-gradient .cv-contact-info,
+.header-bg-gradient .cv-contact-info span {
+  color: rgba(255,255,255,0.85);
+}
+.header-bg-gradient .bullet { color: rgba(255,255,255,0.5); }
+
+/* Full-bleed: extends to paper edges (no side padding) */
+.header-bg-full-bleed .single-col-header {
+  background: var(--theme-color);
+  padding: 22px 20mm;
+  margin: -20mm -20mm 20mm -20mm;
+  border-bottom: none;
+  border-radius: 0;
+}
+.header-bg-full-bleed .cv-name,
+.header-bg-full-bleed .cv-title {
+  color: #fff;
+}
+.header-bg-full-bleed .cv-contact-info,
+.header-bg-full-bleed .cv-contact-info span {
+  color: rgba(255,255,255,0.85);
+}
+.header-bg-full-bleed .bullet { color: rgba(255,255,255,0.5); }
+
+/* Explicit text color overrides */
+.header-text-white .single-col-header .cv-name,
+.header-text-white .single-col-header .cv-title,
+.header-text-white .single-col-header .cv-contact-info span,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-section-title,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-contact-list,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group strong,
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group div {
+  color: #fff !important;
+  border-bottom-color: rgba(255, 255, 255, 0.4) !important;
+}
+.header-text-white.layout-creative.is-two-col .cv-sidebar-content .skill-tag {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+}
+
+.header-text-dark .single-col-header .cv-name,
+.header-text-dark .single-col-header .cv-title,
+.header-text-dark .single-col-header .cv-contact-info span,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-section-title,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-contact-list,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group strong,
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .cv-skill-group div {
+  color: #0f172a !important;
+  border-bottom-color: rgba(15, 23, 42, 0.3) !important;
+}
+.header-text-dark.layout-creative.is-two-col .cv-sidebar-content .skill-tag {
+  background: rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+}
+
+/* ── Group B: Item Card Styles ─────────────────────────────── */
+
+/* Border card */
+.item-card-border .cv-item {
+  border: 1px solid #e2e8f0;
+  border-radius: var(--corner-radius, 4px);
+  padding: calc(10px * var(--spacing-multiplier)) calc(12px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+}
+.cv-dark-mode.item-card-border .cv-item {
+  border-color: #334155;
+}
+
+/* Shadow card */
+.item-card-shadow .cv-item {
+  border-radius: var(--corner-radius, 4px);
+  padding: calc(10px * var(--spacing-multiplier)) calc(12px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+}
+.cv-dark-mode.item-card-shadow .cv-item {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* Pill card */
+.item-card-pill .cv-item {
+  border: 2px solid var(--theme-color);
+  border-radius: 12px;
+  padding: calc(10px * var(--spacing-multiplier)) calc(16px * var(--spacing-multiplier));
+  margin-bottom: calc(10px * var(--spacing-multiplier));
+}
+
+/* ── Group D: Date Style ───────────────────────────────────── */
+
+/* Pill date */
+.date-style-pill .cv-item-date {
+  background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+  color: var(--theme-color);
+  border: 1px solid color-mix(in srgb, var(--theme-color) 30%, transparent);
+  padding: 1px 9px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Icon date (📅 prefix) */
+.date-style-icon .cv-item-date::before {
+  content: '📅 ';
+  font-size: 0.85em;
+}
+
+/* ── Group D: Contact Layout ───────────────────────────────── */
+
+/* Stacked (each item on its own line) */
+.contact-stacked .cv-contact-info {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.contact-stacked .cv-contact-info .bullet { display: none; }
+
+/* Grid (two-column contact grid) */
+.contact-grid .cv-contact-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 12px;
+}
+.contact-grid .cv-contact-info .bullet { display: none; }
+
+/* ── Group E: Section Title Style ──────────────────────────── */
+
+/* Line above (border moves to top) */
+.section-title-line-above .cv-section-title {
+  border-bottom: none;
+  border-top: var(--accent-line-weight, 2px) solid var(--theme-color);
+  padding-top: calc(5px * var(--spacing-multiplier));
+  padding-bottom: 0;
+  margin-top: 2px;
+}
+
+/* Filled band */
+.section-title-filled .cv-section-title {
+  background: color-mix(in srgb, var(--theme-color) 10%, transparent);
+  color: var(--theme-color);
+  border-bottom: none;
+  border-left: 4px solid var(--theme-color);
+  padding: calc(5px * var(--spacing-multiplier)) 10px calc(5px * var(--spacing-multiplier)) 8px;
+  border-radius: 0 var(--corner-radius, 4px) var(--corner-radius, 4px) 0;
+}
+.cv-dark-mode .section-title-filled .cv-section-title {
+  background: color-mix(in srgb, var(--theme-color) 20%, transparent);
+}
+
+/* All-caps label style */
+.section-title-allcaps .cv-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: calc(var(--section-title-size, 0.88em) * 0.95);
+  font-weight: 700;
+  color: var(--theme-color);
+  border-bottom-style: dashed;
+}
+
+/* ── Group F: Watermark ────────────────────────────────────── */
+.cv-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transform: rotate(-35deg);
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.06;
+  color: #0f172a;
+  user-select: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.cv-watermark-draft    { color: #ef4444; opacity: 0.07; }
+.cv-watermark-confidential { color: #f59e0b; opacity: 0.07; font-size: 46px; }
+
+/* ── Group F: Page Footer ──────────────────────────────────── */
+.cv-page-footer {
+  position: absolute;
+  bottom: 8mm;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.72em;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cv-dark-mode .cv-page-footer {
+  color: #475569;
 }

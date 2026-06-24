@@ -200,3 +200,68 @@
 .profile-add:hover {
   background: rgba(59, 130, 246, 0.1);
 }
+
+/* ── Inline new-profile row ─────────────────────────────── */
+.profile-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-new-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-add-confirm,
+.profile-add-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.profile-add-confirm {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+.profile-add-confirm:hover {
+  background: rgba(16, 185, 129, 0.35);
+}
+
+.profile-add-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+}
+.profile-add-cancel:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* ── Mobile ─────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .profile-trigger {
+    max-width: 160px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .profile-menu {
+    width: calc(100vw - 24px);
+    left: 0;
+    right: auto;
+    max-height: 60vh;
+  }
+
+  .profile-list {
+    max-height: 200px;
+  }
+}
