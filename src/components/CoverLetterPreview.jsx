@@ -28,7 +28,7 @@ const CoverLetterPreview = ({ cvData = {}, settings = {} }) => {
 
   const renderRichText = (text) => {
     if (!text) return null;
-    const cleanHtml = DOMPurify.sanitize(text, { ADD_ATTR: ['target'] });
+    const cleanHtml = DOMPurify.sanitize(text, { ADD_ATTR: ['target', 'style', 'align'] });
     return <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />;
   };
 

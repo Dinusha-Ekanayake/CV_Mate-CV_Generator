@@ -92,7 +92,7 @@ const CVPreview = ({ cvData = {}, settings = {} }) => {
 
   const renderRichText = (text) => {
     if (!text) return null;
-    const cleanHtml = DOMPurify.sanitize(legacyToHtml(text), { ADD_ATTR: ['target'] });
+    const cleanHtml = DOMPurify.sanitize(legacyToHtml(text), { ADD_ATTR: ['target', 'style', 'align'] });
     return <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: cleanHtml }} />;
   };
 
