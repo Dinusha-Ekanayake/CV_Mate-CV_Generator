@@ -1,0 +1,460 @@
+/* ── CV Import Modal ──────────────────────────────────────────────── */
+.imp-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.imp-modal {
+  background: linear-gradient(145deg, #0d1526, #1a2440);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 28px;
+  width: min(700px, 100%);
+  height: min(820px, 92vh);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+  color: #e2e8f0;
+  overflow: hidden;
+}
+
+/* Header */
+.imp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.imp-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.imp-title svg {
+  color: #a855f7;
+}
+
+.imp-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  transition: all 0.2s;
+}
+
+.imp-close:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.imp-subtitle {
+  font-size: 0.84rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Tabs */
+.imp-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.imp-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.imp-tab:hover {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.imp-tab.active {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+/* Paste area */
+.imp-paste-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.imp-hint {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.imp-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  padding: 12px;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  min-height: 180px;
+}
+
+.imp-textarea:focus {
+  outline: none;
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.imp-char-count {
+  font-size: 0.72rem;
+  color: #475569;
+  text-align: right;
+}
+
+/* Drop zone */
+.imp-drop-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.imp-drop-zone:hover,
+.imp-drop-zone.drag-over {
+  border-color: rgba(168, 85, 247, 0.5);
+  background: rgba(168, 85, 247, 0.05);
+}
+
+.imp-drop-zone.has-file {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.imp-drop-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.imp-drop-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #10b981;
+  margin: 0;
+}
+
+.imp-drop-sub {
+  font-size: 0.76rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* Error */
+.imp-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fca5a5;
+  font-size: 0.8rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+/* Actions */
+.imp-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.imp-cancel {
+  padding: 9px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.imp-cancel:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #e2e8f0;
+}
+
+.imp-extract-btn {
+  padding: 9px 22px;
+  font-size: 0.88rem;
+}
+
+/* Loading state */
+.imp-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 20px;
+}
+
+.imp-loading-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #c084fc;
+  margin: 0;
+}
+
+.imp-loading-sub {
+  font-size: 0.78rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* Preview */
+.imp-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: #10b981;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+
+.imp-preview-scroll {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  padding-right: 6px;
+}
+
+.imp-preview-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.imp-preview-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.imp-preview-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.imp-preview-section {
+  border-radius: 8px;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+.imp-preview-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border: none;
+  border-radius: 8px;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.imp-preview-toggle:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #c084fc;
+}
+
+.imp-preview-count {
+  margin-left: auto;
+  background: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.imp-preview-body {
+  background: rgba(255, 255, 255, 0.018);
+  border-radius: 0 0 8px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: none;
+  margin-bottom: 2px;
+}
+
+.imp-preview-item {
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.imp-preview-item:last-child {
+  border-bottom: none;
+}
+
+.imp-item-head {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.imp-item-at {
+  color: #475569;
+  font-weight: 400;
+  font-size: 0.8rem;
+  margin: 0 3px;
+}
+
+.imp-item-meta {
+  color: #64748b;
+  font-size: 0.78rem;
+  margin-top: 3px;
+}
+
+.imp-summary-text {
+  color: #94a3b8;
+  line-height: 1.6;
+  font-size: 0.84rem;
+}
+
+.imp-personal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.imp-personal-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.imp-field-key {
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: #475569;
+  min-width: 80px;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.imp-field-val {
+  color: #e2e8f0;
+  font-size: 0.84rem;
+  word-break: break-word;
+}
+
+.imp-skill-cat {
+  font-weight: 600;
+  color: #c084fc;
+  font-size: 0.84rem;
+}
+
+.imp-skill-items {
+  color: #94a3b8;
+  font-size: 0.84rem;
+}
+
+/* Warning */
+.imp-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+  padding: 7px 10px;
+  flex-shrink: 0;
+}
+
+/* Spin reuse */
+.spin {
+  animation: imp-spin 1s linear infinite;
+}
+
+@keyframes imp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .imp-modal {
+    padding: 16px;
+    border-radius: 14px;
+    height: 95vh;
+    gap: 12px;
+  }
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, Undo2, Redo2, FileDown, FileText, Archive, Search } from 'lucide-react';
+import { Download, Upload, Trash2, Wand2, Maximize, Printer, Cloud, Undo2, Redo2, FileDown, FileText, Archive, Search, Sparkles } from 'lucide-react';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import './App.css';
@@ -13,6 +13,7 @@ import CompletionBar from './components/CompletionBar';
 import AutosaveIndicator from './components/AutosaveIndicator';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
 import UpdateToast from './components/UpdateToast';
+import CVImportModal from './components/CVImportModal';
 import { OnboardingGate } from './components/OnboardingWizard';
 import { useProfiles, normalizeProfilesState } from './hooks/useProfiles';
 import { useHistory } from './hooks/useHistory';
@@ -32,6 +33,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('resume');
   const [cloudReady, setCloudReady] = useState(false);
   const [showJDMatcher, setShowJDMatcher] = useState(false);
+  const [showCVImport, setShowCVImport] = useState(false);
   const [mobileView, setMobileView] = useState('form'); // 'form' | 'preview'
   const [formWidth, setFormWidth] = useState(420);
   const [isResizing, setIsResizing] = useState(false);
@@ -325,10 +327,13 @@ function App() {
               <button onClick={loadSample} className="action-btn" title="Load Sample Data (shows all features)">
                 <Wand2 size={14} color="#a855f7" className="btn-icon" /> <span>Sample</span>
               </button>
-              <button onClick={() => fileInputRef.current.click()} className="action-btn" title="Import JSON">
+              <button onClick={() => fileInputRef.current.click()} className="action-btn" title="Import JSON backup">
                 <Upload size={14} color="#3b82f6" className="btn-icon" /> <span>Import</span>
               </button>
               <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
+              <button onClick={() => setShowCVImport(true)} className="action-btn" title="Import CV from PDF or LinkedIn text using AI">
+                <Sparkles size={14} color="#a855f7" className="btn-icon" /> <span>AI Import</span>
+              </button>
               <button onClick={handleExport} className="action-btn" title="Export JSON (Ctrl+E)">
                 <Download size={14} color="#3b82f6" className="btn-icon" /> <span>Export</span>
               </button>
@@ -444,6 +449,14 @@ function App() {
         {/* JD Matcher Modal */}
         {showJDMatcher && (
           <JDMatcherModal cvData={cvData} onClose={() => setShowJDMatcher(false)} />
+        )}
+
+        {/* AI CV Import Modal */}
+        {showCVImport && (
+          <CVImportModal
+            onClose={() => setShowCVImport(false)}
+            onImport={(data) => { setCvData(data); setShowCVImport(false); }}
+          />
         )}
 
         {/* Keyboard Shortcuts */}
