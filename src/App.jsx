@@ -14,6 +14,7 @@ import AutosaveIndicator from './components/AutosaveIndicator';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
 import UpdateToast from './components/UpdateToast';
 import CVImportModal from './components/CVImportModal';
+import InterviewPrepModal from './components/InterviewPrepModal';
 import { OnboardingGate } from './components/OnboardingWizard';
 import { useProfiles, normalizeProfilesState } from './hooks/useProfiles';
 import { useHistory } from './hooks/useHistory';
@@ -34,6 +35,7 @@ function App() {
   const [cloudReady, setCloudReady] = useState(false);
   const [showJDMatcher, setShowJDMatcher] = useState(false);
   const [showCVImport, setShowCVImport] = useState(false);
+  const [showInterviewPrep, setShowInterviewPrep] = useState(false);
   const [mobileView, setMobileView] = useState('form'); // 'form' | 'preview'
   const [formWidth, setFormWidth] = useState(420);
   const [isResizing, setIsResizing] = useState(false);
@@ -363,6 +365,11 @@ function App() {
                   <Search size={14} /> JD Match
                 </button>
               )}
+              {activeTab === 'resume' && (
+                <button onClick={() => setShowInterviewPrep(true)} className="btn btn-secondary btn-sm" title="Predict likely interview questions (AI)">
+                  <Sparkles size={14} /> Interview Prep
+                </button>
+              )}
               <button onClick={handleAutoFit} className="btn btn-secondary btn-sm">
                 <Maximize size={14} /> Auto-Fit
               </button>
@@ -457,6 +464,11 @@ function App() {
             onClose={() => setShowCVImport(false)}
             onImport={(data) => { setCvData(data); setShowCVImport(false); }}
           />
+        )}
+
+        {/* Interview Question Predictor */}
+        {showInterviewPrep && (
+          <InterviewPrepModal cvData={cvData} onClose={() => setShowInterviewPrep(false)} />
         )}
 
         {/* Keyboard Shortcuts */}
